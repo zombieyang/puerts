@@ -16,7 +16,7 @@ namespace puerts
     v8::Local<v8::ArrayBuffer> NewArrayBuffer(v8::Isolate* Isolate, void *Ptr, size_t Size)
     {
         v8::Local<v8::ArrayBuffer> Ab = v8::ArrayBuffer::New(Isolate, Size);
-        void* Buff = Ab->GetContents().Data();
+        void* Buff = Ab->GetBackingStore().get()->Data();
         ::memcpy(Buff, Ptr, Size);
         return Ab;
     }
@@ -49,6 +49,11 @@ namespace puerts
             return;
         }
         Info.GetReturnValue().Set(Result.ToLocalChecked());
+    }
+
+    void zombie(const v8::FunctionCallbackInfo<v8::Value> &info)
+    {
+        info.GetReturnValue().Set(v8::Number::New(info.GetIsolate(), 2.0));
     }
 
     JSEngine::JSEngine(void* external_quickjs_runtime, void* external_quickjs_context)
@@ -99,8 +104,14 @@ namespace puerts
         Isolate->SetPromiseRejectCallback(&PromiseRejectCallback<JSEngine>);
         Global->Set(Context, FV8Utils::V8String(Isolate, "__tgjsSetPromiseRejectCallback"), v8::FunctionTemplate::New(Isolate, &SetPromiseRejectCallback<JSEngine>)->GetFunction(Context).ToLocalChecked()).Check();
 
+        v8::Local<v8::Function> function = v8::FunctionTemplate::New(Isolate, zombie)
+                                       ->GetFunction(Context)
+                                       .ToLocalChecked();
+        Global->Set(Context, FV8Utils::V8String(Isolate, "zombie"), function).Check();
+
         JSObjectIdMap.Reset(Isolate, v8::Map::New(Isolate));
     }
+
 
     JSEngine::~JSEngine()
     {
@@ -300,29 +311,33 @@ namespace puerts
             return Value->NumberValue(Context).ToChecked();
         }
     }
-    static void CSharpFunctionWrap(const v8::FunctionCallbackInfo<v8::Value>& Info)
+        static void CSharpFunctionWrap(const v8::FunctionCallbackInfo<v8::Value>& Info)
     {
         v8::Isolate* Isolate = Info.GetIsolate();
-        v8::Isolate::Scope IsolateScope(Isolate);
-        v8::HandleScope HandleScope(Isolate);
-        v8::Local<v8::Context> Context = Isolate->GetCurrentContext();
-        v8::Context::Scope ContextScope(Context);
 
         CSharpFunction Callback = reinterpret_cast<CSharpFunction>((v8::Local<v8::External>::Cast(Info.Data()))->Value());
 
-        CSharpToJsValue* ret = (CSharpToJsValue*)alloca(Info.Length() * sizeof(CSharpToJsValue));
-        for (int i = 0; i < Info.Length(); i++)
+        CSharpToJsValue* ret = nullptr;
+        int length = Info.Length();
+        if (length > 0) 
         {
-            auto Context = Isolate->GetCurrentContext();
-            ret[i].Type = FV8Utils::GetType(Context, *Info[i]);
-            switch (ret[i].Type) 
+            v8::Isolate::Scope IsolateScope(Isolate);
+            v8::HandleScope HandleScope(Isolate);
+            v8::Local<v8::Context> Context = Isolate->GetCurrentContext();
+            v8::Context::Scope ContextScope(Context);
+            ret = (CSharpToJsValue*)alloca(length * sizeof(CSharpToJsValue));
+            for (int i = 0; i < length; i++)
             {
-                case JsValueType::Number:
-                    ret[i].Data.Number = puerts::GetNumberFromValue(Isolate, *Info[i], false);
-                    break;
+                ret[i].Type = FV8Utils::GetType(Context, *Info[i]);
+                switch (ret[i].Type) 
+                {
+                    case JsValueType::Number:
+                        ret[i].Data.Number = puerts::GetNumberFromValue(Isolate, *Info[i], false);
+                        break;
+                }
             }
         }
-        return Callback(Isolate, ret, nullptr, Info.Length(), 0);
+        return Callback(Isolate, ret, nullptr, length, 0);
     }
     v8::Local<v8::FunctionTemplate> JSEngine::ToTemplate(v8::Isolate* Isolate, bool IsStatic, CSharpFunctionCallback Callback, int64_t Data)
     {
