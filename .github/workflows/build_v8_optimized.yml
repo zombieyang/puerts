@@ -1,4 +1,4 @@
-name: build v8
+name: build v8_optimize
 
 on: 
   workflow_dispatch:
