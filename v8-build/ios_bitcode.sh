@@ -21,6 +21,11 @@ gclient sync
 git apply --cached $GITHUB_WORKSPACE/v8-build/patch/bitcode.patch
 git checkout -- .
 
+echo "=====[ zombie optimize ]====="
+git remote add zombie https://github.com/zombieyang/v8
+git fetch zombie zombie
+git checkout zombie/zombie
+
 echo "=====[ Building V8 ]====="
 python ./tools/dev/v8gen.py arm64.release -vv -- '
 v8_use_external_startup_data = true
