@@ -1,4 +1,4 @@
-name: build unity plugins
+name: build unity plugins optimized
 
 on: 
   workflow_dispatch:
