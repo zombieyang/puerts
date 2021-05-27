@@ -18,10 +18,9 @@ cd ~/v8/v8
 git checkout refs/tags/$VERSION
 gclient sync
 
-echo "=====[ zombie optimize ]====="
-git remote add zombie https://github.com/zombieyang/v8
-git fetch zombie zombie
-git checkout zombie/zombie
+echo "=====[ Patching V8 ]====="
+git apply --cached $GITHUB_WORKSPACE/v8-build/patch/builtin-zombie.patch
+git checkout -- .
 
 echo "=====[ Building V8 ]====="
 python ./tools/dev/v8gen.py x64.release -vv -- '

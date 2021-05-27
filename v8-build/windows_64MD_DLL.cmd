@@ -23,10 +23,9 @@ call git restore *
 cd ..\..\..\
 call gclient sync
 
-echo "=====[ zombie optimize ]====="
-call git remote add zombie https://github.com/zombieyang/v8
-call git fetch zombie zombie
-call git checkout zombie/zombie
+echo "=====[ Patching V8 ]====="
+call git apply --cached $GITHUB_WORKSPACE/v8-build/patch/builtin-zombie.patch
+call git checkout -- .
 
 echo =====[ Make dynamic_crt ]=====
 node %~dp0\rep.js  build\config\win\BUILD.gn

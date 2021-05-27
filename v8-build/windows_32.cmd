@@ -23,10 +23,9 @@ call git restore *
 cd ..\..\..\
 call gclient sync
 
-echo "=====[ zombie optimize ]====="
-call git remote add zombie https://github.com/zombieyang/v8
-call git fetch zombie zombie
-call git checkout zombie/zombie
+echo "=====[ Patching V8 ]====="
+call git apply --cached $GITHUB_WORKSPACE/v8-build/patch/builtin-zombie.patch
+call git checkout -- .
 
 echo =====[ Building V8 ]=====
 call gn gen out.gn\x86.release -args="target_os=""win"" target_cpu=""x86"" v8_use_external_startup_data=true v8_enable_i18n_support=false is_debug=false v8_static_library=true is_clang=false strip_debug_info=true symbol_level=0 v8_enable_pointer_compression=false"
