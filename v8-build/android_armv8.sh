@@ -31,7 +31,7 @@ git checkout refs/tags/$VERSION
 gclient sync
 
 echo "=====[ Patching V8 ]====="
-git apply --cached $GITHUB_WORKSPACE/v8-build/patch/builtin-zombie.patch
+git apply --cached $GITHUB_WORKSPACE/v8-build/patch/0001-puertsInstanceCount.patch
 git checkout -- .
 
 echo "=====[ Building V8 ]====="

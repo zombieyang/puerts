@@ -24,7 +24,7 @@ cd ..\..\..\
 call gclient sync
 
 echo "=====[ Patching V8 ]====="
-call git apply --cached $GITHUB_WORKSPACE/v8-build/patch/builtin-zombie.patch
+call git apply --cached $GITHUB_WORKSPACE/v8-build/patch/0001-puertsInstanceCount.patch
 call git checkout -- .
 
 echo =====[ Make dynamic_crt ]=====
