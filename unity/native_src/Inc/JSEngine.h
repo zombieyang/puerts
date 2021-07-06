@@ -52,6 +52,31 @@ typedef void(*CSharpDestructorCallback)(void* Self, int64_t UserData);
 namespace puerts
 {
 
+#pragma pack(8)
+union ValueUnion
+{
+    double Number;
+    bool Boolean;
+    int64_t BigInt;
+    void* Pointer;
+};
+
+struct CSharpJSValue
+{
+    puerts::JsValueType Type;
+    int classIDOrValueLength;
+    ValueUnion Data;
+};
+#pragma pack()
+
+struct FCallbackInfo
+{
+    FCallbackInfo(bool InIsStatic, CSharpFunctionCallbackOld InCallback, int64_t InData) : IsStatic(InIsStatic), Callback(InCallback), Data(InData) {}
+    bool IsStatic;
+    CSharpFunctionCallbackOld Callback;
+    int64_t Data;
+};
+
 struct FLifeCycleInfo
 {
     FLifeCycleInfo(int InClassID, CSharpConstructorCallback InConstructor, CSharpDestructorCallback InDestructor, int64_t InData, int InSize)
