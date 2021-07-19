@@ -76,7 +76,7 @@ v8::Local<v8::ArrayBuffer> NewArrayBuffer(v8::Isolate* Isolate, void *Ptr, size_
 class JSEngine
 {
 public:
-    JSEngine(void* external_quickjs_runtime, void* external_quickjs_context);
+    JSEngine(void* external_quickjs_context);
 
     ~JSEngine();
 
