@@ -146,7 +146,8 @@ elseif ( WIN32 )
             )
         else ()
             target_link_libraries(puerts
-                ${V8_ENGINE}/Lib/Win64/quickjs.dll.lib
+                quickjs-pixui/quickjs/Win64/quickjs.lib
+                quickjs-pixui/qjs-v8/Win64/v8qjs.lib
                 winmm.lib
                 dbghelp.lib
                 shlwapi.lib
@@ -174,16 +175,32 @@ elseif ( ANDROID )
     find_library(log-lib log )
 
     if( ANDROID_ABI STREQUAL "armeabi-v7a")
-        target_link_libraries(puerts
-            ${V8_ENGINE}/Lib/Android/armeabi-v7a/${LIB_FILE_NAME}
-            ${log-lib}
-        )
+        if ( JS_ENGINE STREQUAL "quickjs")
+            target_link_libraries(puerts
+                quickjs-pixui/quickjs/Android/armeabi-v7a/libquickjs.a
+                quickjs-pixui/qjs-v8/Android/armeabi-v7a/libv8qjs.a
+                ${log-lib}
+            )
+        else ()
+            target_link_libraries(puerts
+                ${V8_ENGINE}/Lib/Android/armeabi-v7a/${LIB_FILE_NAME}
+                ${log-lib}
+            )
+        endif ()
         target_compile_definitions (puerts PRIVATE PLATFORM_ANDROID_ARM)
     else ()
-        target_link_libraries(puerts
-            ${V8_ENGINE}/Lib/Android/arm64-v8a/${LIB_FILE_NAME}
-            ${log-lib}
-        )
+        if ( JS_ENGINE STREQUAL "quickjs")
+            target_link_libraries(puerts
+                quickjs-pixui/quickjs/Android/arm64-v8a/libquickjs.a
+                quickjs-pixui/qjs-v8/Android/arm64-v8a/libv8qjs.a
+                ${log-lib}
+            )
+        else ()
+            target_link_libraries(puerts
+                ${V8_ENGINE}/Lib/Android/arm64-v8a/${LIB_FILE_NAME}
+                ${log-lib}
+            )
+        endif ()
         target_compile_definitions (puerts PRIVATE PLATFORM_ANDROID_ARM64)
     endif ()
 
@@ -203,9 +220,16 @@ elseif ( APPLE )
             target_compile_definitions (puerts PRIVATE PLATFORM_IOS)
         endif ()
     else ()
-        target_link_libraries(puerts
-            ${V8_ENGINE}/Lib/macOS/${LIB_FILE_NAME}
-        )
+        if ( JS_ENGINE STREQUAL "quickjs")
+            target_link_libraries(puerts
+                quickjs-pixui/quickjs/macOS/libquickjs.dylib
+                quickjs-pixui/qjs-v8/macOS/libv8qjs.a
+            )
+        else ()
+            target_link_libraries(puerts
+                ${V8_ENGINE}/Lib/macOS/${LIB_FILE_NAME}
+            )
+        endif ()
         target_compile_definitions (puerts PRIVATE PLATFORM_MAC)
     endif ()
 endif ()
