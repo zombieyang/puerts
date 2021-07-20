@@ -146,8 +146,8 @@ elseif ( WIN32 )
             )
         else ()
             target_link_libraries(puerts
-                quickjs-pixui/quickjs/Win64/quickjs.lib
-                quickjs-pixui/qjs-v8/Win64/v8qjs.lib
+                ${CMAKE_SOURCE_DIR}/quickjs-pixui/quickjs/Win64/quickjs.lib
+                ${CMAKE_SOURCE_DIR}/quickjs-pixui/qjs-v8/Win64/v8qjs.lib
                 winmm.lib
                 dbghelp.lib
                 shlwapi.lib
@@ -177,8 +177,8 @@ elseif ( ANDROID )
     if( ANDROID_ABI STREQUAL "armeabi-v7a")
         if ( JS_ENGINE STREQUAL "quickjs")
             target_link_libraries(puerts
-                quickjs-pixui/quickjs/Android/armeabi-v7a/libquickjs.a
-                quickjs-pixui/qjs-v8/Android/armeabi-v7a/libv8qjs.a
+                ${CMAKE_SOURCE_DIR}/quickjs-pixui/quickjs/Android/armeabi-v7a/libquickjs.a
+                ${CMAKE_SOURCE_DIR}/quickjs-pixui/qjs-v8/Android/armeabi-v7a/libv8qjs.a
                 ${log-lib}
             )
         else ()
@@ -191,8 +191,8 @@ elseif ( ANDROID )
     else ()
         if ( JS_ENGINE STREQUAL "quickjs")
             target_link_libraries(puerts
-                quickjs-pixui/quickjs/Android/arm64-v8a/libquickjs.a
-                quickjs-pixui/qjs-v8/Android/arm64-v8a/libv8qjs.a
+                ${CMAKE_SOURCE_DIR}/quickjs-pixui/quickjs/Android/arm64-v8a/libquickjs.a
+                ${CMAKE_SOURCE_DIR}/quickjs-pixui/qjs-v8/Android/arm64-v8a/libv8qjs.a
                 ${log-lib}
             )
         else ()
@@ -222,8 +222,8 @@ elseif ( APPLE )
     else ()
         if ( JS_ENGINE STREQUAL "quickjs")
             target_link_libraries(puerts
-                quickjs-pixui/quickjs/macOS/libquickjs.dylib
-                quickjs-pixui/qjs-v8/macOS/libv8qjs.a
+                ${CMAKE_SOURCE_DIR}/quickjs-pixui/quickjs/macOS/libquickjs.dylib
+                ${CMAKE_SOURCE_DIR}/quickjs-pixui/qjs-v8/macOS/libv8qjs.a
             )
         else ()
             target_link_libraries(puerts
