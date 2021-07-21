@@ -32,7 +32,11 @@ else()
     set(LIB_FILE_NAME libwee8.a)
 endif()
 
-set(V8_ENGINE ${CMAKE_SOURCE_DIR}/${JS_ENGINE})
+if ( JS_ENGINE STREQUAL "quickjs")
+    set(V8_ENGINE ${CMAKE_SOURCE_DIR}/quickjs-pixui)
+else()
+    set(V8_ENGINE ${CMAKE_SOURCE_DIR}/${JS_ENGINE})
+endif()
 
 set(V8_INC ${V8_ENGINE}/Inc)
 
