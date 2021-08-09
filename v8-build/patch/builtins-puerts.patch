@@ -10,7 +10,7 @@ index ffbf9ce355..c408c7d7c7 100644
 +puerts
 \ No newline at end of file
 diff --git a/include/v8.h b/include/v8.h
-index 18d72f1630..48732b6bba 100644
+index 18d72f1630..5aa1888978 100644
 --- a/include/v8.h
 +++ b/include/v8.h
 @@ -38,6 +38,9 @@
@@ -69,7 +69,7 @@ index 18d72f1630..48732b6bba 100644
 +
 +  struct FunctionInfo;
 +
-+  typedef CSharpToJsValue* (*CallbackFunction)(v8::Isolate* Isolate, const v8::Puerts::FunctionCallbackInfo& Info, void* Self, int ParamLen, int64_t Data);
++  typedef void (*CallbackFunction)(v8::Isolate* Isolate, CSharpToJsValue* value, const v8::Puerts::FunctionCallbackInfo& Info, void* Self, int ParamLen, int64_t Data);
 +
 +  typedef v8::Local<v8::Value> (*CallbackWrap)(v8::Isolate* Isolate, const v8::Puerts::FunctionCallbackInfo& Info, void* Self, int ParamLen, FunctionInfo* functionInfo);
 +
@@ -154,10 +154,10 @@ index 93780bceec..0b600916ad 100644
  
  #undef TRACE_BS
 diff --git a/src/builtins/builtins-api.cc b/src/builtins/builtins-api.cc
-index 6eb6f87c74..0012bded48 100644
+index 6eb6f87c74..42e5cd82ee 100644
 --- a/src/builtins/builtins-api.cc
 +++ b/src/builtins/builtins-api.cc
-@@ -309,5 +309,111 @@ BUILTIN(HandleApiCallAsConstructor) {
+@@ -309,5 +309,112 @@ BUILTIN(HandleApiCallAsConstructor) {
    return HandleApiCallAsFunctionOrConstructor(isolate, true, args);
  }
  
@@ -238,6 +238,7 @@ index 6eb6f87c74..0012bded48 100644
 +  
 +  functionInfo->callback(
 +    reinterpret_cast<v8::Isolate*>(isolate),
++    nullptr,
 +    callbackInfo,
 +    functionInfo->isStatic ? nullptr : reinterpret_cast<void*>(
 +      internal::Internals::ReadExternalPointerField(

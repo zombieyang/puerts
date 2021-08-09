@@ -28,7 +28,7 @@ public struct ValueUnion
 public struct CSharpToJsValue
 {
     public JSValueType Type;
-    public int classIDOrValueLength
+    public int classIDOrValueLength;
     public ValueUnion Data;
 };
 

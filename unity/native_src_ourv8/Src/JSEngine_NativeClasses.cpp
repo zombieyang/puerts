@@ -2,7 +2,7 @@
 
 namespace puerts {
 
-const char* JSEngine::NativeClassesJS = "       
+const char* JSEngine::NativeClassesJS = "                                                                  \
 var global = global || (function () { return this; }());                                        \
 const classes = global.classes = [function() { throw Error('invalid class') }];                          \
                                                                                         \
