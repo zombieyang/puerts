@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 #if CSHARP_7_3_OR_NEWER
 using System.Threading.Tasks;
 #endif
@@ -14,6 +15,7 @@ using System.Threading.Tasks;
 namespace Puerts
 {
     public delegate void FunctionCallback(IntPtr isolate, IntPtr info, IntPtr self, int argumentsLen);
+    public unsafe delegate void DRFunctionCallback(IntPtr isolate, CSharpToJsValue* value, IntPtr info, IntPtr self, int argumentsLen);
     public delegate object ConstructorCallback(IntPtr isolate, IntPtr info, int argumentsLen);
 
     public class JsEnv : IDisposable
@@ -51,7 +53,7 @@ namespace Puerts
         {
         }
 
-        public JsEnv(ILoader loader, int debugPort, IntPtr externalRuntime, IntPtr externalContext)
+        public unsafe JsEnv(ILoader loader, int debugPort, IntPtr externalRuntime, IntPtr externalContext)
         {
             const int libVersionExpect = 11;
             int libVersion = PuertsDLL.GetLibVersion();
@@ -107,10 +109,10 @@ namespace Puerts
             TypeRegister.InitArrayTypeId(isolate);
 
             // 把JSEnv的id和Callback的id拼成一个long存起来，并将StaticCallbacks.JsEnvCallbackWrap注册给V8。而后通过StaticCallbacks.JsEnvCallbackWrap从long中取出函数和envid并调用。
-            PuertsDLL.SetGlobalFunction(isolate, "__tgjsRegisterTickHandler", StaticCallbacks.JsEnvCallbackWrap, AddCallback(RegisterTickHandler));
-            PuertsDLL.SetGlobalFunction(isolate, "__tgjsLoadType", StaticCallbacks.JsEnvCallbackWrap, AddCallback(LoadType));
-            PuertsDLL.SetGlobalFunction(isolate, "__tgjsGetNestedTypes", StaticCallbacks.JsEnvCallbackWrap, AddCallback(GetNestedTypes));
-            PuertsDLL.SetGlobalFunction(isolate, "__tgjsGetLoader", StaticCallbacks.JsEnvCallbackWrap, AddCallback(GetLoader));
+            PuertsDLL.SetGlobalFunction(isolate, "__tgjsRegisterTickHandler", StaticCallbacks.JsEnvDRCallbackWrap, AddDRCallback(RegisterTickHandler));
+            PuertsDLL.SetGlobalFunction(isolate, "__tgjsLoadType", StaticCallbacks.JsEnvDRCallbackWrap, AddDRCallback(LoadType));
+            PuertsDLL.SetGlobalFunction(isolate, "__tgjsGetNestedTypes", StaticCallbacks.JsEnvDRCallbackWrap, AddDRCallback(GetNestedTypes));
+            PuertsDLL.SetGlobalFunction(isolate, "__tgjsGetLoader", StaticCallbacks.JsEnvDRCallbackWrap, AddDRCallback(GetLoader));
 
             //可以DISABLE掉自动注册，通过手动调用PuertsStaticWrap.AutoStaticCodeRegister.Register(jsEnv)来注册
 #if !DISABLE_AUTO_REGISTER
@@ -230,16 +232,27 @@ namespace Puerts
         }
 
         private readonly List<FunctionCallback> callbacks = new List<FunctionCallback>();
+        private readonly List<DRFunctionCallback> drCallbacks = new List<DRFunctionCallback>();
 
         internal void InvokeCallback(IntPtr isolate, int callbackIdx, IntPtr info, IntPtr self, int paramLen)
         {
             callbacks[callbackIdx](isolate, info, self, paramLen);
+        }
+        internal unsafe void InvokeDRCallback(IntPtr isolate, int callbackIdx, CSharpToJsValue* value, IntPtr info, IntPtr self, int paramLen)
+        {
+            drCallbacks[callbackIdx](isolate, value, info, self, paramLen);
         }
 
         internal long AddCallback(FunctionCallback callback)
         {
             int callbackIdx = callbacks.Count;
             callbacks.Add(callback);
+            return Utils.TwoIntToLong(Idx, callbackIdx);
+        }
+        internal long AddDRCallback(DRFunctionCallback drCallback)
+        {
+            int callbackIdx = drCallbacks.Count;
+            drCallbacks.Add(drCallback);
             return Utils.TwoIntToLong(Idx, callbackIdx);
         }
 
@@ -266,9 +279,16 @@ namespace Puerts
             //if (obj != null) UnityEngine.Debug.Log("release " + obj + "(" + obj.GetHashCode() + ")");
         }
 
-        void GetLoader(IntPtr isolate, IntPtr info, IntPtr self, int paramLen)
+        unsafe void GetLoader(IntPtr isolate, CSharpToJsValue* value, IntPtr info, IntPtr self, int paramLen)
         {
             GeneralSetterManager.AnyTranslator(isolate, NativeValueApi.SetValueToResult, info, loader);
+
+            Type realType = loader.GetType();
+            
+            int typeId = TypeRegister.GetTypeId(isolate, realType);
+            int objectId = objectPool.FindOrAddObject(loader);
+
+            CSharpToJsValue.createNativeObject(value, typeId, new IntPtr(objectId));
         }
 
         public void RegisterGeneralGetSet(Type type, GeneralGetter getter, GeneralSetter setter)
@@ -298,7 +318,7 @@ namespace Puerts
 
         private List<IntPtr> tickHandler = new List<IntPtr>(); 
         
-        void RegisterTickHandler(IntPtr isolate, IntPtr info, IntPtr self, int paramLen)
+        unsafe void RegisterTickHandler(IntPtr isolate, CSharpToJsValue* value, IntPtr info, IntPtr self, int paramLen)
         {
             try
             {
@@ -335,7 +355,9 @@ namespace Puerts
             if (PuertsDLL.GetJsValueType(isolate, value, false) == JsValueType.String)
             {
                 string classFullName = PuertsDLL.GetStringFromValue(isolate, value, false);
+                // UnityEngine.Debug.Log("GetType");
                 var maybeType = TypeRegister.GetType(classFullName);
+                // UnityEngine.Debug.Log("GotType");
                 if (paramLen == 1)
                 {
                     type = maybeType;
@@ -358,13 +380,17 @@ namespace Puerts
             }
             else if (PuertsDLL.GetJsValueType(isolate, value, false) == JsValueType.NativeObject)
             {
-                type = StaticTranslate<Type>.Get(Index, isolate, NativeValueApi.GetValueFromArgument, value, false);
+                IGetValueFromJs getter = NativeValueApi.GetValueFromArgument;
+                StaticTranslate<Type>.GetFunc getFunc = StaticTranslate<Type>.DefaultGetResult;
+                // UnityEngine.Debug.Log("GetTypeFromJs ooo" + getFunc);
+                getFunc(Index, isolate, getter, value, false);
+                // UnityEngine.Debug.Log("GetTypeFromJs iii");
             }
 
             return type;
         }
 
-        void LoadType(IntPtr isolate, IntPtr info, IntPtr self, int paramLen)
+        unsafe void LoadType(IntPtr isolate, CSharpToJsValue* value, IntPtr info, IntPtr self, int paramLen)
         {
             try
             {
@@ -373,7 +399,8 @@ namespace Puerts
                 if (type != null)
                 {
                     int typeId = TypeRegister.GetTypeId(isolate, type);
-                    PuertsDLL.ReturnClass(isolate, info, typeId);
+                    
+                    CSharpToJsValue.createNumber(value, typeId);
                 }
             }
             catch(Exception e)
@@ -382,19 +409,23 @@ namespace Puerts
             }
         }
 
-        void GetNestedTypes(IntPtr isolate, IntPtr info, IntPtr self, int paramLen)
+        unsafe void GetNestedTypes(IntPtr isolate, CSharpToJsValue* value, IntPtr info, IntPtr self, int paramLen)
         {
             try
             {
+                // UnityEngine.Debug.Log("GetTypeFromJs");
                 Type type = GetTypeFromJs(isolate, info, self, paramLen);
-                if (type != null)
-                {
-                    StaticTranslate<Type[]>.Set(Index, isolate, NativeValueApi.SetValueToResult, info, type.GetNestedTypes());
-                }
+                // UnityEngine.Debug.Log("GotTypeFromJs");
+                Type[] types = type.GetNestedTypes();
+                int typeId = TypeRegister.GetTypeId(isolate, types.GetType());
+                int objectId = objectPool.FindOrAddObject(types);
+
+                CSharpToJsValue.createNativeObject(value, typeId, new IntPtr(objectId));
             }
             catch (Exception e)
             {
                 PuertsDLL.ThrowException(isolate, "GetNestedType throw c# exception:" + e.Message + ",stack:" + e.StackTrace);
+
             }
         }
 

@@ -24,8 +24,9 @@ namespace Puerts
             JsEnv.jsEnvs[jsEnvIdx].GeneralSetterManager.GetTranslateFunc(typeof(T))(isolate, setValueApi, function, o);
         }
 
-        private static T DefaultGetResult(int jsEnvIdx, IntPtr isolate, IGetValueFromJs getValueApi, IntPtr value, bool isByRef)
+        public static T DefaultGetResult(int jsEnvIdx, IntPtr isolate, IGetValueFromJs getValueApi, IntPtr value, bool isByRef)
         {
+            // UnityEngine.Debug.Log("DefaultGetResult_");
             object obj = JsEnv.jsEnvs[jsEnvIdx].GeneralGetterManager.GetTranslateFunc(typeof(T))(isolate, getValueApi, value, isByRef);
             if (obj == null)
             {

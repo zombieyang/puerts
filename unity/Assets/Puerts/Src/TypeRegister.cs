@@ -300,6 +300,7 @@ namespace Puerts
 #endif
         internal Type GetType(string className, bool isQualifiedName = false)
         {
+            // UnityEngine.Debug.Log("GetType_" + className);
             Type type = Type.GetType(className, false);
             if (type != null)
             {
@@ -338,9 +339,9 @@ namespace Puerts
             return null;
         }
 
-        private readonly V8FunctionCallback callbackWrap = new V8FunctionCallback(StaticCallbacks.JsEnvCallbackWrap);
+        private readonly unsafe V8FunctionCallback callbackWrap = new V8FunctionCallback(StaticCallbacks.JsEnvCallbackWrap);
 
-        private readonly V8FunctionCallback returnTrue = new V8FunctionCallback(StaticCallbacks.ReturnTrue);
+        private readonly unsafe V8FunctionCallback returnTrue = new V8FunctionCallback(StaticCallbacks.ReturnTrue);
 
         private readonly V8ConstructorCallback constructorWrap = new V8ConstructorCallback(StaticCallbacks.ConstructorWrap);
 

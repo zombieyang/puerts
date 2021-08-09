@@ -10,8 +10,12 @@ var global = global || (function () { return this; }());
     "use strict";
     
     let puerts = global.puerts = global.puerts || {};
-    
-    puerts.loadType = global.__tgjsLoadType;
+    const loadType = global.__tgjsLoadType
+    puerts.loadType = function() {
+        // console.log('JS loadType', arguments[0], typeof arguments[0]);
+        const typeid = loadType.apply(this, arguments);
+        return classes[typeid];
+    };
     delete global.__tgjsLoadType;
     puerts.getNestedTypes = global.__tgjsGetNestedTypes;
     delete global.__tgjsGetNestedTypes;

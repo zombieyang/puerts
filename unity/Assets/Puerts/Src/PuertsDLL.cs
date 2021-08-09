@@ -11,26 +11,39 @@ using System.Text;
 
 namespace Puerts
 {
-[StructLayout(LayoutKind.Explicit)]
-public struct ValueUnion
-{
-    [FieldOffset(0)]
-    public double Number;
-    [FieldOffset(0)]
-    public bool Boolean;
-    [FieldOffset(0)]
-    public long BigInt;
-    [FieldOffset(0)]
-    public IntPtr Pointer;
-};
+    [StructLayout(LayoutKind.Explicit)]
+    public struct ValueUnion
+    {
+        [FieldOffset(0)]
+        public double Number;
+        [FieldOffset(0)]
+        public bool Boolean;
+        [FieldOffset(0)]
+        public long BigInt;
+        [FieldOffset(0)]
+        public IntPtr Pointer;
+    };
 
-[StructLayout(LayoutKind.Sequential, Pack = 8)]
-public struct CSharpToJsValue
-{
-    public JSValueType Type;
-    public int classIDOrValueLength;
-    public ValueUnion Data;
-};
+    [StructLayout(LayoutKind.Sequential, Pack = 8)]
+    public ref struct CSharpToJsValue
+    {
+        public JsValueType Type;
+        public int classIDOrValueLength;
+        public ValueUnion Data;
+
+        public unsafe static void createNativeObject(CSharpToJsValue* value, int typeid, IntPtr pointer) 
+        {
+            (*value).Data.Pointer = pointer;
+            (*value).classIDOrValueLength = typeid;
+            (*value).Type = JsValueType.NativeObject;
+        }
+
+        public unsafe static void createNumber(CSharpToJsValue* value, int number) 
+        {
+            (*value).Data.Number = number;
+            (*value).Type = JsValueType.Number;
+        }
+    };
 
 #pragma warning disable 414
     public class MonoPInvokeCallbackAttribute : System.Attribute
@@ -46,13 +59,13 @@ public struct CSharpToJsValue
 #if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || PUERTS_GENERAL || (UNITY_WSA && !UNITY_EDITOR)
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
 #endif
-    public delegate CSharpToJsValue* V8FunctionDRCallback(IntPtr isolate, IntPtr info, IntPtr self, int paramLen, long data);
+    public unsafe delegate void V8FunctionDRCallback(IntPtr isolate, CSharpToJsValue* value, IntPtr info, IntPtr self, int paramLen, long data);
 
 
 #if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || PUERTS_GENERAL || (UNITY_WSA && !UNITY_EDITOR)
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
 #endif
-    public delegate IntPtr V8FunctionCallback(IntPtr isolate, IntPtr info, IntPtr self, int paramLen, long data);
+    public unsafe delegate IntPtr V8FunctionCallback(IntPtr isolate, CSharpToJsValue* value, IntPtr info, IntPtr self, int paramLen, long data);
 
 #if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || PUERTS_GENERAL || (UNITY_WSA && !UNITY_EDITOR)
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
@@ -109,7 +122,7 @@ public struct CSharpToJsValue
         public static extern void DestroyJSEngine(IntPtr isolate);
 
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void SetGlobalFunction(IntPtr isolate, string name, IntPtr v8FunctionCallback, long data);
+        private static extern void SetGlobalFunction(IntPtr isolate, string name, IntPtr v8FunctionCallback, long data);
 
         public static void SetGlobalFunction(IntPtr isolate, string name, V8FunctionDRCallback v8FunctionCallback, long data)
         {
