@@ -11,6 +11,27 @@ using System.Text;
 
 namespace Puerts
 {
+[StructLayout(LayoutKind.Explicit)]
+public struct ValueUnion
+{
+    [FieldOffset(0)]
+    public double Number;
+    [FieldOffset(0)]
+    public bool Boolean;
+    [FieldOffset(0)]
+    public long BigInt;
+    [FieldOffset(0)]
+    public IntPtr Pointer;
+};
+
+[StructLayout(LayoutKind.Sequential, Pack = 8)]
+public struct CSharpToJsValue
+{
+    public JSValueType Type;
+    public int classIDOrValueLength
+    public ValueUnion Data;
+};
+
 #pragma warning disable 414
     public class MonoPInvokeCallbackAttribute : System.Attribute
     {
@@ -25,7 +46,13 @@ namespace Puerts
 #if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || PUERTS_GENERAL || (UNITY_WSA && !UNITY_EDITOR)
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
 #endif
-    public delegate void V8FunctionCallback(IntPtr isolate, IntPtr info, IntPtr self, int paramLen, long data);
+    public delegate CSharpToJsValue* V8FunctionDRCallback(IntPtr isolate, IntPtr info, IntPtr self, int paramLen, long data);
+
+
+#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || PUERTS_GENERAL || (UNITY_WSA && !UNITY_EDITOR)
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+#endif
+    public delegate IntPtr V8FunctionCallback(IntPtr isolate, IntPtr info, IntPtr self, int paramLen, long data);
 
 #if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || PUERTS_GENERAL || (UNITY_WSA && !UNITY_EDITOR)
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
@@ -84,7 +111,7 @@ namespace Puerts
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
         public static extern void SetGlobalFunction(IntPtr isolate, string name, IntPtr v8FunctionCallback, long data);
 
-        public static void SetGlobalFunction(IntPtr isolate, string name, V8FunctionCallback v8FunctionCallback, long data)
+        public static void SetGlobalFunction(IntPtr isolate, string name, V8FunctionDRCallback v8FunctionCallback, long data)
         {
 #if PUERTS_GENERAL || (UNITY_WSA && !UNITY_EDITOR)
             GCHandle.Alloc(v8FunctionCallback);

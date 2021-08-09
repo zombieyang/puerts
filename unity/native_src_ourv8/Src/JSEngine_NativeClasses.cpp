@@ -2,8 +2,9 @@
 
 namespace puerts {
 
-const char* JSEngine::NativeClassesJS = "                                               \
-const classes = [function() { throw Error('invalid class') }];                                                                     \
+const char* JSEngine::NativeClassesJS = "       
+var global = global || (function () { return this; }());                                        \
+const classes = global.classes = [function() { throw Error('invalid class') }];                          \
                                                                                         \
 function inherit(subcls, basecls) {                                                     \
     const bridge = function () { };                                                     \
@@ -21,6 +22,7 @@ const ClassManager = {                                                          
         if (baseid > 0) {                                                               \
             inherit(constructorFunction, classes[baseid]);                              \
         }                                                                               \
+        constructorFunction.$cid = id;                                                  \
         return id;                                                                      \
     },                                                                                  \
                                                                                         \
@@ -68,13 +70,27 @@ const ClassManager = {                                                          
                                                                                         \
     newObject(classid, ...args) {                                                       \
         return new classes[classid](...args);                                           \
-    }                                                                                   \
+    },                                                                                  \
+                                                                                        \
+    makeGlobalFunction(name, handler) {                                                 \
+        (function() {                                                                   \
+            this[name] = function(...args) {                                            \
+                return PuertsV8.drCallback.call(handler, this, ...args)                 \
+            };                                                                          \
+        })()                                                                            \
+    },                                                                                  \
 };                                                                                      \
                                                                                         \
 ClassManager;                                                                           \
 ";
 
-v8::Local<v8::Object> JSEngine::MakeHandler(v8::Local<v8::Context> Context, v8::Puerts::CallbackFunction Callback, int64_t Data, bool isStatic) 
+v8::Local<v8::Object> JSEngine::MakeHandler(
+    v8::Local<v8::Context> Context, 
+    v8::Puerts::CallbackFunction Callback,
+    v8::Puerts::CallbackWrap Wrap,
+    int64_t Data, 
+    bool isStatic
+) 
 {
     v8::Local<v8::Object> handler = GHandlerTemplate
         .Get(MainIsolate)
@@ -87,6 +103,10 @@ v8::Local<v8::Object> JSEngine::MakeHandler(v8::Local<v8::Context> Context, v8::
     functionInfo->callback = Callback;
     functionInfo->bindData = (void *)Data;
     functionInfo->isStatic = isStatic;
+    if (Wrap != nullptr) 
+    {
+        functionInfo->wrap = Wrap;
+    }
 
     handler->SetInternalField(0, v8::External::New(MainIsolate, (void*)functionInfo));
 
@@ -125,6 +145,9 @@ void JSEngine::InitNativeClasses(v8::Local<v8::Context> Context)
     );
     GJSGetNextClassID.Reset(MainIsolate, 
         JSClassManager->Get(Context, FV8Utils::V8String(MainIsolate, "getNextClassID")).ToLocalChecked()
+    );
+    GJSMakeGlobalFunction.Reset(MainIsolate, 
+        JSClassManager->Get(Context, FV8Utils::V8String(MainIsolate, "makeGlobalFunction")).ToLocalChecked()
     );
 }
 
@@ -210,7 +233,7 @@ bool JSEngine::RegisterFunction(int ClassID, const char *Name, bool IsStatic, v8
     
     v8::Function* JSRegisterFunctionFunction = v8::Function::Cast(*GJSRegisterFunction.Get(MainIsolate));
     
-    v8::Local<v8::Object> handler = MakeHandler(Context, Callback, Data, IsStatic);
+    v8::Local<v8::Object> handler = MakeHandler(Context, Callback, nullptr, Data, IsStatic);
 
     v8::Local<v8::Value> args[4];
     args[0] = v8::Number::New(MainIsolate, ClassID);
@@ -234,8 +257,8 @@ bool JSEngine::RegisterProperty(int ClassID, const char *Name, bool IsStatic, v8
 
     v8::Function* JSRegisterPropertyFunction = v8::Function::Cast(*GJSRegisterProperty.Get(MainIsolate));
     
-    v8::Local<v8::Object> getterHandler = MakeHandler(Context, Getter, GetterData, IsStatic);
-    v8::Local<v8::Object> setterHandler = MakeHandler(Context, Setter, SetterData, IsStatic);
+    v8::Local<v8::Object> getterHandler = MakeHandler(Context, Getter, nullptr, GetterData, IsStatic);
+    v8::Local<v8::Object> setterHandler = MakeHandler(Context, Setter, nullptr, SetterData, IsStatic);
 
     v8::Local<v8::Value> args[6];
     args[0] = v8::Number::New(MainIsolate, ClassID);
@@ -250,5 +273,73 @@ bool JSEngine::RegisterProperty(int ClassID, const char *Name, bool IsStatic, v8
         .ToLocalChecked();
 
     return true;
+}
+
+v8::Local<v8::Value> ConvertToLocal(
+    v8::Isolate* Isolate, 
+    v8::Puerts::CSharpToJsValue * value
+) 
+{
+    if (value == nullptr) 
+    {
+        return v8::Undefined(Isolate);
+    }
+    switch (value->Type) {
+        case JsValueType::Boolean:
+            return v8::Boolean::New(Isolate, value->Data.Boolean);
+        case JsValueType::Number:
+            return v8::Number::New(Isolate, value->Data.Number);
+        case JsValueType::NativeObject:
+            return FV8Utils::IsolateData<JSEngine>(Isolate)->FindOrAddObject(Isolate, Isolate->GetCurrentContext(), value->classIDOrValueLength, value->Data.Pointer);
+        case JsValueType::NullOrUndefined:
+        default:
+            return v8::Undefined(Isolate);
+    }
+}
+
+v8::Local<v8::Value> DRCallbackWrap(
+    v8::Isolate* isolate, 
+    const v8::Puerts::FunctionCallbackInfo& Info, 
+    void* Self, 
+    int ParamLen, 
+    v8::Puerts::FunctionInfo* functionInfo
+)
+{
+    v8::Puerts::CSharpToJsValue* value = functionInfo->callback(
+        isolate,
+        Info,
+        Self,
+        ParamLen,
+        (int64_t)functionInfo->bindData
+    );
+    
+    return ConvertToLocal(isolate, value);
+}
+
+void JSEngine::SetGlobalFunction(
+    const char *Name, 
+    CSharpFunctionCallback Callback, 
+    int64_t Data
+)
+{
+    v8::Isolate* Isolate = MainIsolate;
+    v8::Isolate::Scope IsolateScope(Isolate);
+    v8::HandleScope HandleScope(Isolate);
+    v8::Local<v8::Context> Context = ResultInfo.Context.Get(Isolate);
+    v8::Context::Scope ContextScope(Context);
+
+    v8::Local<v8::Object> handler = MakeHandler(
+        Context, Callback, DRCallbackWrap, Data, true
+    );
+
+    v8::Local<v8::Value> args[2];
+    args[0] = FV8Utils::V8String(MainIsolate, Name);
+    args[1] = handler;
+
+    v8::Function* JSMakeGlobalFunction = v8::Function::Cast(*GJSMakeGlobalFunction.Get(MainIsolate));
+
+    JSMakeGlobalFunction
+        ->Call(Context, Context->Global(), 2, args)
+        .ToLocalChecked();
 }
 }
