@@ -305,15 +305,17 @@ v8::Local<v8::Value> DRCallbackWrap(
     v8::Puerts::FunctionInfo* functionInfo
 )
 {
-    v8::Puerts::CSharpToJsValue* value = functionInfo->callback(
+    v8::Puerts::CSharpToJsValue value;
+    functionInfo->callback(
         isolate,
+        &value,
         Info,
         Self,
         ParamLen,
         (int64_t)functionInfo->bindData
     );
     
-    return ConvertToLocal(isolate, value);
+    return ConvertToLocal(isolate, &value);
 }
 
 void JSEngine::SetGlobalFunction(
