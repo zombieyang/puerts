@@ -74,8 +74,19 @@ const ClassManager = {                                                          
                                                                                         \
     makeGlobalFunction(name, handler) {                                                 \
         (function() {                                                                   \
-            this[name] = function(...args) {                                            \
-                return PuertsV8.drCallback.call(handler, this, ...args)                 \
+            this[name] = function() {                                                   \
+                if (arguments.length == 0)                                              \
+                    return PuertsV8.drCallback.call(handler, this);                     \
+                else if (arguments.length == 1)                                         \
+                    return PuertsV8.drCallback.call(handler, this, arguments[0]);       \
+                else if (arguments.length == 2)                                         \
+                    return PuertsV8.drCallback.call(handler, this, arguments[0], arguments[1]);       \
+                else if (arguments.length == 3)                                         \
+                    return PuertsV8.drCallback.call(handler, this, arguments[0], arguments[1], arguments[2]);       \
+                else if (arguments.length == 4)                                         \
+                    return PuertsV8.drCallback.call(handler, this, arguments[0], arguments[1], arguments[2], arguments[3]);       \
+                else                                                                    \
+                    return PuertsV8.drCallback.call(handler, this, ...arguments);       \
             };                                                                          \
         })()                                                                            \
     },                                                                                  \
