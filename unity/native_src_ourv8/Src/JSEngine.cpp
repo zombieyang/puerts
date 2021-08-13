@@ -169,18 +169,14 @@ namespace puerts
 
     JSObject *JSEngine::CreateJSObject(v8::Isolate *InIsolate, v8::Local<v8::Context> InContext, v8::Local<v8::Object> InObject)
     {
-        // PLog(puerts::Log, "[PuertsDLL][CreateJSObject]mutex");
         std::lock_guard<std::mutex> guard(JSObjectsMutex);
 
-        // PLog(puerts::Log, "[PuertsDLL][CreateJSObject]ContextScope");
         v8::Isolate::Scope IsolateScope(InIsolate);
         v8::HandleScope HandleScope(InIsolate);
         v8::Context::Scope ContextScope(InContext);
 
-        // PLog(puerts::Log, "[PuertsDLL][CreateJSObject]map get");
         v8::Local<v8::Map> idmap = JSObjectIdMap.Get(InIsolate);
         
-        // PLog(puerts::Log, "[PuertsDLL][CreateJSObject]get v8object id");
         // 从idmap尝试取出该jsObject的id
         v8::Local<v8::Value> v8ObjectIndex = idmap->Get(InContext, InObject).ToLocalChecked();
         JSObject* jsObject = nullptr;
