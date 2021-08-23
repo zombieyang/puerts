@@ -22,12 +22,10 @@
 #include "JSFunction.h"
 #include "V8InspectorImpl.h"
 
-#if defined(WITH_NODE)
 #pragma warning(push, 0)
 #include "node.h"
 #include "uv.h"
 #pragma warning(pop)
-#else
 
 #if defined(PLATFORM_WINDOWS)
 
@@ -49,8 +47,6 @@
 #include "Blob/iOS/x64/SnapshotBlob.h"
 #elif defined(PLATFORM_LINUX)
 #include "Blob/Linux/SnapshotBlob.h"
-#endif
-
 #endif
 
 typedef void(*CSharpFunctionCallback)(v8::Isolate* Isolate, const v8::FunctionCallbackInfo<v8::Value>& Info, void* Self, int ParamLen, int64_t UserData);
@@ -87,9 +83,11 @@ v8::Local<v8::ArrayBuffer> NewArrayBuffer(v8::Isolate* Isolate, void *Ptr, size_
 class JSEngine
 {
 public:
-    JSEngine(void* external_quickjs_runtime, void* external_quickjs_context);
+    JSEngine(bool withNode, void* external_quickjs_runtime, void* external_quickjs_context);
 
     ~JSEngine();
+    
+    void InitJSContext(v8::Local<v8::Context> Context);
 
     void SetGlobalFunction(const char *Name, CSharpFunctionCallback Callback, int64_t Data);
 
@@ -144,7 +142,9 @@ public:
 
 private:
 
-#if defined(WITH_NODE)
+
+    bool withNode;
+
     uv_loop_t* NodeUVLoop;
 
     std::unique_ptr<node::ArrayBufferAllocator> NodeArrayBufferAllocator;
@@ -154,9 +154,14 @@ private:
     node::Environment* NodeEnv;
 
     const float UV_LOOP_DELAY = 0.1;
-#else 
-    v8::Isolate::CreateParams CreateParams;
-#endif
+
+    std::vector<std::string> *Args;
+    std::vector<std::string> *ExecArgs;
+    std::vector<std::string> *Errors;
+    
+
+    v8::Isolate::CreateParams* CreateParams;
+    
 
     std::vector<FCallbackInfo*> CallbackInfos;
 

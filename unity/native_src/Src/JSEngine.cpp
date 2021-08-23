@@ -52,135 +52,149 @@ namespace puerts
         Info.GetReturnValue().Set(Result.ToLocalChecked());
     }
 
-    JSEngine::JSEngine(void* external_quickjs_runtime, void* external_quickjs_context)
+    JSEngine::JSEngine(bool withNode, void* external_quickjs_runtime, void* external_quickjs_context)
     {
         GeneralDestructor = nullptr;
         Inspector = nullptr;
-
-    #if defined(WITH_NODE)
-        int Argc = 1;
-        char* ArgvIn[] = {"puerts"};
-        char ** Argv = uv_setup_args(Argc, ArgvIn);
-        std::vector<std::string> Args(Argv, Argv + Argc);
-        std::vector<std::string> ExecArgs;
-        std::vector<std::string> Errors;
-    #endif
-
+        this->withNode = withNode;
+        printf("1\n");
         if (!GPlatform)
         {
-            #if defined(WITH_NODE)
+            if (withNode) {
                 GPlatform = node::MultiIsolatePlatform::Create(4);
-            #else
+
+            } else {
+        printf("1.1\n");
                 GPlatform = v8::platform::NewDefaultPlatform();
-            #endif
+
+            }
+        printf("1.2\n");
             v8::V8::InitializePlatform(GPlatform.get());
+        printf("1.3\n");
             v8::V8::Initialize();
 
-            #if defined(WITH_NODE)
-                int ExitCode = node::InitializeNodeWithArgs(&Args, &ExecArgs, &Errors);
-                for (const std::string& error : Errors)
+            if (withNode) {
+                int Argc = 1;
+                char* ArgvIn[] = {"puerts"};
+                char ** Argv = uv_setup_args(Argc, ArgvIn);
+                Args = new std::vector<std::string>(Argv, Argv + Argc);
+                ExecArgs = new std::vector<std::string>();
+                Errors = new std::vector<std::string>();
+
+                int ExitCode = node::InitializeNodeWithArgs(&(*Args), &(*ExecArgs), &(*Errors));
+                for (const std::string& error : *Errors)
                 {
                     printf("InitializeNodeWithArgs failed\n");
                 }
-            #endif 
+            }
         }
         
 
-#if !defined(WITH_NODE)
+        printf("2\n");
+        if (!withNode) {
 
 #if PLATFORM_IOS
-        std::string Flags = "--jitless";
-        v8::V8::SetFlagsFromString(Flags.c_str(), static_cast<int>(Flags.size()));
+            std::string Flags = "--jitless";
+            v8::V8::SetFlagsFromString(Flags.c_str(), static_cast<int>(Flags.size()));
 #endif
 
-        v8::StartupData SnapshotBlob;
-        SnapshotBlob.data = (const char *)SnapshotBlobCode;
-        SnapshotBlob.raw_size = sizeof(SnapshotBlobCode);
-        v8::V8::SetSnapshotDataBlob(&SnapshotBlob);
+            v8::StartupData SnapshotBlob;
+            SnapshotBlob.data = (const char *)SnapshotBlobCode;
+            SnapshotBlob.raw_size = sizeof(SnapshotBlobCode);
+            v8::V8::SetSnapshotDataBlob(&SnapshotBlob);
 
-        // 初始化Isolate和DefaultContext
-        CreateParams.array_buffer_allocator = v8::ArrayBuffer::Allocator::NewDefaultAllocator();
+            // 初始化Isolate和DefaultContext
+            CreateParams = new v8::Isolate::CreateParams();
+            CreateParams->array_buffer_allocator = v8::ArrayBuffer::Allocator::NewDefaultAllocator();
 #if WITH_QUICKJS
-        MainIsolate = (external_quickjs_runtime == nullptr) ? v8::Isolate::New(CreateParams) : v8::Isolate::New(external_quickjs_runtime);
+            MainIsolate = (external_quickjs_runtime == nullptr) ? v8::Isolate::New(CreateParams) : v8::Isolate::New(external_quickjs_runtime);
 #else
-        MainIsolate = v8::Isolate::New(CreateParams);
+            MainIsolate = v8::Isolate::New(*CreateParams);
 #endif
-        auto Isolate = MainIsolate;
-        ResultInfo.Isolate = MainIsolate;
+            auto Isolate = MainIsolate;
+            ResultInfo.Isolate = MainIsolate;
 
-        v8::Isolate::Scope Isolatescope(Isolate);
-        v8::HandleScope HandleScope(Isolate);
+            v8::Isolate::Scope Isolatescope(Isolate);
+            v8::HandleScope HandleScope(Isolate);
 
 #if WITH_QUICKJS
-        v8::Local<v8::Context> Context = (external_quickjs_runtime && external_quickjs_context) ? v8::Context::New(Isolate, external_quickjs_context) : v8::Context::New(Isolate);
+            v8::Local<v8::Context> Context = (external_quickjs_runtime && external_quickjs_context) ? v8::Context::New(Isolate, external_quickjs_context) : v8::Context::New(Isolate);
 #else
-        v8::Local<v8::Context> Context = v8::Context::New(Isolate);
+            v8::Local<v8::Context> Context = v8::Context::New(Isolate);
 #endif
+            InitJSContext(Context);
+        } else {
+            NodeUVLoop = new uv_loop_t;
+            const int Ret = uv_loop_init(NodeUVLoop);
+            if (Ret != 0)
+            {
+                // TODO log
+                printf("uv_loop_init failed\n");
+                return;
+            }
 
-#else
-        NodeUVLoop = new uv_loop_t;
-        const int Ret = uv_loop_init(NodeUVLoop);
-        if (Ret != 0)
-        {
-            // TODO log
-            printf("uv_loop_init failed\n");
-            return;
+            // CreateParams.array_buffer_allocator = nullptr;
+            /*std::unique_ptr<node::ArrayBufferAllocator> */NodeArrayBufferAllocator = node::ArrayBufferAllocator::Create();
+
+            auto Platform = static_cast<node::MultiIsolatePlatform*>(GPlatform.get());
+            MainIsolate = node::NewIsolate(NodeArrayBufferAllocator.get(), NodeUVLoop,
+                Platform);
+            ResultInfo.Isolate = MainIsolate;
+            // printf("platform&isolate: %lld %lld\n", Platform, MainIsolate);
+
+            auto Isolate = MainIsolate;
+            ResultInfo.Isolate = MainIsolate;
+
+            v8::Isolate::Scope Isolatescope(Isolate);
+
+            NodeIsolateData = node::CreateIsolateData(Isolate, NodeUVLoop, Platform, NodeArrayBufferAllocator.get()); // node::FreeIsolateData
+
+            v8::HandleScope HandleScope(Isolate);
+
+            v8::Local<v8::Context> Context = node::NewContext(Isolate);
+            InitJSContext(Context);
         }
+    }
 
-        // CreateParams.array_buffer_allocator = nullptr;
-        /*std::unique_ptr<node::ArrayBufferAllocator> */NodeArrayBufferAllocator = node::ArrayBufferAllocator::Create();
-
-        auto Platform = static_cast<node::MultiIsolatePlatform*>(GPlatform.get());
-        MainIsolate = node::NewIsolate(NodeArrayBufferAllocator.get(), NodeUVLoop,
-            Platform);
-        ResultInfo.Isolate = MainIsolate;
-        // printf("platform&isolate: %lld %lld\n", Platform, MainIsolate);
-
-        auto Isolate = MainIsolate;
-        ResultInfo.Isolate = MainIsolate;
-
-        v8::Isolate::Scope Isolatescope(Isolate);
-
-        NodeIsolateData = node::CreateIsolateData(Isolate, NodeUVLoop, Platform, NodeArrayBufferAllocator.get()); // node::FreeIsolateData
-
-        v8::HandleScope HandleScope(Isolate);
-
-        v8::Local<v8::Context> Context = node::NewContext(Isolate);
-#endif 
-
+    void JSEngine::InitJSContext(v8::Local<v8::Context> Context)
+    {
+        printf("3\n");
         v8::Context::Scope ContextScope(Context);
-        ResultInfo.Context.Reset(Isolate, Context);
+        ResultInfo.Context.Reset(MainIsolate, Context);
 
-#if defined(WITH_NODE)
-        //kDefaultFlags = kOwnsProcessState | kOwnsInspector, if kOwnsInspector set, inspector_agent.cc:681 CHECK_EQ(start_io_thread_async_initialized.exchange(true), false) fail!
-        NodeEnv = CreateEnvironment(NodeIsolateData, Context, Args, ExecArgs, node::EnvironmentFlags::kOwnsProcessState);
+        if (withNode) {
+            //kDefaultFlags = kOwnsProcessState | kOwnsInspector, if kOwnsInspector set, inspector_agent.cc:681 CHECK_EQ(start_io_thread_async_initialized.exchange(true), false) fail!
+        printf("4\n");
+            NodeEnv = CreateEnvironment(NodeIsolateData, Context, *Args, *ExecArgs, node::EnvironmentFlags::kOwnsProcessState);
 
-        v8::MaybeLocal<v8::Value> LoadenvRet = node::LoadEnvironment(
-            NodeEnv,
-            "const publicRequire ="
-            "  require('module').createRequire(process.cwd() + '/');"
-            "globalThis.require = publicRequire;"
-            "globalThis.embedVars = { nön_ascıı: '🏳️‍🌈' };"
-            "require('vm').runInThisContext(process.argv[1]);");
+            v8::MaybeLocal<v8::Value> LoadenvRet = node::LoadEnvironment(
+                NodeEnv,
+                "const publicRequire ="
+                "  require('module').createRequire(process.cwd() + '/');"
+                "globalThis.require = publicRequire;"
+                "globalThis.embedVars = { nön_ascıı: '🏳️‍🌈' };"
+                "require('vm').runInThisContext(process.argv[1]);");
 
-        if (LoadenvRet.IsEmpty())  // There has been a JS exception.
-        {
-            return;
+            if (LoadenvRet.IsEmpty())  // There has been a JS exception.
+            {
+                return;
+            }
+
+        printf("5\n");
+            //the same as raw v8
+            MainIsolate->SetMicrotasksPolicy(v8::MicrotasksPolicy::kAuto);
         }
 
-        //the same as raw v8
-        Isolate->SetMicrotasksPolicy(v8::MicrotasksPolicy::kAuto);
-#endif
-
-        Isolate->SetData(0, this);
+        MainIsolate->SetData(0, this);
         v8::Local<v8::Object> Global = Context->Global();
 
-        Global->Set(Context, FV8Utils::V8String(Isolate, "__tgjsEvalScript"), v8::FunctionTemplate::New(Isolate, &EvalWithPath)->GetFunction(Context).ToLocalChecked()).Check();
+        Global->Set(Context, FV8Utils::V8String(MainIsolate, "__tgjsEvalScript"), v8::FunctionTemplate::New(MainIsolate, &EvalWithPath)->GetFunction(Context).ToLocalChecked()).Check();
 
-        Isolate->SetPromiseRejectCallback(&PromiseRejectCallback<JSEngine>);
-        Global->Set(Context, FV8Utils::V8String(Isolate, "__tgjsSetPromiseRejectCallback"), v8::FunctionTemplate::New(Isolate, &SetPromiseRejectCallback<JSEngine>)->GetFunction(Context).ToLocalChecked()).Check();
+        printf("6\n");
+        MainIsolate->SetPromiseRejectCallback(&PromiseRejectCallback<JSEngine>);
+        Global->Set(Context, FV8Utils::V8String(MainIsolate, "__tgjsSetPromiseRejectCallback"), v8::FunctionTemplate::New(MainIsolate, &SetPromiseRejectCallback<JSEngine>)->GetFunction(Context).ToLocalChecked()).Check();
 
-        JSObjectIdMap.Reset(Isolate, v8::Map::New(Isolate));
+        JSObjectIdMap.Reset(MainIsolate, v8::Map::New(MainIsolate));
     }
 
     JSEngine::~JSEngine()
@@ -230,29 +244,30 @@ namespace puerts
             }
         }
         
-#if defined(WITH_NODE)
-        auto Platform = static_cast<node::MultiIsolatePlatform*>(GPlatform.get());
-        // printf("platform&isolate: %lld %lld\n", Platform, MainIsolate);
-        Platform->UnregisterIsolate(MainIsolate);
-        // printf("Platform->UnregisterIsolate\n");
+        if (withNode) {
+            auto Platform = static_cast<node::MultiIsolatePlatform*>(GPlatform.get());
+            // printf("platform&isolate: %lld %lld\n", Platform, MainIsolate);
+            Platform->UnregisterIsolate(MainIsolate);
+            // printf("Platform->UnregisterIsolate\n");
 
-        node::EmitExit(NodeEnv);
-        node::Stop(NodeEnv);
-        node::FreeEnvironment(NodeEnv);
-        node::FreeIsolateData(NodeIsolateData);
+            node::EmitExit(NodeEnv);
+            node::Stop(NodeEnv);
+            node::FreeEnvironment(NodeEnv);
+            node::FreeIsolateData(NodeIsolateData);
 
-        int err = uv_loop_close(NodeUVLoop);
-        assert(err == 0);
-        delete NodeUVLoop;
-#endif
+            int err = uv_loop_close(NodeUVLoop);
+            assert(err == 0);
+            delete NodeUVLoop;
+        }
 
         ResultInfo.Context.Reset();
         // TODO DEBUG下一次new的时候会报错的问题
         // MainIsolate->Dispose();
         // MainIsolate = nullptr;
-#if !defined(WITH_NODE)
-        delete CreateParams.array_buffer_allocator;
-#endif
+        if (!withNode) {
+            delete CreateParams->array_buffer_allocator;
+            delete CreateParams;
+        }
 
         for (int i = 0; i < CallbackInfos.size(); ++i)
         {
@@ -670,9 +685,9 @@ namespace puerts
         {
             return Inspector->Tick();
         }
-#if defined(WITH_NODE)
-        uv_run(NodeUVLoop, UV_RUN_NOWAIT);
-#endif
+        if (withNode) {
+            uv_run(NodeUVLoop, UV_RUN_NOWAIT);
+        }
         return true;
     }
 }

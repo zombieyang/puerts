@@ -1,9 +1,12 @@
 [ -z "$GITHUB_WORKSPACE" ] && GITHUB_WORKSPACE="$( cd "$( dirname "$0" )"/.. && pwd )"
 
 cd ~
-git clone --single-branch -b v14.x https://github.com/nodejs/node.git
+git clone --single-branch -b v14.x --no-tags https://github.com/nodejs/node.git
 
 cd node
+git fetch v14.16.1
+git checkout v14.16.1
+
 ./configure --shared
 make -j8
 

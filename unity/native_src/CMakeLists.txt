@@ -48,11 +48,11 @@ include_directories(
     Inc
     ${CMAKE_SOURCE_DIR}/../../unreal/Puerts/Source/JsEnv/Private
 )
-if ( WITH_NODE )
-    include_directories(    
-        ${CMAKE_SOURCE_DIR}/node/include/node
-    )
-endif()
+include_directories(    
+    ${CMAKE_SOURCE_DIR}/node/include/
+    ${CMAKE_SOURCE_DIR}/node/deps/v8/include
+    ${CMAKE_SOURCE_DIR}/node/deps/uv/include
+)
 
 set ( PUERTS_INC
     Inc/Log.h
@@ -208,22 +208,14 @@ elseif ( APPLE )
             target_compile_definitions (puerts PRIVATE PLATFORM_IOS)
         endif ()
     else ()
-        if ( WITH_NODE )
-            add_library(node SHARED IMPORTED)
-            set_target_properties(node PROPERTIES
-                IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/node/lib/libnode.83.dylib
-            )
-            target_compile_definitions (puerts PRIVATE WITH_NODE)
-            target_link_libraries(puerts 
-                node
-                ${V8_ENGINE}/Lib/macOS/${LIB_FILE_NAME}
-            )
-
-        else ()
-            target_link_libraries(puerts
-                ${V8_ENGINE}/Lib/macOS/${LIB_FILE_NAME}
-            )
-        endif()
+        add_library(node SHARED IMPORTED)
+        set_target_properties(node PROPERTIES
+            IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/node/lib/macOS/libnode.83.dylib
+        )
+        target_link_libraries(puerts 
+            node
+            ${V8_ENGINE}/Lib/macOS/${LIB_FILE_NAME}
+        )
         target_compile_definitions (puerts PRIVATE PLATFORM_MAC)
     endif ()
 elseif (UNIX)
