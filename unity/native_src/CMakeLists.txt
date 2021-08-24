@@ -109,7 +109,7 @@ if ( APPLE )
         # 某些mac机器上会默认开始编译arm64版本，暂时先写死x86版本，后续再支持arm64
         set(CMAKE_OSX_ARCHITECTURES x86_64)
 
-        if ( FOR_UT STREQUAL "1")
+        if ( FOR_UT )
             add_library(puerts SHARED
                 ${PUERTS_SRC} ${PUERTS_INC}
             )

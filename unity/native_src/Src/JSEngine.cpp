@@ -252,22 +252,19 @@ namespace puerts
             node::FreeEnvironment(NodeEnv);
             node::FreeIsolateData(NodeIsolateData);
 
-            int err = uv_loop_close(NodeUVLoop);
-            if (err != 0) 
-            {
-                printf("uv_loop_close error: %s\n", uv_strerror(err));
-                assert(err == 0);
-            }
+            uv_loop_close(NodeUVLoop);
             delete NodeUVLoop;
         }
 #endif
 
         ResultInfo.Context.Reset();
-        // TODO DEBUG下一次new的时候会报错的问题
-        MainIsolate->Dispose();
-        MainIsolate = nullptr;
-        delete CreateParams->array_buffer_allocator;
-        delete CreateParams;
+        if (!withNode) {
+            // TODO DEBUG下一次new的时候会报错的问题
+            MainIsolate->Dispose();
+            MainIsolate = nullptr;
+            delete CreateParams->array_buffer_allocator;
+            delete CreateParams;
+        }
 
         for (int i = 0; i < CallbackInfos.size(); ++i)
         {
