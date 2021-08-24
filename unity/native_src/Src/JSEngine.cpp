@@ -59,10 +59,19 @@ namespace puerts
         this->withNode = withNode;
         if (!GPlatform)
         {
+#if WITH_NODEJS
+            if (withNode) {
+                GPlatform = node::MultiIsolatePlatform::Create(4);
+            } else {
+                GPlatform = v8::platform::NewDefaultPlatform();
+            }
+#else 
             GPlatform = v8::platform::NewDefaultPlatform();
+#endif
             v8::V8::InitializePlatform(GPlatform.get());
             v8::V8::Initialize();
 
+#if WITH_NODEJS
             if (withNode) {
                 int Argc = 1;
                 char* ArgvIn[] = {"puerts"};
@@ -77,18 +86,21 @@ namespace puerts
                     printf("InitializeNodeWithArgs failed\n");
                 }
             }
+#endif
         }
-        
+
         if (!withNode) {
 #if PLATFORM_IOS
             std::string Flags = "--jitless";
             v8::V8::SetFlagsFromString(Flags.c_str(), static_cast<int>(Flags.size()));
 #endif
 
+#if !WITH_NODEJS
             v8::StartupData SnapshotBlob;
             SnapshotBlob.data = (const char *)SnapshotBlobCode;
             SnapshotBlob.raw_size = sizeof(SnapshotBlobCode);
             v8::V8::SetSnapshotDataBlob(&SnapshotBlob);
+#endif
 
             // 初始化Isolate和DefaultContext
             CreateParams = new v8::Isolate::CreateParams();
@@ -121,21 +133,18 @@ namespace puerts
                 return;
             }
 
-            v8::StartupData SnapshotBlob;
-            SnapshotBlob.data = (const char *)SnapshotBlobCode;
-            SnapshotBlob.raw_size = sizeof(SnapshotBlobCode);
-            v8::V8::SetSnapshotDataBlob(&SnapshotBlob);
-
-            CreateParams = new v8::Isolate::CreateParams();
             NodeArrayBufferAllocator = node::ArrayBufferAllocator::Create();
-            CreateParams->array_buffer_allocator = NodeArrayBufferAllocator.get();
-            MainIsolate = v8::Isolate::New(*CreateParams);
+
+            auto Platform = static_cast<node::MultiIsolatePlatform*>(GPlatform.get());
+            MainIsolate = node::NewIsolate(NodeArrayBufferAllocator.get(), NodeUVLoop,
+                Platform);
+
             auto Isolate = MainIsolate;
             ResultInfo.Isolate = MainIsolate;
 
             v8::Isolate::Scope Isolatescope(Isolate);
 
-            NodeIsolateData = node::CreateIsolateData(Isolate, NodeUVLoop, GPlatform.get(), NodeArrayBufferAllocator); // node::FreeIsolateData
+            NodeIsolateData = node::CreateIsolateData(Isolate, NodeUVLoop, Platform, NodeArrayBufferAllocator.get()); // node::FreeIsolateData
 
             v8::HandleScope HandleScope(Isolate);
 
@@ -149,6 +158,7 @@ namespace puerts
         v8::Context::Scope ContextScope(Context);
         ResultInfo.Context.Reset(MainIsolate, Context);
 
+#if WITH_NODEJS
         if (withNode) {
             //kDefaultFlags = kOwnsProcessState | kOwnsInspector, if kOwnsInspector set, inspector_agent.cc:681 CHECK_EQ(start_io_thread_async_initialized.exchange(true), false) fail!
             NodeEnv = CreateEnvironment(NodeIsolateData, Context, *Args, *ExecArgs, node::EnvironmentFlags::kOwnsProcessState);
@@ -169,6 +179,7 @@ namespace puerts
             //the same as raw v8
             MainIsolate->SetMicrotasksPolicy(v8::MicrotasksPolicy::kAuto);
         }
+#endif
 
         MainIsolate->SetData(0, this);
         v8::Local<v8::Object> Global = Context->Global();
@@ -179,6 +190,12 @@ namespace puerts
         Global->Set(Context, FV8Utils::V8String(MainIsolate, "__tgjsSetPromiseRejectCallback"), v8::FunctionTemplate::New(MainIsolate, &SetPromiseRejectCallback<JSEngine>)->GetFunction(Context).ToLocalChecked()).Check();
 
         JSObjectIdMap.Reset(MainIsolate, v8::Map::New(MainIsolate));
+
+#if WITH_NODEJS
+        if (withNode) {
+            uv_run(NodeUVLoop, UV_RUN_NOWAIT);
+        }
+#endif
     }
 
     JSEngine::~JSEngine()
@@ -227,7 +244,8 @@ namespace puerts
                 delete *Iter;
             }
         }
-        
+
+#if WITH_NODEJS
         if (withNode) {
             node::EmitExit(NodeEnv);
             node::Stop(NodeEnv);
@@ -235,9 +253,14 @@ namespace puerts
             node::FreeIsolateData(NodeIsolateData);
 
             int err = uv_loop_close(NodeUVLoop);
-            assert(err == 0);
+            if (err != 0) 
+            {
+                printf("uv_loop_close error: %s\n", uv_strerror(err));
+                assert(err == 0);
+            }
             delete NodeUVLoop;
         }
+#endif
 
         ResultInfo.Context.Reset();
         // TODO DEBUG下一次new的时候会报错的问题
@@ -662,9 +685,12 @@ namespace puerts
         {
             return Inspector->Tick();
         }
+
+#if WITH_NODEJS
         if (withNode) {
             uv_run(NodeUVLoop, UV_RUN_NOWAIT);
         }
+#endif
         return true;
     }
 }

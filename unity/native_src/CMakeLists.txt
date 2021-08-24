@@ -12,8 +12,8 @@ project(PuertsPlugin)
 set (CMAKE_CXX_STANDARD 14)
 
 if ( IOS )
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fembed-bitcode")
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fembed-bitcode")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fembed-bitcode")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fembed-bitcode")
 endif ()
 
 
@@ -21,12 +21,23 @@ find_path(PUERTS_PROJECT_DIR NAMES SConstruct
     PATHS 
     ${CMAKE_SOURCE_DIR}
     NO_DEFAULT_PATH
-    )
+)
 
 MARK_AS_ADVANCED(PUERTS_PROJECT_DIR)
 
 if ( JS_ENGINE STREQUAL "quickjs")
     set(LIB_FILE_NAME libquickjs.a)
+elseif ( JS_ENGINE STREQUAL "nodejs")
+
+    if ( APPLE )
+        set(LIB_FILE_NAME libnode.83.dylib)
+    endif()
+    
+    include_directories(    
+        ${CMAKE_SOURCE_DIR}/nodejs/include/
+        ${CMAKE_SOURCE_DIR}/nodejs/deps/v8/include
+        ${CMAKE_SOURCE_DIR}/nodejs/deps/uv/include
+    )
 else()
     set(JS_ENGINE v8)
     set(LIB_FILE_NAME libwee8.a)
@@ -47,11 +58,6 @@ include_directories(
     ${ASIO_INC}
     Inc
     ${CMAKE_SOURCE_DIR}/../../unreal/Puerts/Source/JsEnv/Private
-)
-include_directories(    
-    ${CMAKE_SOURCE_DIR}/node/include/
-    ${CMAKE_SOURCE_DIR}/node/deps/v8/include
-    ${CMAKE_SOURCE_DIR}/node/deps/uv/include
 )
 
 set ( PUERTS_INC
@@ -92,7 +98,7 @@ source_group_by_dir(${CMAKE_CURRENT_SOURCE_DIR} PUERTS_INC)
 source_group_by_dir(${CMAKE_CURRENT_SOURCE_DIR} PUERTS_SRC)
 
 if ( APPLE )
-    if ( IOS )
+    if ( IOS)
         set(CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD)")
         add_library(puerts STATIC
            ${PUERTS_SRC} ${PUERTS_INC}
@@ -103,7 +109,7 @@ if ( APPLE )
         # 某些mac机器上会默认开始编译arm64版本，暂时先写死x86版本，后续再支持arm64
         set(CMAKE_OSX_ARCHITECTURES x86_64)
 
-        if ( FOR_UT )
+        if ( FOR_UT STREQUAL "1")
             add_library(puerts SHARED
                 ${PUERTS_SRC} ${PUERTS_INC}
             )
@@ -127,6 +133,8 @@ endif ()
 if ( JS_ENGINE STREQUAL "quickjs")
     target_compile_definitions (puerts PRIVATE WITHOUT_INSPECTOR)
     target_compile_definitions (puerts PRIVATE WITH_QUICKJS)
+elseif (JS_ENGINE STREQUAL "nodejs")
+    target_compile_definitions (puerts PRIVATE WITH_NODEJS)
 endif ()
 
 if ( MSYS )
@@ -208,13 +216,8 @@ elseif ( APPLE )
             target_compile_definitions (puerts PRIVATE PLATFORM_IOS)
         endif ()
     else ()
-        add_library(node SHARED IMPORTED)
-        set_target_properties(node PROPERTIES
-            IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/node/lib/macOS/libnode.83.dylib
-        )
-        target_link_libraries(puerts 
+        target_link_libraries(puerts
             ${V8_ENGINE}/Lib/macOS/${LIB_FILE_NAME}
-            node
         )
         target_compile_definitions (puerts PRIVATE PLATFORM_MAC)
     endif ()

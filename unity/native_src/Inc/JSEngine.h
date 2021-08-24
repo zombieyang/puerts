@@ -27,6 +27,7 @@
 #include "uv.h"
 #pragma warning(pop)
 
+#if !defined(WITH_NODEJS)
 #if defined(PLATFORM_WINDOWS)
 
 #if _WIN64
@@ -47,6 +48,7 @@
 #include "Blob/iOS/x64/SnapshotBlob.h"
 #elif defined(PLATFORM_LINUX)
 #include "Blob/Linux/SnapshotBlob.h"
+#endif
 #endif
 
 typedef void(*CSharpFunctionCallback)(v8::Isolate* Isolate, const v8::FunctionCallbackInfo<v8::Value>& Info, void* Self, int ParamLen, int64_t UserData);
