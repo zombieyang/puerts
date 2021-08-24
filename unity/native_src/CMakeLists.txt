@@ -213,8 +213,8 @@ elseif ( APPLE )
             IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/node/lib/macOS/libnode.83.dylib
         )
         target_link_libraries(puerts 
-            node
             ${V8_ENGINE}/Lib/macOS/${LIB_FILE_NAME}
+            node
         )
         target_compile_definitions (puerts PRIVATE PLATFORM_MAC)
     endif ()
