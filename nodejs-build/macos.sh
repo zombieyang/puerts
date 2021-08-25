@@ -4,8 +4,8 @@ cd ~
 git clone --single-branch -b v14.x --no-tags https://github.com/nodejs/node.git
 
 cd node
-git fetch v14.16.1
-git checkout v14.16.1
+git fetch v$VERSION
+git checkout v$VERSION
 
 ./configure --shared
 make -j8
