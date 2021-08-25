@@ -1,5 +1,7 @@
 [ -z "$GITHUB_WORKSPACE" ] && GITHUB_WORKSPACE="$( cd "$( dirname "$0" )"/.. && pwd )"
 
+VERSION=$1
+
 cd ~
 git clone --single-branch -b v14.x --no-tags https://github.com/nodejs/node.git
 
