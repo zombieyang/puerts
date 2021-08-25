@@ -7,6 +7,10 @@ cd node
 git fetch v%VERSION%
 git checkout v%VERSION%
 
+node %GITHUB_WORKSPACE%\v8-build\CRLF2LF.js %GITHUB_WORKSPACE%\nodejs-build\nodemod.patch
+call git apply --cached --reject %GITHUB_WORKSPACE%\nodejs-build\nodemod.patch
+call git checkout -- .
+
 .\vcbuild.bat dll openssl-no-asm
 
 cd %HOMEPATH%
@@ -22,5 +26,5 @@ xcopy /E /I node/deps/v8/include ./puerts-node/deps/v8
 
 md puerts-node/lib/Win32/
 copy node/out/Release/libnode.dll ./puerts-node/lib/Win32/
-copy node/out/Release/node.exp ./puerts-node/lib/Win32/
-copy node/out/Release/node.lib ./puerts-node/lib/Win32/
+copy node/out/Release/libnode.exp ./puerts-node/lib/Win32/
+copy node/out/Release/libnode.lib ./puerts-node/lib/Win32/

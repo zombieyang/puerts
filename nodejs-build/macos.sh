@@ -9,6 +9,9 @@ cd node
 git fetch v$VERSION
 git checkout v$VERSION
 
+git apply --cached $GITHUB_WORKSPACE/nodejs-build/nodemod.patch
+git checkout -- .
+
 ./configure --shared
 make -j8
 
