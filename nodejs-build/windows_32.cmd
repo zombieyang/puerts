@@ -4,8 +4,13 @@ powershell -command "Invoke-WebRequest https://github.com/nodejs/node/archive/re
 7z x node.zip -o*
 
 cd node/node-%VERSION%
-.\vcbuild.bat dll
 
+Set-ExecutionPolicy Unrestricted -Force
+iex ((New-Object System.Net.WebClient).DownloadString('https://boxstarter.org/bootstrapper.ps1'))
+get-boxstarter -Force
+Install-BoxstarterPackage https://raw.githubusercontent.com/nodejs/node/HEAD/tools/bootstrap/windows_boxstarter -DisableReboots
+
+.\vcbuild.bat dll openssl_no_asm
 
 md puerts-node/include
 md puerts-node/deps/uv/include

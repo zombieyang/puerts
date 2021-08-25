@@ -4,7 +4,7 @@ powershell -command "Invoke-WebRequest https://github.com/nodejs/node/archive/re
 7z x node.zip -o*
 
 cd node/node-%VERSION%
-.\vcbuild.bat dll
+.\vcbuild.bat dll openssl_no_asm
 
 
 md puerts-node/include
