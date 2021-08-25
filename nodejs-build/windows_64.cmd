@@ -21,5 +21,5 @@ xcopy /E /I node/node-%VERSION%/deps/v8/include ./puerts-node/deps/v8
 
 md puerts-node/lib/Win64/
 copy node/node-%VERSION%/out/Release/libnode.dll ./puerts-node/lib/Win64/
-copy node/node-%VERSION%/out/Release/libnode.exp ./puerts-node/lib/Win64/
-copy node/node-%VERSION%/out/Release/libnode.lib ./puerts-node/lib/Win64/
+copy node/node-%VERSION%/out/Release/node.exp ./puerts-node/lib/Win64/
+copy node/node-%VERSION%/out/Release/node.lib ./puerts-node/lib/Win64/

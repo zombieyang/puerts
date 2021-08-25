@@ -258,10 +258,10 @@ namespace puerts
 #endif
 
         ResultInfo.Context.Reset();
+        // TODO DEBUG下一次new的时候会报错的问题
+        MainIsolate->Dispose();
+        MainIsolate = nullptr;
         if (!withNode) {
-            // TODO DEBUG下一次new的时候会报错的问题
-            MainIsolate->Dispose();
-            MainIsolate = nullptr;
             delete CreateParams->array_buffer_allocator;
             delete CreateParams;
         }
