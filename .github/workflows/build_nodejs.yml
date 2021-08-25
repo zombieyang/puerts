@@ -16,6 +16,10 @@ jobs:
     runs-on: windows-2019
     steps:
     - uses: actions/checkout@v2
+    - name: install windows dep
+      shell: pwsh
+      run: |
+        .\nodejs-build\win-dep.ps1
     - name: Run build script
       shell: cmd
       run: |
