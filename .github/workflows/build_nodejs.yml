@@ -17,6 +17,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Run build script
+      continue-on-error: true
       shell: cmd
       run: |
         cd %GITHUB_WORKSPACE%
@@ -32,6 +33,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Run build script
+      continue-on-error: true
       shell: cmd
       run: |
         cd %GITHUB_WORKSPACE%
