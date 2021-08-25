@@ -6,7 +6,7 @@ cd ~
 git clone --single-branch -b v14.x --no-tags https://github.com/nodejs/node.git
 
 cd node
-git fetch v$VERSION
+git fetch origin v$VERSION
 git checkout v$VERSION
 
 git apply --cached $GITHUB_WORKSPACE/nodejs-build/nodemod.patch

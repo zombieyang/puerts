@@ -4,7 +4,7 @@ cd %HOMEPATH%
 git clone --single-branch -b v14.x --no-tags https://github.com/nodejs/node.git
 
 cd node
-git fetch v%VERSION%
+git fetch origin v%VERSION%
 git checkout v%VERSION%
 
 node %GITHUB_WORKSPACE%\v8-build\CRLF2LF.js %GITHUB_WORKSPACE%\nodejs-build\nodemod.patch
