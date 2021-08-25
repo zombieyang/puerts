@@ -59,7 +59,7 @@ jobs:
     - uses: actions/upload-artifact@v2
       with:
         name: nodejs_bin
-        path: puerts-node/**/*
+        path: ~/puerts-node/**/*
         
   publish:
     runs-on: ubuntu-latest
