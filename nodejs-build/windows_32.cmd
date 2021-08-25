@@ -3,9 +3,7 @@ set VERSION=%1
 powershell -command "Invoke-WebRequest https://github.com/nodejs/node/archive/refs/tags/v%VERSION%.zip -O node.zip"
 7z x node.zip -o*
 
-dir
-cd node 
-dir
+cd node/node-%VERSION%
 .\vcbuild.bat dll
 
 
