@@ -34,6 +34,15 @@ V8_EXPORT v8::Isolate *CreateJSEngine()
     return JsEngine->MainIsolate;
 }
 
+V8_EXPORT v8::Isolate *CreateJSEngineWithNode()
+{
+    #if !WITH_NODEJS
+        throw "nodejs backend not supported!";
+    #endif
+    auto JsEngine = new JSEngine(true, nullptr, nullptr);
+    return JsEngine->MainIsolate;
+}
+
 V8_EXPORT v8::Isolate *CreateJSEngineWithExternalEnv(void* external_quickjs_runtime, void* external_quickjs_context)
 {
 #if WITH_QUICKJS
