@@ -21,7 +21,7 @@ jobs:
       shell: cmd
       run: |
         cd %GITHUB_WORKSPACE%
-        call .\nodejs-build\trybuild.cmd ${{env.VERSION}}
+        call .\nodejs-build\windows_trybuild.cmd ${{env.VERSION}}
     - name: Run upload script
       shell: cmd
       run: |
@@ -42,7 +42,7 @@ jobs:
       shell: cmd
       run: |
         cd %GITHUB_WORKSPACE%
-        call .\nodejs-build\trybuild.cmd ${{env.VERSION}}
+        call .\nodejs-build\windows_trybuild.cmd ${{env.VERSION}}
     - name: Run upload script
       shell: cmd
       run: |
