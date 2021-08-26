@@ -21,7 +21,12 @@ jobs:
       shell: cmd
       run: |
         cd %GITHUB_WORKSPACE%
-        call .\nodejs-build\windows_64.cmd ${{env.VERSION}}
+        call .\nodejs-build\trybuild.cmd ${{env.VERSION}}
+    - name: Run upload script
+      shell: cmd
+      run: |
+        cd %GITHUB_WORKSPACE%
+        call .\nodejs-build\windows_64.cmd
     - uses: actions/upload-artifact@v2
       with:
         name: nodejs_bin
@@ -37,7 +42,12 @@ jobs:
       shell: cmd
       run: |
         cd %GITHUB_WORKSPACE%
-        call .\nodejs-build\windows_32.cmd ${{env.VERSION}}
+        call .\nodejs-build\trybuild.cmd ${{env.VERSION}}
+    - name: Run upload script
+      shell: cmd
+      run: |
+        cd %GITHUB_WORKSPACE%
+        call .\nodejs-build\windows_32.cmd
     - uses: actions/upload-artifact@v2
       with:
         name: nodejs_bin
