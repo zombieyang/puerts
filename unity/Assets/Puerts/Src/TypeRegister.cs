@@ -434,8 +434,6 @@ namespace Puerts
                 baseTypeId = GetTypeId(isolate, type.BaseType);
             }
 
-            var start = UnityEngine.Time.realtimeSinceStartup;
-
             bool skipReflectionFilling = _skipReflectionFilling;
             if (typeof(ILoader).IsAssignableFrom(type) || type.IsEnum) 
             {
