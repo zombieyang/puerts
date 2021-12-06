@@ -1,6 +1,6 @@
 #include "JSEngine.h"
 #if WITH_QUICKJS
-#include "quickjs-msvc.h"
+#include "quickjs.h"
 #endif
 namespace puerts {
 #if !WITH_QUICKJS
@@ -59,6 +59,27 @@ namespace puerts {
         return Module;
     }
 #else 
+
+// copy from pixui
+#if !defined(MAKEFOURCC)
+#define MAKEFOURCC(ch0, ch1, ch2, ch3)                        \
+	((unsigned int) (unsigned char) (ch0) | ((unsigned int) (unsigned char) (ch1) << 8) | \
+	 ((unsigned int) (unsigned char) (ch2) << 16) | ((unsigned int) (unsigned char) (ch3) << 24))
+#endif
+#define TAG_PIX1  (MAKEFOURCC('P', 'I', 'X', '1'))
+#define TAG_PIX2  (MAKEFOURCC('P', 'I', 'X', '2'))
+
+    bool JS_IsCompiled(const void *buf) {
+        unsigned int tag = *(unsigned  int*) buf;
+        return tag == TAG_PIX1 || tag == TAG_PIX2;
+    }
+
+    int pxJSCompiledModuleInitFunc(JSContext *ctx, JSModuleDef *m)
+    {
+        return 0;
+    }
+// end copy from pixui
+
     JSModuleDef* js_module_loader(JSContext* ctx, const char *name, void *opaque) {
         JSRuntime *rt = JS_GetRuntime(ctx);
         v8::Isolate* Isolate = (v8::Isolate*)JS_GetRuntimeOpaque(rt);
@@ -73,8 +94,28 @@ namespace puerts {
         }
 
         const char* Code = JsEngine->ModuleResolver(name_std.c_str(), JsEngine->Idx);
+        JSValue func_val;
 
-        JSValue func_val = JS_Eval(ctx, Code, strlen(Code), name, JS_EVAL_TYPE_MODULE | JS_EVAL_FLAG_COMPILE_ONLY);
+		if (JS_IsCompiled(Code))
+		{
+			JSValue obj = JS_LoadBuffer(ctx, name, (uint8_t*)Code, 71);
+
+			uint32_t tag = JS_VALUE_GET_TAG(obj);
+			if (tag == JS_TAG_OBJECT && JS_IsFunction(ctx, obj))
+			{
+				JSValue ret = JS_Call(ctx, obj, JS_Undefined(), 0, nullptr);
+				JS_FreeValue(ctx, ret); /* 这个ret不应该有值，否则在js层面也编译不过，因为意味着toplevel有return语句。但为了安全起见这里还是释放掉，万一以后js语法允许了呢。。 */
+				JS_FreeValue(ctx, obj);
+				return JS_NewCModule(ctx, name, pxJSCompiledModuleInitFunc);
+			}
+			else if (tag == JS_TAG_MODULE)
+			{
+				func_val = obj;
+			}
+
+		} else {
+            func_val = JS_Eval(ctx, Code, strlen(Code), name, JS_EVAL_TYPE_MODULE | JS_EVAL_FLAG_COMPILE_ONLY);
+        }
 
         if (JS_IsException(func_val)) {
             Isolate->handleException();
@@ -82,8 +123,7 @@ namespace puerts {
         }
 
         auto module_ = (JSModuleDef *) JS_VALUE_GET_PTR(func_val);
-
-        JsEngine->ModuleCacheMap[name_std] = module_;
+		JS_FreeValue(ctx, func_val);
 
         return module_;
     }
@@ -148,14 +188,17 @@ namespace puerts {
         JS_SetModuleLoaderFunc(MainIsolate->runtime_, NULL, js_module_loader, NULL);
         JSContext* ctx = ResultInfo.Context.Get(MainIsolate)->context_;
 
-        JSModuleDef* EntryModule = js_module_loader(ctx , Path, nullptr);
-        if (EntryModule == nullptr) {
-            LastExceptionInfo = FV8Utils::ExceptionToString(Isolate, TryCatch);
-            return false;
-        }
+        JSEngine* JsEngine = FV8Utils::IsolateData<JSEngine>(MainIsolate);
+        const char* EntryCode = JsEngine->ModuleResolver(Path, JsEngine->Idx);
+        JSValue evalRet;
+        
+		if (JS_IsCompiled(EntryCode))
+		{
+            evalRet = JS_EvalBuffer(ctx, Path, (uint8_t*)EntryCode, 71);
 
-        auto func_obj = JS_DupModule(ctx, EntryModule);
-        auto evalRet = JS_EvalFunction(ctx, func_obj);
+		} else {
+            evalRet = JS_Eval(ctx, EntryCode, strlen(EntryCode), Path, JS_EVAL_TYPE_MODULE);
+        }
 
         v8::Value* val = nullptr;
         if (JS_IsException(evalRet)) {
