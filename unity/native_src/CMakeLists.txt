@@ -25,13 +25,20 @@ find_path(PUERTS_PROJECT_DIR NAMES SConstruct
 MARK_AS_ADVANCED(PUERTS_PROJECT_DIR)
 
 if ( JS_ENGINE STREQUAL "quickjs")
-    if ( WIN32 AND NOT MSYS )
+    if ( WIN32 )
         set(LIB_FILE_NAMES 
-            quickjs.dll.lib
+            v8qjs.lib
+            quickjs.lib
+        )
+    elseif ( ANDROID )
+        set(LIB_FILE_NAMES 
+            libPixUI_Unity.so
+            libv8qjs.a
         )
     else ()
         set(LIB_FILE_NAMES 
-            libquickjs.a
+            libquickjs.dylib
+            libv8qjs.a
         )
     endif()
     
