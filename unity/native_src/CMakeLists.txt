@@ -28,7 +28,6 @@ if ( NOT DEFINED JS_ENGINE )
     set(JS_ENGINE v8)
 endif()
 
-
 set(ENGINE_ROOT ${PROJECT_SOURCE_DIR}/${JS_ENGINE})
 set(ENGINE_INC ${ENGINE_ROOT}/Inc)
 
@@ -112,6 +111,11 @@ if ( WIN32 AND NOT CYGWIN )
     target_compile_definitions (puerts PRIVATE BUILDING_V8_SHARED)
 endif ()
 
+<<<<<<< HEAD
+=======
+include(${PROJECT_SOURCE_DIR}/cmake/${JS_ENGINE}/CMakeLists.txt)
+
+>>>>>>> tencent/master
 if ( MSYS OR WIN32 )
     if ( WIN32 ) 
         target_link_libraries(puerts
