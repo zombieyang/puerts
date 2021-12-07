@@ -181,7 +181,7 @@ namespace Puerts
 #endif
         }
 
-        internal string ResolveModuleContent(string identifer) 
+        internal byte[] ResolveModuleContent(string identifer) 
         {
             if (!loader.FileExists(identifer)) 
             {

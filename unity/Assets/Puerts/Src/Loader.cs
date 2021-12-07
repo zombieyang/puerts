@@ -9,35 +9,35 @@
 using System.IO;
 #endif
 
-namespace Puerts
+namespace Puerts 
 {
-    public interface ILoader
+    public interface ILoader 
     {
         bool FileExists(string filepath);
-        string ReadFile(string filepath, out string debugpath);
+        byte[] ReadFile(string filepath, out string debugpath);
     }
 
-    public class DefaultLoader : ILoader
+    public class DefaultLoader : ILoader 
     {
         private string root = "";
 
-        public DefaultLoader()
+        public DefaultLoader() 
         {
         }
 
-        public DefaultLoader(string root)
+        public DefaultLoader(string root) 
         {
             this.root = root;
         }
 
-        private string PathToUse(string filepath)
+        private string PathToUse(string filepath) 
         {
-            return filepath.EndsWith(".cjs") || filepath.EndsWith(".mjs") ? 
-                filepath.Substring(0, filepath.Length - 4) : 
+            return filepath.EndsWith(".cjs") || filepath.EndsWith(".mjs") ?
+                filepath.Substring(0, filepath.Length - 4) :
                 filepath;
         }
 
-        public bool FileExists(string filepath)
+        public bool FileExists(string filepath) 
         {
 #if PUERTS_GENERAL
             return File.Exists(Path.Combine(root, filepath));
@@ -47,7 +47,7 @@ namespace Puerts
 #endif
         }
 
-        public string ReadFile(string filepath, out string debugpath)
+        public byte[] ReadFile(string filepath, out string debugpath) 
         {
 #if PUERTS_GENERAL
             debugpath = Path.Combine(root, filepath);
@@ -59,7 +59,7 @@ namespace Puerts
 #if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
             debugpath = debugpath.Replace("/", "\\");
 #endif
-            return file == null ? null : file.text;
+            return file == null ? null : file.bytes;
 #endif
         }
     }

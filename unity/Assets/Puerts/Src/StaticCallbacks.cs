@@ -6,17 +6,22 @@
 */
 
 using System;
+using System.Runtime.InteropServices;
+using System.Text;
 
 namespace Puerts
 {
     internal class StaticCallbacks
     {
-        [MonoPInvokeCallback(typeof(V8FunctionCallback))]
-        internal static string ModuleResolverWrap(string identifer, int jsEnvIdx, ref int byteLength)
+        [MonoPInvokeCallback(typeof(ModuleResolveCallback))]
+        internal static IntPtr ModuleResolverWrap(string identifer, int jsEnvIdx, ref int byteLength)
         {
-            string content = JsEnv.jsEnvs[jsEnvIdx].ResolveModuleContent(identifer);
+            byte[] content = JsEnv.jsEnvs[jsEnvIdx].ResolveModuleContent(identifer);
             byteLength = content.Length;
-            return content;
+            
+            IntPtr ptr = Marshal.AllocHGlobal(byteLength);
+            Marshal.Copy(content, 0, ptr, byteLength);
+            return ptr;
         }
 
         [MonoPInvokeCallback(typeof(V8FunctionCallback))]
