@@ -22,7 +22,8 @@ namespace puerts {
             return v8::Local<v8::Module>::New(Isolate, Iter->second);
         }
     #endif 
-        const char* Code = JsEngine->ModuleResolver(Specifier_std.c_str(), JsEngine->Idx);
+        size_t Length = 0;
+        const char* Code = JsEngine->ModuleResolver(Specifier_std.c_str(), JsEngine->Idx, Length);
         if (Code == nullptr) 
         {
             return v8::MaybeLocal<v8::Module>();
@@ -93,37 +94,56 @@ namespace puerts {
             return Iter->second;
         }
 
-        const char* Code = JsEngine->ModuleResolver(name_std.c_str(), JsEngine->Idx);
+        size_t Length = 0;
+        const char* Code = JsEngine->ModuleResolver(name_std.c_str(), JsEngine->Idx, Length);
         JSValue func_val;
+        JSModuleDef* module_ = nullptr;
 
 		if (JS_IsCompiled(Code))
 		{
-			JSValue obj = JS_LoadBuffer(ctx, name, (uint8_t*)Code, 71);
+			JSValue obj = JS_LoadBuffer(ctx, name, (uint8_t*)Code, Length);
 
 			uint32_t tag = JS_VALUE_GET_TAG(obj);
 			if (tag == JS_TAG_OBJECT && JS_IsFunction(ctx, obj))
 			{
-				JSValue ret = JS_Call(ctx, obj, JS_Undefined(), 0, nullptr);
-				JS_FreeValue(ctx, ret); /* 这个ret不应该有值，否则在js层面也编译不过，因为意味着toplevel有return语句。但为了安全起见这里还是释放掉，万一以后js语法允许了呢。。 */
+				JSValue ret = func_val = JS_Call(ctx, obj, JS_Undefined(), 0, nullptr);
 				JS_FreeValue(ctx, obj);
-				return JS_NewCModule(ctx, name, pxJSCompiledModuleInitFunc);
+				if (!JS_IsException(ret))
+				{
+					JS_FreeValue(ctx, ret);
+                    module_ = JS_NewCModule(ctx, name, pxJSCompiledModuleInitFunc);
+				}
 			}
 			else if (tag == JS_TAG_MODULE)
 			{
 				func_val = obj;
 			}
+			else if (tag == JS_TAG_EXCEPTION)
+			{
+				func_val = JS_EXCEPTION;
+			} 
+            else 
+            {
+                // printf("unknown tag %d\n", tag);
+            }
 
 		} else {
             func_val = JS_Eval(ctx, Code, strlen(Code), name, JS_EVAL_TYPE_MODULE | JS_EVAL_FLAG_COMPILE_ONLY);
         }
 
-        if (JS_IsException(func_val)) {
-            Isolate->handleException();
-            return nullptr;
+		if (JS_IsException(func_val))
+		{
+            // it will be handled in outest place
+            // Isolate->handleException();
+			return nullptr;
+		}
+
+        if (module_ == nullptr) {
+            module_ = (JSModuleDef *) JS_VALUE_GET_PTR(func_val);
+            JS_FreeValue(ctx, func_val);
         }
 
-        auto module_ = (JSModuleDef *) JS_VALUE_GET_PTR(func_val);
-		JS_FreeValue(ctx, func_val);
+        JsEngine->ModuleCacheMap[name_std] = module_;
 
         return module_;
     }
@@ -189,12 +209,13 @@ namespace puerts {
         JSContext* ctx = ResultInfo.Context.Get(MainIsolate)->context_;
 
         JSEngine* JsEngine = FV8Utils::IsolateData<JSEngine>(MainIsolate);
-        const char* EntryCode = JsEngine->ModuleResolver(Path, JsEngine->Idx);
+        size_t Length = 0;
+        const char* EntryCode = JsEngine->ModuleResolver(Path, JsEngine->Idx, Length);
         JSValue evalRet;
         
 		if (JS_IsCompiled(EntryCode))
 		{
-            evalRet = JS_EvalBuffer(ctx, Path, (uint8_t*)EntryCode, 71);
+            evalRet = JS_EvalBuffer(ctx, Path, (uint8_t*)EntryCode, Length);
 
 		} else {
             evalRet = JS_Eval(ctx, EntryCode, strlen(EntryCode), Path, JS_EVAL_TYPE_MODULE);

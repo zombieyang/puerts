@@ -12,8 +12,8 @@ project(PuertsPlugin)
 set(CMAKE_CXX_STANDARD 14)
 
 if ( IOS )
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fembed-bitcode")
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fembed-bitcode")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fembed-bitcode")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fembed-bitcode")
 endif ()
 
 find_path(PUERTS_PROJECT_DIR NAMES SConstruct
@@ -24,49 +24,10 @@ find_path(PUERTS_PROJECT_DIR NAMES SConstruct
 
 MARK_AS_ADVANCED(PUERTS_PROJECT_DIR)
 
-<<<<<<< HEAD
-if ( JS_ENGINE STREQUAL "quickjs")
-    if ( WIN32 )
-        set(LIB_FILE_NAMES 
-            v8qjs.lib
-            quickjs.lib
-        )
-    elseif ( ANDROID )
-        set(LIB_FILE_NAMES 
-            libPixUI_Unity.so
-            libv8qjs.a
-        )
-    else ()
-        set(LIB_FILE_NAMES 
-            libquickjs.dylib
-            libv8qjs.a
-        )
-    endif()
-    
-elseif ( JS_ENGINE STREQUAL "nodejs")
-    if ( WIN32 AND NOT MSYS )
-        set(LIB_FILE_NAMES 
-            libnode.lib
-        )
-    else ()
-        set(LIB_FILE_NAMES 
-            libnode.83.dylib
-        )
-    endif()
-
-    include_directories(    
-        ${PROJECT_SOURCE_DIR}/nodejs/include
-        ${PROJECT_SOURCE_DIR}/nodejs/deps/v8/include
-        ${PROJECT_SOURCE_DIR}/nodejs/deps/uv/include
-    )
-else()
-=======
 if ( NOT DEFINED JS_ENGINE )
->>>>>>> a79fa8e6784d7f3a2ded91bcf488c2ca232f8ed8
     set(JS_ENGINE v8)
 endif()
 
-include(${PROJECT_SOURCE_DIR}/cmake/${JS_ENGINE}/CMakeLists.txt)
 
 set(ENGINE_ROOT ${PROJECT_SOURCE_DIR}/${JS_ENGINE})
 set(ENGINE_INC ${ENGINE_ROOT}/Inc)
@@ -95,7 +56,7 @@ set ( PUERTS_SRC
     Src/Puerts.cpp
     Src/Log.cpp
     Src/JSEngine.cpp
-    Src/JSEngine_Module.cpp
+    Src/JSEngine_Eval.cpp
     Src/JSFunction.cpp
     ${PROJECT_SOURCE_DIR}/../../unreal/Puerts/Source/JsEnv/Private/V8InspectorImpl.cpp
 )
@@ -145,16 +106,10 @@ else ()
     )
 endif ()
 
+include(${PROJECT_SOURCE_DIR}/cmake/${JS_ENGINE}/CMakeLists.txt)
+
 if ( WIN32 AND NOT CYGWIN )
     target_compile_definitions (puerts PRIVATE BUILDING_V8_SHARED)
-endif ()
-
-if ( JS_ENGINE STREQUAL "quickjs")
-    target_compile_definitions (puerts PRIVATE WITHOUT_INSPECTOR)
-    target_compile_definitions (puerts PRIVATE WITH_QUICKJS)
-elseif (JS_ENGINE STREQUAL "nodejs")
-    # target_compile_definitions (puerts PRIVATE WITHOUT_INSPECTOR)
-    target_compile_definitions (puerts PRIVATE WITH_NODEJS)
 endif ()
 
 if ( MSYS OR WIN32 )
