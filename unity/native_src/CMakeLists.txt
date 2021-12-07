@@ -105,17 +105,12 @@ else ()
     )
 endif ()
 
-include(${PROJECT_SOURCE_DIR}/cmake/${JS_ENGINE}/CMakeLists.txt)
-
 if ( WIN32 AND NOT CYGWIN )
     target_compile_definitions (puerts PRIVATE BUILDING_V8_SHARED)
 endif ()
 
-<<<<<<< HEAD
-=======
 include(${PROJECT_SOURCE_DIR}/cmake/${JS_ENGINE}/CMakeLists.txt)
 
->>>>>>> tencent/master
 if ( MSYS OR WIN32 )
     if ( WIN32 ) 
         target_link_libraries(puerts

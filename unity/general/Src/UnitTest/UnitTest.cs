@@ -1142,6 +1142,18 @@ namespace Puerts.UnitTest
             jsEnv.Dispose();
         }
         [Test]
+        public void ESModule()
+        {
+            var loader = new TxtLoader();
+            loader.AddMockFileContent("whatever.mjs", @"globalThis.str = 'Hello World'");
+            var jsEnv = new JsEnv(loader);
+            jsEnv.ExecuteModule("whatever.mjs");
+            
+            string str = jsEnv.Eval<string>("str");
+            Assert.True(str == "Hello World");
+            jsEnv.Dispose();
+        }
+        [Test]
         public void ESModuleNotFound()
         {
             var jsEnv = new JsEnv(new TxtLoader());

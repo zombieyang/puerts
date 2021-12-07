@@ -10,7 +10,6 @@ else ()
     message( FATAL_ERROR "Node.js is only supported in osx/win" )
 endif()
 
-target_compile_definitions (puerts PRIVATE WITH_NODEJS)
 include_directories(    
     ${PROJECT_SOURCE_DIR}/nodejs/include
     ${PROJECT_SOURCE_DIR}/nodejs/deps/v8/include
