@@ -32,9 +32,18 @@ namespace Puerts
 
         private string PathToUse(string filepath) 
         {
-            return filepath.EndsWith(".cjs") || filepath.EndsWith(".mjs") ?
-                filepath.Substring(0, filepath.Length - 4) :
-                filepath;
+            if (filepath.EndsWith(".bytes")) 
+            {
+                return filepath.Substring(0, filepath.Length - 6);
+            }
+            else if (filepath.EndsWith(".cjs") || filepath.EndsWith(".mjs"))
+            {
+                return filepath.Substring(0, filepath.Length - 4);
+            }
+            else 
+            {
+                return filepath;
+            }
         }
 
         public bool FileExists(string filepath) 

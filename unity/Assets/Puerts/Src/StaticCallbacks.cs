@@ -20,6 +20,7 @@ namespace Puerts
             byteLength = content.Length;
             
             IntPtr ptr = Marshal.AllocHGlobal(byteLength);
+
             Marshal.Copy(content, 0, ptr, byteLength);
             return ptr;
         }
