@@ -41,8 +41,8 @@ namespace Puerts
             generalGetterMap[typeof(ushort)] = UshortTranslator;
             generalGetterMap[typeof(int)] = IntTranslator;
             generalGetterMap[typeof(uint)] = UintTranslator;
-            generalGetterMap[typeof(long)] = LongTranslator;
-            generalGetterMap[typeof(ulong)] = UlongTranslator;
+            generalGetterMap[typeof(long)] = IntTranslator;
+            generalGetterMap[typeof(ulong)] = UintTranslator;
             generalGetterMap[typeof(double)] = DoubleTranslator;
             generalGetterMap[typeof(float)] = FloatTranslator;
             //translatorMap[typeof(decimal)] = decimalTranslator;
@@ -416,8 +416,8 @@ namespace Puerts
             generalSetterMap[typeof(ushort)] = UshortTranslator;
             generalSetterMap[typeof(int)] = IntTranslator;
             generalSetterMap[typeof(uint)] = UintTranslator;
-            generalSetterMap[typeof(long)] = LongTranslator;
-            generalSetterMap[typeof(ulong)] = UlongTranslator;
+            generalSetterMap[typeof(long)] = IntTranslator;
+            generalSetterMap[typeof(ulong)] = UintTranslator;
             generalSetterMap[typeof(double)] = DoubleTranslator;
             generalSetterMap[typeof(float)] = FloatTranslator;
             //translatorMap[typeof(decimal)] = decimalTranslator;
@@ -462,12 +462,12 @@ namespace Puerts
 
         private static void IntTranslator(IntPtr isolate, ISetValueToJs setValueApi, IntPtr holder, object obj)
         {
-            setValueApi.SetNumber(isolate, holder, (int)obj);
+            setValueApi.SetNumber(isolate, holder, Convert.ToInt32(obj));
         }
 
         private static void UintTranslator(IntPtr isolate, ISetValueToJs setValueApi, IntPtr holder, object obj)
         {
-            setValueApi.SetNumber(isolate, holder, (uint)obj);
+            setValueApi.SetNumber(isolate, holder, Convert.ToUInt32(obj));
         }
 
         private static void LongTranslator(IntPtr isolate, ISetValueToJs setValueApi, IntPtr holder, object obj)
