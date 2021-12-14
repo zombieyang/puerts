@@ -210,7 +210,7 @@ namespace puerts {
 
         JSEngine* JsEngine = FV8Utils::IsolateData<JSEngine>(MainIsolate);
         size_t Length = 0;
-        const char* EntryCode = JsEngine->ModuleResolver(Path, JsEngine->Idx, Length);
+        char* EntryCode = JsEngine->ModuleResolver(Path, JsEngine->Idx, Length);
         JSValue evalRet;
         
 		if (JS_IsCompiled(EntryCode))
@@ -218,7 +218,9 @@ namespace puerts {
             evalRet = JS_EvalBuffer(ctx, Path, (uint8_t*)EntryCode, Length);
 
 		} else {
-            evalRet = JS_Eval(ctx, EntryCode, strlen(EntryCode), Path, JS_EVAL_TYPE_MODULE);
+            // c#侧给过来的内存会有1位多余位。用于给字符串补0
+            EntryCode[Length] = 0;
+            evalRet = JS_Eval(ctx, EntryCode, Length + 1, Path, JS_EVAL_TYPE_MODULE);
         }
 
         v8::Value* val = nullptr;
