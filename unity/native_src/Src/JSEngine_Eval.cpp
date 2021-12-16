@@ -128,7 +128,7 @@ namespace puerts {
             }
 
 		} else {
-            func_val = JS_Eval(ctx, Code, strlen(Code), name, JS_EVAL_TYPE_MODULE | JS_EVAL_FLAG_COMPILE_ONLY);
+            func_val = JS_Eval(ctx, Code, Length, name, JS_EVAL_TYPE_MODULE | JS_EVAL_FLAG_COMPILE_ONLY);
         }
 
 		if (JS_IsException(func_val))
@@ -219,8 +219,7 @@ namespace puerts {
 
 		} else {
             // c#侧给过来的内存会有1位多余位。用于给字符串补0
-            EntryCode[Length] = 0;
-            evalRet = JS_Eval(ctx, EntryCode, Length + 1, Path, JS_EVAL_TYPE_MODULE);
+            evalRet = JS_Eval(ctx, EntryCode, Length, Path, JS_EVAL_TYPE_MODULE);
         }
 
         v8::Value* val = nullptr;
