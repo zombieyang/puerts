@@ -787,7 +787,7 @@ public:
 
     Isolate();
     
-    Isolate(void* external_runtime);
+    Isolate(void* external_context);
 
     ~Isolate();
     
