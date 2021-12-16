@@ -8,24 +8,30 @@
 #if PUERTS_GENERAL
 using System.IO;
 #endif
+using System.Text;
 
 namespace Puerts 
 {
-    public interface ILoader 
+    public abstract class ILoader 
     {
-        bool FileExists(string filepath);
-        byte[] ReadFile(string filepath, out string debugpath);
+        public abstract bool FileExists(string filepath);
+        public virtual string ReadFile(string filepath, out string debugpath) 
+        {
+            byte[] bytes = ReadByte(filepath, out debugpath);
+            return Encoding.UTF8.GetString(bytes, 0, bytes.Length);
+        }
+        internal abstract byte[] ReadByte(string filepath, out string debugpath);
     }
 
     public class DefaultLoader : ILoader 
     {
         private string root = "";
 
-        public DefaultLoader() 
+        public DefaultLoader()
         {
         }
 
-        public DefaultLoader(string root) 
+        public DefaultLoader(string root)
         {
             this.root = root;
         }
@@ -36,17 +42,17 @@ namespace Puerts
             {
                 return filepath.Substring(0, filepath.Length - 6);
             }
-            else if (filepath.EndsWith(".cjs") || filepath.EndsWith(".mjs"))
-            {
-                return filepath.Substring(0, filepath.Length - 4);
-            }
+            // else if (filepath.EndsWith(".cjs") || filepath.EndsWith(".mjs"))
+            // {
+            //     return filepath.Substring(0, filepath.Length - 4);
+            // }
             else 
             {
                 return filepath;
             }
         }
 
-        public bool FileExists(string filepath) 
+        public override bool FileExists(string filepath) 
         {
 #if PUERTS_GENERAL
             return File.Exists(Path.Combine(root, filepath));
@@ -56,7 +62,7 @@ namespace Puerts
 #endif
         }
 
-        public byte[] ReadFile(string filepath, out string debugpath) 
+        internal override byte[] ReadByte(string filepath, out string debugpath) 
         {
 #if PUERTS_GENERAL
             debugpath = Path.Combine(root, filepath);

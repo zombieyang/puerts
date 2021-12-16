@@ -189,7 +189,7 @@ namespace Puerts
             }
 
             string debugPath;
-            return loader.ReadFile(identifer, out debugPath);
+            return loader.ReadByte(identifer, out debugPath);
         }
 
         public void ExecuteModule(string filename)
