@@ -20,7 +20,7 @@ namespace Puerts
             byte[] bytes = ReadByte(filepath, out debugpath);
             return Encoding.UTF8.GetString(bytes, 0, bytes.Length);
         }
-        internal abstract byte[] ReadByte(string filepath, out string debugpath);
+        protected internal abstract byte[] ReadByte(string filepath, out string debugpath);
     }
 
     public class DefaultLoader : ILoader 
@@ -62,11 +62,11 @@ namespace Puerts
 #endif
         }
 
-        internal override byte[] ReadByte(string filepath, out string debugpath) 
+        protected internal override byte[] ReadByte(string filepath, out string debugpath) 
         {
 #if PUERTS_GENERAL
             debugpath = Path.Combine(root, filepath);
-            return File.ReadAllText(debugpath);
+            return File.ReadAllBytes(debugpath);
 #else
             string pathToUse = this.PathToUse(filepath);
             UnityEngine.TextAsset file = (UnityEngine.TextAsset)UnityEngine.Resources.Load(pathToUse);

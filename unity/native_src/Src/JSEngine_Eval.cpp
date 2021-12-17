@@ -95,7 +95,7 @@ namespace puerts {
         }
 
         size_t Length = 0;
-        const char* Code = JsEngine->ModuleResolver(name_std.c_str(), JsEngine->Idx, Length);
+        char* Code = JsEngine->ModuleResolver(name_std.c_str(), JsEngine->Idx, Length);
         JSValue func_val;
         JSModuleDef* module_ = nullptr;
 
@@ -128,6 +128,7 @@ namespace puerts {
             }
 
 		} else {
+            Code[Length] = 0;
             func_val = JS_Eval(ctx, Code, Length, name, JS_EVAL_TYPE_MODULE | JS_EVAL_FLAG_COMPILE_ONLY);
         }
 
@@ -218,8 +219,9 @@ namespace puerts {
             evalRet = JS_EvalBuffer(ctx, Path, (uint8_t*)EntryCode, Length);
 
 		} else {
-            // c#侧给过来的内存会有1位多余位。用于给字符串补0
+            EntryCode[Length] = 0;
             evalRet = JS_Eval(ctx, EntryCode, Length, Path, JS_EVAL_TYPE_MODULE);
+            // evalRet = JS_Eval(ctx, EntryCode, Length, Path, JS_EVAL_TYPE_MODULE);
         }
 
         v8::Value* val = nullptr;

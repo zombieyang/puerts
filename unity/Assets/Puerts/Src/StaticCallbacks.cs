@@ -18,14 +18,11 @@ namespace Puerts
         {
             byte[] content = JsEnv.jsEnvs[jsEnvIdx].ResolveModuleContent(identifer);
             byteLength = content.Length;
-            byte[] newContent = new byte[byteLength + 1];
-            Array.Copy(content, newContent, byteLength);
-            newContent[byteLength] = 0;
 
             // 这段内存是没有末尾0的，如果这段真是字符串，qjs可能需要添加末尾0才能准确解析，所以多分配一位。
             IntPtr ptr = Marshal.AllocHGlobal(byteLength + 1); 
 
-            Marshal.Copy(newContent, 0, ptr, byteLength + 1);
+            Marshal.Copy(content, 0, ptr, byteLength);
             return ptr;
         }
 
