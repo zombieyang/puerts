@@ -20,29 +20,27 @@ namespace Puerts.UnitTest
             "../../Assets/Puerts/Src/Resources"
         );
 
-        public bool FileExists(string filepath)
+        public override bool FileExists(string filepath)
         {
             return mockFileContent.ContainsKey(filepath) || File.Exists(Path.Combine(root, filepath));
         }
 
-        public string ReadFile(string filepath, out string debugpath)
+        protected override byte[] ReadByte(string filepath, out string debugpath)
         {
             debugpath = Path.Combine(root, filepath);
 
             string mockContent;
             if (mockFileContent.TryGetValue(filepath, out mockContent))
             {
-                return mockContent;
+                return System.Text.Encoding.ASCII.GetBytes(mockContent);
             }
 
-            using (StreamReader reader = new StreamReader(debugpath))
-            {
-                return reader.ReadToEnd();
-            }
+            return File.ReadAllBytes(debugpath);
         }
 
         private Dictionary<string, string> mockFileContent = new Dictionary<string, string>();
-        public void AddMockFileContent(string fileName, string content) {
+        public void AddMockFileContent(string fileName, string content)
+        {
             mockFileContent.Add(fileName, content);
         }
     }
