@@ -150,25 +150,27 @@ namespace Puerts
             }
 
             bool isNode = PuertsDLL.GetLibBackend() == 1;
-            ExecuteModule("puerts/init.mjs");
-            ExecuteModule("puerts/log.mjs");
-            ExecuteModule("puerts/cjsload.mjs");
-            ExecuteModule("puerts/modular.mjs");
-            ExecuteModule("puerts/csharp.mjs");
-            ExecuteModule("puerts/timer.mjs");
+            string extName = ".js.bytes";
+            // string extName = ".mjs";
+            ExecuteModule("puerts/init" + extName);
+            ExecuteModule("puerts/log" + extName);
+            ExecuteModule("puerts/cjsload" + extName);
+            ExecuteModule("puerts/modular" + extName);
+            ExecuteModule("puerts/csharp" + extName);
+            ExecuteModule("puerts/timer" + extName);
             
-            ExecuteModule("puerts/events.mjs");
-            ExecuteModule("puerts/promises.mjs");
+            ExecuteModule("puerts/events" + extName);
+            ExecuteModule("puerts/promises" + extName);
 #if !PUERTS_GENERAL
             if (!isNode) 
             {
 #endif
-                ExecuteModule("puerts/polyfill.mjs");
+                ExecuteModule("puerts/polyfill" + extName);
 #if !PUERTS_GENERAL
             }
             else
             {
-                ExecuteModule("puerts/nodepatch.mjs");
+                ExecuteModule("puerts/nodepatch" + extName);
             }
 #endif
 
@@ -181,7 +183,7 @@ namespace Puerts
 #endif
         }
 
-        internal string ResolveModuleContent(string identifer) 
+        internal byte[] ResolveModuleContent(string identifer) 
         {
             if (!loader.FileExists(identifer)) 
             {
@@ -189,7 +191,7 @@ namespace Puerts
             }
 
             string debugPath;
-            return loader.ReadFile(identifer, out debugPath);
+            return loader.ReadByte(identifer, out debugPath);
         }
 
         /**

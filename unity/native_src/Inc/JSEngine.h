@@ -63,7 +63,7 @@
 
 #endif
 
-typedef char* (*CSharpModuleResolveCallback)(const char* identifer, int32_t jsEnvIdx);
+typedef char* (*CSharpModuleResolveCallback)(const char* identifer, int32_t jsEnvIdx, size_t &Length);
 
 typedef void(*CSharpFunctionCallback)(v8::Isolate* Isolate, const v8::FunctionCallbackInfo<v8::Value>& Info, void* Self, int ParamLen, int64_t UserData);
 

@@ -6,15 +6,24 @@
 */
 
 using System;
+using System.Runtime.InteropServices;
+using System.Text;
 
 namespace Puerts
 {
     internal class StaticCallbacks
     {
-        [MonoPInvokeCallback(typeof(V8FunctionCallback))]
-        internal static string ModuleResolverWrap(string identifer, int jsEnvIdx)
+        [MonoPInvokeCallback(typeof(ModuleResolveCallback))]
+        internal static IntPtr ModuleResolverWrap(string identifer, int jsEnvIdx, ref int byteLength)
         {
-            return JsEnv.jsEnvs[jsEnvIdx].ResolveModuleContent(identifer);
+            byte[] content = JsEnv.jsEnvs[jsEnvIdx].ResolveModuleContent(identifer);
+            byteLength = content.Length;
+
+            // 这段内存是没有末尾0的，如果这段真是字符串，qjs可能需要添加末尾0才能准确解析，所以多分配一位。
+            IntPtr ptr = Marshal.AllocHGlobal(byteLength + 1); 
+
+            Marshal.Copy(content, 0, ptr, byteLength);
+            return ptr;
         }
 
         [MonoPInvokeCallback(typeof(V8FunctionCallback))]

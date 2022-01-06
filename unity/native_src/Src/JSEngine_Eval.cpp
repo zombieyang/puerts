@@ -6,7 +6,7 @@
 */
 #include "JSEngine.h"
 #if WITH_QUICKJS
-#include "quickjs-msvc.h"
+#include "quickjs.h"
 #endif
 namespace puerts {
     std::string CjsModulePrepend("export default globalThis.require('");
@@ -74,6 +74,27 @@ namespace puerts {
         return Module;
     }
 #else 
+
+// copy from pixui
+#if !defined(MAKEFOURCC)
+#define MAKEFOURCC(ch0, ch1, ch2, ch3)                        \
+	((unsigned int) (unsigned char) (ch0) | ((unsigned int) (unsigned char) (ch1) << 8) | \
+	 ((unsigned int) (unsigned char) (ch2) << 16) | ((unsigned int) (unsigned char) (ch3) << 24))
+#endif
+#define TAG_PIX1  (MAKEFOURCC('P', 'I', 'X', '1'))
+#define TAG_PIX2  (MAKEFOURCC('P', 'I', 'X', '2'))
+
+    bool JS_IsCompiled(const void *buf) {
+        unsigned int tag = *(unsigned  int*) buf;
+        return tag == TAG_PIX1 || tag == TAG_PIX2;
+    }
+
+    int pxJSCompiledModuleInitFunc(JSContext *ctx, JSModuleDef *m)
+    {
+        return 0;
+    }
+// end copy from pixui
+
     JSModuleDef* js_module_loader(JSContext* ctx, const char *name, void *opaque) {
         JSRuntime *rt = JS_GetRuntime(ctx);
         v8::Isolate* Isolate = (v8::Isolate*)JS_GetRuntimeOpaque(rt);
@@ -88,26 +109,52 @@ namespace puerts {
             return Iter->second;
         }
 
-        const char* Code;
-        if (name_length > 4 && name_std.substr(name_length - 4, name_length).compare(".mjs") == 0) 
-        {
-            Code = JsEngine->ModuleResolver(name_std.c_str(), JsEngine->Idx);
-            if (Code == nullptr) 
+        size_t Length = 0;
+        char* Code = JsEngine->ModuleResolver(name_std.c_str(), JsEngine->Idx, Length);
+        JSValue func_val;
+        JSModuleDef* module_ = nullptr;
+
+		if (JS_IsCompiled(Code))
+		{
+			JSValue obj = JS_LoadBuffer(ctx, name, (uint8_t*)Code, Length);
+
+			uint32_t tag = JS_VALUE_GET_TAG(obj);
+			if (tag == JS_TAG_OBJECT && JS_IsFunction(ctx, obj))
+			{
+				JSValue ret = func_val = JS_Call(ctx, obj, JS_Undefined(), 0, nullptr);
+				JS_FreeValue(ctx, obj);
+				if (!JS_IsException(ret))
+				{
+					JS_FreeValue(ctx, ret);
+                    module_ = JS_NewCModule(ctx, name, pxJSCompiledModuleInitFunc);
+				}
+			}
+			else if (tag == JS_TAG_MODULE)
+			{
+				func_val = obj;
+			}
+			else if (tag == JS_TAG_EXCEPTION)
+			{
+				func_val = JS_EXCEPTION;
+			} 
+            else 
             {
-                return nullptr;
+                // printf("unknown tag %d\n", tag);
             }
-        } 
-        else 
-        {
-            Code = (CjsModulePrepend + name_std + CjsModuleAppend).c_str();
+
+		} else {
+            Code[Length] = 0;
+            func_val = JS_Eval(ctx, Code, Length, name, JS_EVAL_TYPE_MODULE | JS_EVAL_FLAG_COMPILE_ONLY);
         }
-        JSValue func_val = JS_Eval(ctx, Code, strlen(Code), name, JS_EVAL_TYPE_MODULE | JS_EVAL_FLAG_COMPILE_ONLY);
 
         if (JS_IsException(func_val)) {
             return nullptr;
         }
 
-        auto module_ = (JSModuleDef *) JS_VALUE_GET_PTR(func_val);
+        if (module_ == nullptr) {
+            module_ = (JSModuleDef *) JS_VALUE_GET_PTR(func_val);
+            JS_FreeValue(ctx, func_val);
+        }
 
         JsEngine->ModuleCacheMap[name_std] = module_;
 
@@ -209,7 +256,7 @@ namespace puerts {
             if (Exportee != nullptr) 
             {
                 val = MainIsolate->Alloc<v8::Value>();
-                val->value_ = JS_GET_MODULE_NS(ctx, EntryModule);
+                val->value_ = js_get_module_ns(ctx, EntryModule);
                 JS_FreeValue(ctx, evalRet);
                 v8::Local<v8::Value> ns = v8::Local<v8::Value>(val);
                 if (Exportee == 0) 

@@ -9,13 +9,19 @@ using System.Net.Mime;
 #if PUERTS_GENERAL || UNITY_EDITOR
 using System.IO;
 #endif
+using System.Text;
 
 namespace Puerts
 {
-    public interface ILoader
+    public abstract class ILoader 
     {
-        bool FileExists(string filepath);
-        string ReadFile(string filepath, out string debugpath);
+        public abstract bool FileExists(string filepath);
+        public virtual string ReadFile(string filepath, out string debugpath) 
+        {
+            byte[] bytes = ReadByte(filepath, out debugpath);
+            return Encoding.UTF8.GetString(bytes, 0, bytes.Length);
+        }
+        protected internal abstract byte[] ReadByte(string filepath, out string debugpath);
     }
 
     public class DefaultLoader : ILoader
@@ -33,6 +39,10 @@ namespace Puerts
 
         private string PathToUse(string filepath)
         {
+            if (filepath.EndsWith(".bytes")) 
+            {
+                return filepath.Substring(0, filepath.Length - 6);
+            }
             return 
             // .cjs asset is only supported in unity2018+
             filepath.EndsWith(".cjs") || filepath.EndsWith(".mjs")  ? 
@@ -40,40 +50,21 @@ namespace Puerts
                 filepath;
         }
 
-        public bool FileExists(string filepath)
+        public override bool FileExists(string filepath) 
         {
 #if PUERTS_GENERAL
             return File.Exists(Path.Combine(root, filepath));
-#elif UNITY_EDITOR
-            string pathToUse = this.PathToUse(filepath);
-            bool exist = UnityEngine.Resources.Load(pathToUse) != null;
-            if (!exist) {
-                return File.Exists(Path.Combine(UnityEngine.Application.dataPath, "Puerts/Src/Editor/Resources", filepath));
-            } else {
-                return true;
-            }
 #else
             string pathToUse = this.PathToUse(filepath);
             return UnityEngine.Resources.Load(pathToUse) != null;
 #endif
         }
 
-        public string ReadFile(string filepath, out string debugpath)
+        protected internal override byte[] ReadByte(string filepath, out string debugpath) 
         {
 #if PUERTS_GENERAL
             debugpath = Path.Combine(root, filepath);
-            return File.ReadAllText(debugpath);
-#elif UNITY_EDITOR
-            debugpath = Path.Combine(UnityEngine.Application.dataPath, "Puerts/Src/Editor/Resources", filepath);
-
-            string pathToUse = this.PathToUse(filepath);
-            UnityEngine.TextAsset file = (UnityEngine.TextAsset)UnityEngine.Resources.Load(pathToUse);
-            if (file == null) {
-                return File.ReadAllText(debugpath);
-
-            } else {
-                return file.text;
-            }
+            return File.ReadAllBytes(debugpath);
 #else
             string pathToUse = this.PathToUse(filepath);
             UnityEngine.TextAsset file = (UnityEngine.TextAsset)UnityEngine.Resources.Load(pathToUse);
@@ -81,7 +72,7 @@ namespace Puerts
 #if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
             debugpath = debugpath.Replace("/", "\\");
 #endif
-            return file == null ? null : file.text;
+            return file == null ? null : file.bytes;
 #endif
         }
     }
