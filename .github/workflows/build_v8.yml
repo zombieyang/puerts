@@ -152,7 +152,7 @@ jobs:
         path: ~/v8/v8/output/**/*
           
   build_macos_arm64:
-    name: macOS
+    name: macOS arm64
     runs-on: macos-10.15
     steps:
     - uses: actions/checkout@v2
