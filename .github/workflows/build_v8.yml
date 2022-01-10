@@ -11,7 +11,7 @@ on:
 #libwee8按设计只支持wasm，不支持js，但8.4.371.19版本尚未移除js功能，还能用，如果升级v8版本要注意
 #libmonolith会稳妥一些，但静态库大小会大些
 env:
-  VERSION: 8.4.371.19
+  VERSION: 9.4.146.24
 
 jobs:
   build_android_arm_v8:
@@ -146,6 +146,22 @@ jobs:
       run: |
         cd $GITHUB_WORKSPACE
         sh ./v8-build/macos.sh ${{env.VERSION}}
+    - uses: actions/upload-artifact@v2
+      with:
+        name: v8_bin
+        path: ~/v8/v8/output/**/*
+          
+  build_macos_arm64:
+    name: macOS
+    runs-on: macos-10.15
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use Xcode 12.0 to use SDK 10.15
+      run: sudo xcode-select -switch "/Applications/Xcode_12.app"
+    - name: Run build script
+      run: |
+        cd $GITHUB_WORKSPACE
+        sh ./v8-build/macos_arm64.sh ${{env.VERSION}}
     - uses: actions/upload-artifact@v2
       with:
         name: v8_bin
