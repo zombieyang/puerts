@@ -162,7 +162,7 @@ namespace puerts
         CreateParams = new v8::Isolate::CreateParams();
         CreateParams->array_buffer_allocator = v8::ArrayBuffer::Allocator::NewDefaultAllocator();
 #if WITH_QUICKJS
-        MainIsolate = (external_quickjs_runtime == nullptr) ? v8::Isolate::New(*CreateParams) : v8::Isolate::New(external_quickjs_runtime);
+        MainIsolate = (external_quickjs_runtime == nullptr) ? v8::Isolate::New(*CreateParams) : v8::Isolate::New(external_quickjs_context);
 #else
         MainIsolate = v8::Isolate::New(*CreateParams);
 #endif
