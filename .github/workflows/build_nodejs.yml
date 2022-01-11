@@ -8,7 +8,7 @@ on:
         required: true
 
 env:
-  VERSION: 14.16.1
+  VERSION: 16.13.2
 
 jobs:
   build_windows:
