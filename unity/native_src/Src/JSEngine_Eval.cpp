@@ -110,7 +110,16 @@ namespace puerts {
         }
 
         size_t Length = 0;
-        char* Code = JsEngine->ModuleResolver(name_std.c_str(), JsEngine->Idx, Length);
+        char* Code;
+        bool IsCJSModule = !(name_length > 4 && name_std.substr(name_length - 4, name_length).compare(".mjs") == 0);
+        if (!IsCJSModule)
+        {
+            Code = JsEngine->ModuleResolver(name_std.c_str(), JsEngine->Idx, Length);
+        }
+        else 
+        {
+            Code = (char *)(CjsModulePrepend + name_std + CjsModuleAppend).c_str();
+        }
         JSValue func_val;
         JSModuleDef* module_ = nullptr;
 
@@ -143,7 +152,9 @@ namespace puerts {
             }
 
 		} else {
-            Code[Length] = 0;
+            if (!IsCJSModule) {
+                Code[Length] = 0;
+            }
             func_val = JS_Eval(ctx, Code, Length, name, JS_EVAL_TYPE_MODULE | JS_EVAL_FLAG_COMPILE_ONLY);
         }
 
@@ -235,15 +246,20 @@ namespace puerts {
         JS_SetModuleLoaderFunc(MainIsolate->runtime_, NULL, js_module_loader, NULL);
         JSContext* ctx = ResultInfo.Context.Get(MainIsolate)->context_;
 
-        JSModuleDef* EntryModule = js_module_loader(ctx , Path, nullptr);
-        if (EntryModule == nullptr) {
-            Isolate->handleException();
-            LastExceptionInfo = FV8Utils::ExceptionToString(Isolate, TryCatch);
-            return false;
-        }
+        JSEngine* JsEngine = FV8Utils::IsolateData<JSEngine>(MainIsolate);
 
-        auto func_obj = JS_DupModule(ctx, EntryModule);
-        auto evalRet = JS_EvalFunction(ctx, func_obj);
+        size_t Length = 0;
+        char* EntryCode = JsEngine->ModuleResolver(Path, JsEngine->Idx, Length);
+        JSValue evalRet;
+        
+		if (JS_IsCompiled(EntryCode))
+		{
+            evalRet = JS_EvalBuffer(ctx, Path, (uint8_t*)EntryCode, Length);
+
+		} else {
+            EntryCode[Length] = 0;
+            evalRet = JS_Eval(ctx, EntryCode, Length, Path, JS_EVAL_TYPE_MODULE);
+        }
 
         v8::Value* val = nullptr;
         if (JS_IsException(evalRet)) {
@@ -253,24 +269,26 @@ namespace puerts {
             return false;
 
         } else {
-            if (Exportee != nullptr) 
-            {
-                val = MainIsolate->Alloc<v8::Value>();
-                val->value_ = js_get_module_ns(ctx, EntryModule);
-                JS_FreeValue(ctx, evalRet);
-                v8::Local<v8::Value> ns = v8::Local<v8::Value>(val);
-                if (Exportee == 0) 
-                {
-                    ResultInfo.Result.Reset(Isolate, ns);
-                } 
-                else 
-                {
-                    ResultInfo.Result.Reset(
-                        Isolate, 
-                        ns.As<v8::Object>()->Get(Context, FV8Utils::V8String(Isolate, Exportee)).ToLocalChecked()
-                    );
-                }
-            }
+            // if (Exportee != nullptr) 
+            // {
+            //     JSModuleDef* EntryModule = (JSModuleDef *) JS_VALUE_GET_PTR(evalRet);
+                
+            //     val = MainIsolate->Alloc<v8::Value>();
+            //     val->value_ = js_get_module_ns(ctx, EntryModule);
+            //     JS_FreeValue(ctx, evalRet);
+            //     v8::Local<v8::Value> ns = v8::Local<v8::Value>(val);
+            //     if (Exportee == 0) 
+            //     {
+            //         ResultInfo.Result.Reset(Isolate, ns);
+            //     } 
+            //     else 
+            //     {
+            //         ResultInfo.Result.Reset(
+            //             Isolate, 
+            //             ns.As<v8::Object>()->Get(Context, FV8Utils::V8String(Isolate, Exportee)).ToLocalChecked()
+            //         );
+            //     }
+            // }
 
             return true;
             

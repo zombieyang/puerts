@@ -150,7 +150,7 @@ namespace Puerts
             }
 
             bool isNode = PuertsDLL.GetLibBackend() == 1;
-            string extName = ".js.bytes";
+            string extName = ".mjs";
             // string extName = ".mjs";
             ExecuteModule("puerts/init" + extName);
             ExecuteModule("puerts/log" + extName);
