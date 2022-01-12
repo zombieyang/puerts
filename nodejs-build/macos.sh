@@ -30,4 +30,5 @@ cp -r deps/uv/include ../puerts-node/nodejs/deps/uv
 cp -r deps/v8/include ../puerts-node/nodejs/deps/v8
 
 mkdir -p ../puerts-node/nodejs/lib/macOS/
-cp out/Release/libnode.83.dylib ../puerts-node/nodejs/lib/macOS/
+ls -l out/Release/
+cp out/Release/libnode.*.dylib ../puerts-node/nodejs/lib/macOS/
