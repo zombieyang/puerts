@@ -117,12 +117,13 @@ namespace puerts {
         if (Code == nullptr) 
         {
             IsCJSModule = !(name_length > 4 && name_std.substr(name_length - 4, name_length).compare(".mjs") == 0);
-            if (!IsCJSModule) 
+            if (IsCJSModule) 
             {
-                Code = (char *)(CjsModulePrepend + name_std + CjsModuleAppend).c_str();
+                std::string codeStd = CjsModulePrepend + name_std + CjsModuleAppend;
+                Length = codeStd.size();
+                Code = (char *)codeStd.c_str();
             }
         }
-        
         JSValue func_val;
         JSModuleDef* module_ = nullptr;
 
@@ -144,6 +145,13 @@ namespace puerts {
 			else if (tag == JS_TAG_MODULE)
 			{
 				func_val = obj;
+
+                // 'opaque == nullptr' means entry module
+                if (opaque == nullptr && JS_ResolveModule(ctx, obj) < 0)
+                {
+                    JS_FreeValue(ctx, obj);
+                    return nullptr;
+                }
 			}
 			else if (tag == JS_TAG_EXCEPTION)
 			{
@@ -162,8 +170,9 @@ namespace puerts {
         }
 
         if (JS_IsException(func_val)) {
-            JSValue ex = JS_GetException(ctx);
-            auto msg = JS_ToCString(ctx, ex);
+            // JSValue ex = JS_GetException(ctx);
+            // auto msg = JS_ToCString(ctx, ex);
+            // printf("%s\n", msg);
             return nullptr;
         }
 
@@ -248,23 +257,33 @@ namespace puerts {
         }
         return true;
 #else
-        JS_SetModuleLoaderFunc(MainIsolate->runtime_, NULL, js_module_loader, NULL);
+        JS_SetModuleLoaderFunc(MainIsolate->runtime_, NULL, js_module_loader, Isolate);
         JSContext* ctx = ResultInfo.Context.Get(MainIsolate)->context_;
 
-        JSEngine* JsEngine = FV8Utils::IsolateData<JSEngine>(MainIsolate);
-
-        size_t Length = 0;
-        char* EntryCode = JsEngine->ModuleResolver(Path, JsEngine->Idx, Length);
-        JSValue evalRet;
-        
-		if (JS_IsCompiled(EntryCode))
-		{
-            evalRet = JS_EvalBuffer(ctx, Path, (uint8_t*)EntryCode, Length);
-
-		} else {
-            EntryCode[Length] = 0;
-            evalRet = JS_Eval(ctx, EntryCode, Length, Path, JS_EVAL_TYPE_MODULE);
+        JSModuleDef* EntryModule = js_module_loader(ctx, Path, nullptr);
+        if (EntryModule == nullptr) {
+            Isolate->handleException();
+            LastExceptionInfo = FV8Utils::ExceptionToString(Isolate, TryCatch);
+            return false;
         }
+
+        auto func_obj = JS_DupModule(ctx, EntryModule);
+        auto evalRet = JS_EvalFunction(ctx, func_obj);
+
+        // JSEngine* JsEngine = FV8Utils::IsolateData<JSEngine>(MainIsolate);
+
+        // size_t Length = 0;
+        // char* EntryCode = JsEngine->ModuleResolver(Path, JsEngine->Idx, Length);
+        // JSValue evalRet;
+        
+		// if (JS_IsCompiled(EntryCode))
+		// {
+        //     evalRet = JS_EvalBuffer(ctx, Path, (uint8_t*)EntryCode, Length);
+
+		// } else {
+        //     EntryCode[Length] = 0;
+        //     evalRet = JS_Eval(ctx, EntryCode, Length, Path, JS_EVAL_TYPE_MODULE);
+        // }
 
         v8::Value* val = nullptr;
         if (JS_IsException(evalRet)) {
@@ -274,9 +293,25 @@ namespace puerts {
             return false;
 
         } else {
-            val = MainIsolate->Alloc<v8::Value>();
-            val->value_ = evalRet;
-            ResultInfo.Result.Reset(MainIsolate, v8::Local<v8::Value>(val));
+            if (Exportee != nullptr) 
+            {
+                val = MainIsolate->Alloc<v8::Value>();
+                val->value_ = js_get_module_ns(ctx, EntryModule);
+                JS_FreeValue(ctx, evalRet);
+                v8::Local<v8::Value> ns = v8::Local<v8::Value>(val);
+                if (Exportee == 0) 
+                {
+                    ResultInfo.Result.Reset(Isolate, ns);
+                } 
+                else 
+                {
+                    ResultInfo.Result.Reset(
+                        Isolate, 
+                        ns.As<v8::Object>()->Get(Context, FV8Utils::V8String(Isolate, Exportee)).ToLocalChecked()
+                    );
+                }
+            }
+
             return true;
             
         }
