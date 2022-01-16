@@ -17,7 +17,7 @@ git checkout -- .
 
 echo "=====[Building Node.js]====="
 
-CC_host="ccache clang" CXX_host="ccache clang++" CC_target="ccache clang -arch arm64" CXX_target="ccache clang++ -arch arm64" CC="ccache clang -arch arm64" CXX="ccache clang++ -arch arm64" ./configure --no-browser-globals --shared --cross-compiling --dest-cpu=arm64
+CC_host="clang" CXX_host="clang++" CC_target="clang -arch arm64" CXX_target="clang++ -arch arm64" CC="clang -arch arm64" CXX="clang++ -arch arm64" ./configure --no-browser-globals --shared --cross-compiling --dest-cpu=arm64
 make -j8
 
 mkdir -p ../puerts-node/nodejs/include
