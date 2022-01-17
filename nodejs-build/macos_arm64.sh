@@ -29,5 +29,5 @@ cp src/node_version.h ../puerts-node/nodejs/include
 cp -r deps/uv/include ../puerts-node/nodejs/deps/uv
 cp -r deps/v8/include ../puerts-node/nodejs/deps/v8
 
-mkdir -p ../puerts-node/nodejs/lib/macOS/
-cp out/Release/libnode.*.dylib ../puerts-node/nodejs/lib/macOS/
+mkdir -p ../puerts-node/nodejs/lib/macOS_arm64/
+cp out/Release/libnode.*.dylib ../puerts-node/nodejs/lib/macOS_arm64/
