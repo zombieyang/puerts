@@ -18,4 +18,4 @@ call git checkout -- .
 copy /y %GITHUB_WORKSPACE%\nodejs-build\zlib.def deps\zlib\win32\zlib.def
 
 echo =====[ Building Node.js ]=====
-.\vcbuild.bat dll openssl-no-asm
+.\vcbuild.bat dll openssl-no-asm vs2019
