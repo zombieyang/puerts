@@ -29,7 +29,7 @@ call gclient sync
 @REM call git checkout -- .
 
 echo =====[ Building V8 ]=====
-call gn gen out.gn\x86.release -args="target_os=""win"" target_cpu=""x86"" v8_use_external_startup_data=true v8_enable_i18n_support=false is_debug=false v8_static_library=true is_clang=false strip_debug_info=true symbol_level=0 v8_enable_pointer_compression=false"
+call gn gen out.gn\x86.release -ide=vs2022 -args="target_os=""win"" target_cpu=""x86"" v8_use_external_startup_data=true v8_enable_i18n_support=false is_debug=false v8_static_library=true is_clang=false strip_debug_info=true symbol_level=0 v8_enable_pointer_compression=false"
 
 call ninja -C out.gn\x86.release -t clean
 call ninja -C out.gn\x86.release wee8
