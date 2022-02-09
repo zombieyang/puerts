@@ -4,16 +4,18 @@ then
     ENGINE="v8"
 fi
 
-mkdir -p build_osx_$ENGINE && cd build_osx_$ENGINE
+OUTPUT=build_osx_$ENGINE
+
+mkdir -p $OUTPUT && cd $OUTPUT
 cmake -DJS_ENGINE=$ENGINE -GXcode ../
 cd ..
-cmake --build build_osx_$ENGINE --config Release
-cmake --install build_osx_$ENGINE --prefix "$(pwd)/build_osx_$ENGINE"
-mv build_osx_$ENGINE/bin/libpuerts.dylib build_osx_$ENGINE/bin/puerts.bundle
-cp -r $ENGINE/Lib/macOS/*.dylib build_osx_$ENGINE/bin/
+cmake --build $OUTPUT --config Release
+cmake --install $OUTPUT --prefix "$(pwd)/$OUTPUT"
+mv $OUTPUT/bin/libpuerts.dylib $OUTPUT/bin/puerts.bundle
+cp -r $ENGINE/Lib/macOS/*.dylib $OUTPUT/bin/
 
 mkdir -p ../Assets/Plugins/macOS
-cp -r build_osx_$ENGINE/bin/* ../Assets/Plugins/macOS/
+cp -r $OUTPUT/bin/* ../Assets/Plugins/macOS/
 
 
 # mkdir -p build_osx && cd build_osx
