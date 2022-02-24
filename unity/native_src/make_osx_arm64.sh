@@ -12,7 +12,7 @@ cd ..
 cmake --build $OUTPUT --config Release
 cmake --install $OUTPUT --prefix "$(pwd)/$OUTPUT"
 mv $OUTPUT/bin/libpuerts.dylib $OUTPUT/bin/puerts.bundle
-cp -r $ENGINE/Lib/macOS/*.dylib $OUTPUT/bin/
+cp -r $ENGINE/Lib/macOS_arm64/*.dylib $OUTPUT/bin/
 
 mkdir -p ../Assets/Plugins/macOS_arm64
 cp -r $OUTPUT/bin/* ../Assets/Plugins/macOS_arm64/
