@@ -16,18 +16,27 @@ namespace Puerts
         [MonoPInvokeCallback(typeof(ModuleResolveCallback))]
         internal static IntPtr ModuleResolverWrap(string identifer, int jsEnvIdx, ref int byteLength)
         {
-            byte[] content = JsEnv.jsEnvs[jsEnvIdx].ResolveModuleContent(identifer);
-            if (content == null)
+            JsEnv env = JsEnv.jsEnvs[jsEnvIdx];
+            try
             {
+                byte[] content = env.ResolveModuleContent(identifer);
+                if (content == null)
+                {
+                    return IntPtr.Zero;
+                }
+                byteLength = content.Length;
+
+                // 这段内存是没有末尾0的，如果这段真是字符串，qjs可能需要添加末尾0才能准确解析，所以多分配一位。
+                IntPtr ptr = Marshal.AllocHGlobal(byteLength + 1); 
+
+                Marshal.Copy(content, 0, ptr, byteLength);
+                return ptr;
+            }
+            catch (Exception e)
+            {
+                PuertsDLL.ThrowException(env.isolate, "JsEnvCallbackWrap c# exception:" + e.Message + ",stack:" + e.StackTrace);
                 return IntPtr.Zero;
             }
-            byteLength = content.Length;
-
-            // 这段内存是没有末尾0的，如果这段真是字符串，qjs可能需要添加末尾0才能准确解析，所以多分配一位。
-            IntPtr ptr = Marshal.AllocHGlobal(byteLength + 1); 
-
-            Marshal.Copy(content, 0, ptr, byteLength);
-            return ptr;
         }
 
         [MonoPInvokeCallback(typeof(V8FunctionCallback))]
