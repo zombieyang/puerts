@@ -168,7 +168,9 @@ namespace puerts {
             }
             func_val = JS_Eval(ctx, Code, Length, name, JS_EVAL_TYPE_MODULE | JS_EVAL_FLAG_COMPILE_ONLY);
         }
-
+        if (Code != nullptr) {
+            delete Code;
+        }
         if (JS_IsException(func_val)) {
             // JSValue ex = JS_GetException(ctx);
             // auto msg = JS_ToCString(ctx, ex);

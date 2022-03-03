@@ -579,6 +579,10 @@ namespace Puerts
         public static extern IntPtr GetArrayBufferFromValue(IntPtr isolate, IntPtr value, out int length, bool isOut);
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr GetArrayBufferFromResult(IntPtr function, out int length);
+
+        [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr AllocCharMemory(int byteLength);
+
     }
 }
 

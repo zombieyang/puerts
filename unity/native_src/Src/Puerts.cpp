@@ -881,7 +881,10 @@ V8_EXPORT void LogicTick(v8::Isolate *Isolate)
     auto JsEngine = FV8Utils::IsolateData<JSEngine>(Isolate);
     return JsEngine->LogicTick();
 }
-
+V8_EXPORT char* AllocCharMemory(int32_t length)
+{
+    return new char[length];
+}
 //-------------------------- end debug --------------------------
 
 #ifdef __cplusplus
