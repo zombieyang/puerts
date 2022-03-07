@@ -253,6 +253,7 @@ static FEdGraphPinType ToFEdGraphPinType(FPEGraphPinType InGraphPinType, FPEGrap
 void UPEBlueprintAsset::AddParameter(FName InParameterName, FPEGraphPinType InGraphPinType, FPEGraphTerminalType InPinValueType)
 {
     ParameterNames.Add(InParameterName);
+    ParameterIsIn.Add(InGraphPinType.bIn);
     ParameterTypes.Add(ToFEdGraphPinType(InGraphPinType, InPinValueType));
 }
 
@@ -260,6 +261,7 @@ void UPEBlueprintAsset::AddParameterWithMetaData(
     FName InParameterName, FPEGraphPinType InGraphPinType, FPEGraphTerminalType InPinValueType, UPEParamMetaData* InMetaData)
 {
     ParameterNames.Add(InParameterName);
+    ParameterIsIn.Add(InGraphPinType.bIn);
     FEdGraphPinType PinType = ToFEdGraphPinType(InGraphPinType, InPinValueType);
     if (IsValid(InMetaData))
     {
@@ -273,11 +275,19 @@ void UPEBlueprintAsset::AddParameterWithMetaData(
 
 static TArray<UK2Node_EditablePinBase*> GatherAllResultNodes(UK2Node_EditablePinBase* TargetNode)
 {
+    TArray<UK2Node_EditablePinBase*> Result;
     if (UK2Node_FunctionResult* ResultNode = Cast<UK2Node_FunctionResult>(TargetNode))
     {
-        return (TArray<UK2Node_EditablePinBase*>) ResultNode->GetAllResultNodes();
+        for (auto& Node : ResultNode->GetAllResultNodes())
+        {
+            if (Node)
+            {
+                Result.Add(Node);
+            }
+        }
+        return Result;
     }
-    TArray<UK2Node_EditablePinBase*> Result;
+
     if (TargetNode)
     {
         Result.Add(TargetNode);
@@ -456,6 +466,7 @@ void UPEBlueprintAsset::AddFunction(FName InName, bool IsVoid, FPEGraphPinType I
         }
 
         ParameterNames.Empty();
+        ParameterIsIn.Empty();
         ParameterTypes.Empty();
         return;
     }
@@ -607,7 +618,7 @@ void UPEBlueprintAsset::AddFunction(FName InName, bool IsVoid, FPEGraphPinType I
         {
             int32 ExtraFlags = TypedEntryNode->GetExtraFlags();
 
-            int32 NewExtraFlags = (ExtraFlags | InSetFlags) & ~InClearFlags;
+            int32 NewExtraFlags = ((ExtraFlags & ~NetMask) | InSetFlags) & ~InClearFlags;
 
             if (ExtraFlags != NewExtraFlags)
             {
@@ -618,7 +629,7 @@ void UPEBlueprintAsset::AddFunction(FName InName, bool IsVoid, FPEGraphPinType I
         }
         else if (UK2Node_CustomEvent* CustomEventNode = Cast<UK2Node_CustomEvent>(FunctionEntryNode))
         {
-            int32 NewFunctionFlags = (CustomEventNode->FunctionFlags | InSetFlags) & ~InClearFlags;
+            int32 NewFunctionFlags = ((CustomEventNode->FunctionFlags & ~NetMask) | InSetFlags) & ~InClearFlags;
             if (CustomEventNode->FunctionFlags != NewFunctionFlags)
             {
                 CanChangeCheck();
@@ -635,7 +646,7 @@ void UPEBlueprintAsset::AddFunction(FName InName, bool IsVoid, FPEGraphPinType I
         for (int i = 0; i < ParameterTypes.Num(); ++i)
         {
             FEdGraphPinType ParameterType = ParameterTypes[i];
-            if (ParameterType.bIsReference)
+            if (ParameterType.bIsReference && !ParameterIsIn[i])
             {
                 ParameterType.bIsReference = false;
                 OutputParameterTypes.Add(TPair<FName, FEdGraphPinType>(ParameterNames[i], ParameterType));
@@ -703,7 +714,7 @@ void UPEBlueprintAsset::AddFunction(FName InName, bool IsVoid, FPEGraphPinType I
             auto FunctionResultNode = FBlueprintEditorUtils::FindOrCreateFunctionResultNode(FunctionEntryNode);
             RetChanged = RetChanged || TryAddOutput(GatherAllResultNodes(FunctionResultNode), RetValName, PinType);
         }
-        else
+        else if (IsCustomEvent || (IsVoid && OutputParameterTypes.Num() == 0))
         {
             UEdGraph* Graph = FunctionEntryNode->GetGraph();
 
@@ -767,6 +778,7 @@ void UPEBlueprintAsset::AddFunction(FName InName, bool IsVoid, FPEGraphPinType I
     }
 
     ParameterNames.Empty();
+    ParameterIsIn.Empty();
     ParameterTypes.Empty();
 }
 
@@ -854,6 +866,7 @@ void UPEBlueprintAsset::AddFunctionWithMetaData(FName InName, bool IsVoid, FPEGr
 void UPEBlueprintAsset::ClearParameter()
 {
     ParameterNames.Empty();
+    ParameterIsIn.Empty();
     ParameterTypes.Empty();
 }
 

@@ -58,6 +58,8 @@ struct DECLARATIONGENERATOR_API FTypeScriptDeclarationGenerator
 
     std::map<UObject*, FString> NamespaceMap;
 
+    bool RefFromOuter = false;
+
     const FString& GetNamespace(UObject* Obj);
 
     FString GetNameWithNamespace(UObject* Obj);

@@ -244,7 +244,7 @@ namespace puerts {
             if (Exportee != nullptr) 
             {
                 v8::Local<v8::Value> ns = ModuleChecked->GetModuleNamespace();
-                if (Exportee == 0) 
+                if (*Exportee == 0) 
                 {
                     ResultInfo.Result.Reset(Isolate, ns);
                 } 
@@ -301,7 +301,7 @@ namespace puerts {
                 val->value_ = js_get_module_ns(ctx, EntryModule);
                 JS_FreeValue(ctx, evalRet);
                 v8::Local<v8::Value> ns = v8::Local<v8::Value>(val);
-                if (Exportee == 0) 
+                if (*Exportee == 0) 
                 {
                     ResultInfo.Result.Reset(Isolate, ns);
                 } 

@@ -165,6 +165,8 @@ void FTypeScriptDeclarationGenerator::Begin(FString ModuleName)
     Output << "/// <reference path=\"puerts.d.ts\" />\n";
     Output << "declare module \"" << ModuleName << "\" {\n";
     Output << "    import {$Ref, $Nullable} from \"puerts\"\n\n";
+    Output << "    import * as cpp from \"cpp\"\n\n";
+    Output << "    import * as UE from \"ue\"\n\n";
     Output.Indent(4);
 }
 
@@ -273,8 +275,6 @@ void FTypeScriptDeclarationGenerator::GenTypeScriptDeclaration()
 {
     Begin();
 
-    Output << "    import * as cpp from \"cpp\"\n\n";
-
     TArray<UClass*> SortedClasses(GetSortedClasses());
     for (int i = 0; i < SortedClasses.Num(); ++i)
     {
@@ -300,9 +300,25 @@ const FString& FTypeScriptDeclarationGenerator::GetNamespace(UObject* Obj)
     auto Iter = NamespaceMap.find(Obj);
     if (Iter == NamespaceMap.end())
     {
-        TArray<FString> PathFrags;
-        Cast<UPackage>(Obj->GetOuter())->GetName().ParseIntoArray(PathFrags, TEXT("/"));
-        NamespaceMap[Obj] = FString::Join(PathFrags, TEXT("."));
+        UPackage* Pkg = Obj->GetPackage();
+        if (Pkg)
+        {
+            TArray<FString> PathFrags;
+            Pkg->GetName().ParseIntoArray(PathFrags, TEXT("/"));
+            for (int i = 0; i < PathFrags.Num(); i++)
+            {
+                auto FirstChar = PathFrags[i][0];
+                if ((FirstChar >= (TCHAR) '0' && FirstChar <= (TCHAR) '9') || FirstChar == (TCHAR) '$')
+                {
+                    PathFrags[i] = TEXT("$") + PathFrags[i];
+                }
+            }
+            NamespaceMap[Obj] = FString::Join(PathFrags, TEXT("."));
+        }
+        else
+        {
+            NamespaceMap[Obj] = TEXT("");
+        }
         Iter = NamespaceMap.find(Obj);
     }
     return Iter->second;
@@ -310,16 +326,20 @@ const FString& FTypeScriptDeclarationGenerator::GetNamespace(UObject* Obj)
 
 FString FTypeScriptDeclarationGenerator::GetNameWithNamespace(UObject* Obj)
 {
-#if defined(WITH_BP_NAMESPACE)
+#if !defined(WITHOUT_BP_NAMESPACE)
     if (!Obj->IsNative())
-        return GetNamespace(Obj) + TEXT(".") + SafeName(Obj->GetName());
-#endif
+    {
+        return (RefFromOuter ? TEXT("") : TEXT("UE.")) + GetNamespace(Obj) + TEXT(".") + SafeName(Obj->GetName());
+    }
+    return (RefFromOuter ? TEXT("") : TEXT("UE.")) + SafeName(Obj->GetName());
+#else
     return SafeName(Obj->GetName());
+#endif
 }
 
 void FTypeScriptDeclarationGenerator::NamespaceBegin(UObject* Obj)
 {
-#if defined(WITH_BP_NAMESPACE)
+#if !defined(WITHOUT_BP_NAMESPACE)
     if (!Obj->IsNative())
     {
         Output << "    namespace " << GetNamespace(Obj) << " {\n";
@@ -330,7 +350,7 @@ void FTypeScriptDeclarationGenerator::NamespaceBegin(UObject* Obj)
 
 void FTypeScriptDeclarationGenerator::NamespaceEnd(UObject* Obj)
 {
-#if defined(WITH_BP_NAMESPACE)
+#if !defined(WITHOUT_BP_NAMESPACE)
     if (!Obj->IsNative())
     {
         Output.Indent(-4);
@@ -410,7 +430,7 @@ bool FTypeScriptDeclarationGenerator::GenTypeDecl(FStringBuffer& StringBuffer, P
         if (ByteProperty->GetIntPropertyEnum())
         {
             AddToGen.Add(ByteProperty->GetIntPropertyEnum());
-            StringBuffer << SafeName(ByteProperty->GetIntPropertyEnum()->GetName());
+            StringBuffer << GetNameWithNamespace(ByteProperty->GetIntPropertyEnum());
         }
         else
         {
@@ -426,6 +446,10 @@ bool FTypeScriptDeclarationGenerator::GenTypeDecl(FStringBuffer& StringBuffer, P
         if (StructProperty->Struct->GetName() == TEXT("JsObject"))
         {
             StringBuffer << "object";
+        }
+        else if (StructProperty->Struct->GetName() == TEXT("ArrayBuffer"))
+        {
+            StringBuffer << "ArrayBuffer";
         }
         else
         {

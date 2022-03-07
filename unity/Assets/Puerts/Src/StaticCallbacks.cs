@@ -14,7 +14,7 @@ namespace Puerts
     internal class StaticCallbacks
     {
         [MonoPInvokeCallback(typeof(ModuleResolveCallback))]
-        internal static IntPtr ModuleResolverWrap(string identifer, int jsEnvIdx, ref int byteLength)
+        internal static IntPtr ModuleResolverCallback(string identifer, int jsEnvIdx, ref int byteLength)
         {
             JsEnv env = JsEnv.jsEnvs[jsEnvIdx];
             byte[] content;

@@ -175,7 +175,7 @@ void FFunctionTranslator::Init(UFunction* InFunction, bool IsDelegate)
                                 else if (StructProp->Struct == TBaseStructure<FLinearColor>::Get())
                                 {
                                     FLinearColor* LinearColor = (FLinearColor*) PropValuePtr;
-                                    FDefaultValueHelper::ParseLinearColor(**DefaultValuePtr, *LinearColor);
+                                    LinearColor->InitFromString(**DefaultValuePtr);
                                     continue;
                                 }
                             }
@@ -271,7 +271,10 @@ void FFunctionTranslator::Call(
     {
         for (int i = 0; i < Arguments.size(); ++i)
         {
-            Arguments[i]->Property->DestroyValue_InContainer(Params);
+            if (Arguments[i]->ParamShallowCopySize == 0)
+            {
+                Arguments[i]->Property->DestroyValue_InContainer(Params);
+            }
         }
     }
 }
@@ -312,7 +315,10 @@ void FFunctionTranslator::Call(v8::Isolate* Isolate, v8::Local<v8::Context>& Con
     {
         for (int i = 0; i < Arguments.size(); ++i)
         {
-            Arguments[i]->Property->DestroyValue_InContainer(Params);
+            if (Arguments[i]->ParamShallowCopySize == 0)
+            {
+                Arguments[i]->Property->DestroyValue_InContainer(Params);
+            }
         }
     }
 }
@@ -338,7 +344,7 @@ void FFunctionTranslator::CallJs(v8::Isolate* Isolate, v8::Local<v8::Context>& C
 
         for (int i = 0; i < Arguments.size(); ++i)
         {
-            Arguments[i]->JsToUEOutInContainer(Isolate, Context, Args[i], Params, false);
+            Arguments[i]->JsToUEOutInContainer(Isolate, Context, Args[i], Params, true);
         }
     }
 }
@@ -361,6 +367,8 @@ void FFunctionTranslator::CallJs(v8::Isolate* Isolate, v8::Local<v8::Context>& C
     v8::Local<v8::Value> This, UObject* ContextObject, FFrame& Stack, void* RESULT_PARAM)
 {
     void* Params = Stack.Locals;
+
+    auto OldOutParms = Stack.OutParms;
 
     if (Stack.Node != Stack.CurrentNativeFunction)
     {
@@ -397,7 +405,7 @@ void FFunctionTranslator::CallJs(v8::Isolate* Isolate, v8::Local<v8::Context>& C
 
                 if (Property->PropertyFlags & CPF_OutParm)
                 {
-                    Stack.Step(Stack.Object, NULL);
+                    Stack.Step(Stack.Object, Property->ContainerPtrToValuePtr<uint8>(Params));
 
                     if (LastOut)
                     {
@@ -455,11 +463,12 @@ void FFunctionTranslator::CallJs(v8::Isolate* Isolate, v8::Local<v8::Context>& C
                 auto OutParmRec = GetMatchOutParmRec(Stack.OutParms, Arguments[i]->Property);
                 if (OutParmRec)
                 {
-                    Arguments[i]->JsToUEOut(Isolate, Context, Args[i], OutParmRec->PropAddr, false);
+                    Arguments[i]->JsToUEOut(Isolate, Context, Args[i], OutParmRec->PropAddr, true);
                 }
             }
         }
     }
+    Stack.OutParms = OldOutParms;
 }
 
 FExtensionMethodTranslator::FExtensionMethodTranslator(UFunction* InFunction) : FFunctionTranslator(InFunction, false)
@@ -507,7 +516,10 @@ void FExtensionMethodTranslator::CallExtension(
         {
             for (int i = 0; i < Arguments.size(); ++i)
             {
-                Arguments[i]->Property->DestroyValue_InContainer(Params);
+                if (Arguments[i]->ParamShallowCopySize == 0)
+                {
+                    Arguments[i]->Property->DestroyValue_InContainer(Params);
+                }
             }
         }
         FV8Utils::ThrowException(Isolate, "access a invalid object");
@@ -555,7 +567,10 @@ void FExtensionMethodTranslator::CallExtension(
     {
         for (int i = 0; i < Arguments.size(); ++i)
         {
-            Arguments[i]->Property->DestroyValue_InContainer(Params);
+            if (Arguments[i]->ParamShallowCopySize == 0)
+            {
+                Arguments[i]->Property->DestroyValue_InContainer(Params);
+            }
         }
     }
 }

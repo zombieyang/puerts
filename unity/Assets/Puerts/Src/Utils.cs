@@ -42,6 +42,78 @@ namespace Puerts
             JsEnv.jsEnvs[jsEnvIdx].objectPool.ReplaceValueType(self.ToInt32(), obj);
         }
 
+        private static bool HasValidContraint(Type type, List<Type> validTypes)
+        {
+            if (type.IsGenericType)
+            {
+                Type[] genericArguments = type.GetGenericArguments();
+                foreach (Type argument in genericArguments)
+                {
+                    if (!HasValidContraint(argument, validTypes))
+                    {
+                        return false;
+                    }
+                }
+
+                // validTypes.Add(type);
+                return true;
+            }
+            else if (type.IsGenericParameter)
+            {
+                if (
+                    type.BaseType != null && type.BaseType.IsValueType
+                ) return false;
+
+                var parameterConstraints = type.GetGenericParameterConstraints();
+
+                if (parameterConstraints.Length == 0) return false;
+                foreach (var parameterConstraint in parameterConstraints)
+                {
+                    // the constraint could not be another genericType #533
+                    if (
+                        !parameterConstraint.IsClass() ||
+                        parameterConstraint == typeof(ValueType) ||
+                        (
+                            parameterConstraint.IsGenericType &&
+                            !parameterConstraint.IsGenericTypeDefinition
+                        )
+                    )
+                    {
+                        return false;
+                    }
+                }
+
+                validTypes.Add(type);
+                return true;
+            }
+            else
+            {
+                return true;
+            }
+        }
+
+        public static bool IsNotGenericOrValidGeneric(MethodInfo method)
+        {
+            // 不包含泛型参数，肯定支持
+            if (!method.ContainsGenericParameters)
+                return true;
+
+            List<Type> validGenericParameter = new List<Type>();
+
+            foreach (var parameters in method.GetParameters())
+            {
+                Type parameterType = parameters.ParameterType;
+
+                if (!HasValidContraint(parameterType, validGenericParameter)) { return false; }
+            }
+
+            return validGenericParameter.Count > 0 && (
+                // 返回值也需要判断，必须是非泛型，或者是可用泛型参数里正好也包括返回类型
+                !method.ReturnType.IsGenericParameter ||
+                validGenericParameter.Contains(method.ReturnType)
+            );
+        }
+
         public static bool IsSupportedMethod(MethodInfo method)
         {
 #if !UNITY_EDITOR && ENABLE_IL2CPP && !PUERTS_REFLECT_ALL_EXTENSION
@@ -65,7 +137,7 @@ namespace Puerts
                         parameterType.BaseType != null && (
                             parameterType.BaseType.IsValueType ||
                             (
-                                parameterType.BaseType.IsGenericType && 
+                                parameterType.BaseType.IsGenericType &&
                                 !parameterType.BaseType.IsGenericTypeDefinition
                             )
                         )
@@ -91,14 +163,42 @@ namespace Puerts
             }
             return hasValidGenericParameter && returnTypeValid;
         }
-        
+
+        public static MethodInfo[] GetMethodAndOverrideMethodByName(Type type, string name)
+        {
+            MethodInfo[] allMethods = type.GetMember(name).Select(m => (MethodInfo)m).ToArray();
+
+            Dictionary<string, IEnumerable<Type[]>> errorMethods = type.GetMethods()
+                .Where(m => m.DeclaringType != type && IsObsoleteError(m))
+                .GroupBy(m => m.Name)
+                .ToDictionary(i => i.Key, i => i.Cast<MethodInfo>().Select(m => m.GetParameters().Select(o => o.ParameterType).ToArray()));
+            IEnumerable<Type[]> matchTypes;
+
+            Type objType = typeof(Object);
+            while (type.BaseType != null && type.BaseType != objType)
+            {
+                type = type.BaseType;
+                MethodInfo[] methods = type.GetMember(name)
+                    .Select(m => (MethodInfo)m)
+                    .Where(m => !IsObsoleteError(m) && !IsVirtualMethod(m))
+                    .Where(m => !errorMethods.TryGetValue(m.Name, out matchTypes) || !IsMatchParameters(matchTypes, m.GetParameters().Select(o => o.ParameterType).ToArray()))  //filter override method
+                    .ToArray();
+                if (methods.Length > 0)
+                {
+                    allMethods = allMethods.Concat(methods).ToArray();
+                }
+            }
+
+            return allMethods;
+        }
+
         public static MethodInfo[] GetMethodAndOverrideMethod(Type type, BindingFlags flag)
         {
             MethodInfo[] allMethods = type.GetMethods(flag);
             string[] methodNames = allMethods.Select(m => m.Name).ToArray();
 
             Dictionary<string, IEnumerable<Type[]>> errorMethods = type.GetMethods()
-                .Where(m => m.DeclaringType != type && IsError(m))
+                .Where(m => m.DeclaringType != type && IsObsoleteError(m))
                 .GroupBy(m => m.Name)
                 .ToDictionary(i => i.Key, i => i.Cast<MethodInfo>().Select(m => m.GetParameters().Select(o => o.ParameterType).ToArray()));
             IEnumerable<Type[]> matchTypes;
@@ -109,7 +209,7 @@ namespace Puerts
                 type = type.BaseType;
                 MethodInfo[] methods = type.GetMethods(flag)
                     .Where(m => Array.IndexOf<string>(methodNames, m.Name) != -1)
-                    .Where(m => !IsError(m) && !IsVirtualMethod(m))
+                    .Where(m => !IsObsoleteError(m) && !IsVirtualMethod(m))
                     .Where(m => !m.IsSpecialName || !m.Name.StartsWith("get_") && !m.Name.StartsWith("set_"))   //filter property
                     .Where(m => !errorMethods.TryGetValue(m.Name, out matchTypes) || !IsMatchParameters(matchTypes, m.GetParameters().Select(o => o.ParameterType).ToArray()))  //filter override method
                     .ToArray();
@@ -125,7 +225,7 @@ namespace Puerts
         {
             return memberInfo.IsAbstract || (memberInfo.Attributes & MethodAttributes.NewSlot) == MethodAttributes.NewSlot;
         }
-        private static bool IsError(MemberInfo memberInfo)
+        private static bool IsObsoleteError(MemberInfo memberInfo)
         {
             var obsolete = memberInfo.GetCustomAttributes(typeof(ObsoleteAttribute), true).FirstOrDefault() as ObsoleteAttribute;
             return obsolete != null && obsolete.IsError;
@@ -190,7 +290,7 @@ namespace Puerts
                             var types = prop.GetValue(null, null) as IEnumerable<Type>;
                             if (types != null)
                             {
-                                type_def_extention_method.AddRange(types.Where(t => t != null  && t.IsDefined(typeof(ExtensionAttribute), false)));
+                                type_def_extention_method.AddRange(types.Where(t => t != null && t.IsDefined(typeof(ExtensionAttribute), false)));
                             }
                         }
                     }
@@ -201,9 +301,9 @@ namespace Puerts
 #if UNITY_EDITOR
                                       where !type.Assembly.Location.Contains("Editor")
 #endif
-                                      from method in type.GetMethods(BindingFlags.Static | BindingFlags.Public)
-                                      where method.IsDefined(typeof(ExtensionAttribute), false) && IsSupportedMethod(method)
-                                      group method by GetExtendedType(method)).ToDictionary(g => g.Key, g => g as IEnumerable<MethodInfo>);
+                                                     from method in type.GetMethods(BindingFlags.Static | BindingFlags.Public)
+                                                     where method.IsDefined(typeof(ExtensionAttribute), false) && IsSupportedMethod(method)
+                                                     group method by GetExtendedType(method)).ToDictionary(g => g.Key, g => g as IEnumerable<MethodInfo>);
             }
             IEnumerable<MethodInfo> ret = null;
             Utils_Internal.extensionMethodMap.TryGetValue(type_to_be_extend, out ret);
@@ -282,13 +382,13 @@ namespace Puerts
                 try
                 {
 #if (UNITY_EDITOR || PUERTS_GENERAL) && !NET_STANDARD_2_0
-					if (!(assemblies[i].ManifestModule is System.Reflection.Emit.ModuleBuilder))
-					{
+                    if (!(assemblies[i].ManifestModule is System.Reflection.Emit.ModuleBuilder))
+                    {
 #endif
-                    allTypes.AddRange(assemblies[i].GetTypes()
-                        .Where(type => exclude_generic_definition ? !type.IsGenericTypeDefinition() : true));
+                        allTypes.AddRange(assemblies[i].GetTypes()
+                            .Where(type => exclude_generic_definition ? !type.IsGenericTypeDefinition() : true));
 #if (UNITY_EDITOR || PUERTS_GENERAL) && !NET_STANDARD_2_0
-					}
+                    }
 #endif
                 }
                 catch (Exception)

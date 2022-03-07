@@ -124,7 +124,7 @@ namespace Puerts
             PuertsDLL.SetGlobalFunction(isolate, "__tgjsGetNestedTypes", StaticCallbacks.JsEnvCallbackWrap, AddCallback(GetNestedTypes));
             PuertsDLL.SetGlobalFunction(isolate, "__tgjsGetLoader", StaticCallbacks.JsEnvCallbackWrap, AddCallback(GetLoader));
 
-            PuertsDLL.SetModuleResolver(isolate, StaticCallbacks.ModuleResolverWrap, Idx);
+            PuertsDLL.SetModuleResolver(isolate, StaticCallbacks.ModuleResolverCallback, Idx);
             //可以DISABLE掉自动注册，通过手动调用PuertsStaticWrap.AutoStaticCodeRegister.Register(jsEnv)来注册
 #if !DISABLE_AUTO_REGISTER
             const string AutoStaticCodeRegisterClassName = "PuertsStaticWrap.AutoStaticCodeRegister";
@@ -198,6 +198,8 @@ namespace Puerts
         * execute the module and get the result
         * when exportee is null, get the module namespace
         * when exportee is not null, get the specified member of the module namespace
+        *
+        * example: JsEnv.ExecuteModule("main.mjs")
         */
         public T ExecuteModule<T>(string filename, string exportee = "")
         {
