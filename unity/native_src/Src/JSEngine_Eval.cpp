@@ -113,9 +113,11 @@ namespace puerts {
         size_t Length = 0;
         char* Code = JsEngine->ModuleResolver(name_std.c_str(), JsEngine->Idx, Length);
         bool IsCJSModule = false;
+        bool ShouldDeleteCode = true;
 
         if (Code == nullptr) 
         {
+            ShouldDeleteCode = false;
             IsCJSModule = !(name_length > 4 && name_std.substr(name_length - 4, name_length).compare(".mjs") == 0);
             if (IsCJSModule) 
             {
@@ -168,9 +170,10 @@ namespace puerts {
             }
             func_val = JS_Eval(ctx, Code, Length, name, JS_EVAL_TYPE_MODULE | JS_EVAL_FLAG_COMPILE_ONLY);
         }
-        if (Code != nullptr) {
+        if (ShouldDeleteCode && Code != nullptr) {
             delete Code;
         }
+
         if (JS_IsException(func_val)) {
             // JSValue ex = JS_GetException(ctx);
             // auto msg = JS_ToCString(ctx, ex);
