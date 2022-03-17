@@ -53,11 +53,29 @@ public class PuertsTest
 {
     public static void Main()
     {
-        var jsEnv = new JsEnv(new TxtLoader());
-        jsEnv.Eval(@"
-            const CS = require('csharp');
-            CS.System.Console.WriteLine('hello world');
-        ");
+        //System.Console.WriteLine(Path.Combine("Pandora", Path.GetDirectoryName("@frame/frame")));
+        var loader = new TxtLoader();
+        loader.AddMockFileContent("whatever.mjs", @"
+                console.log(1)
+                import csharp from '1c1sharp';
+                console.log(2)
+                const func = function() { return csharp.System.String.Join(' ', 'hello', 'world') }
+                export { func };
+            ");
+        var jsEnv = new JsEnv(loader);
+
+        try
+        {
+            Func<string> func = jsEnv.ExecuteModule<Func<string>>("whatever.mjs", "func");
+            System.Console.WriteLine(func());
+
+        }
+        catch (System.Exception e)
+        {
+            System.Console.WriteLine(e);
+        }
+
+
         jsEnv.Dispose();
     }
 }

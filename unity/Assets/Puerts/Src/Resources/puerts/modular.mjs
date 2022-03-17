@@ -32,6 +32,7 @@ function executeModule(fullPath, script, debugPath, sid) {
     let exports = {};
     let module = puerts.getModuleBySID(sid);
     module.exports = exports;
+    console.log(puerts.evalScript)
     let wrapped = puerts.evalScript(
         // Wrap the script in the same way NodeJS does it. It is important since IDEs (VSCode) will use this wrapper pattern
         // to enable stepping through original source in-place.
@@ -50,6 +51,7 @@ function genRequire(requiringDir) {
         if (moduleName in buildinModule) return buildinModule[moduleName];
         
         let fullPath = puerts.searchModule(requiringDir, moduleName);
+        console.log('searchModule', moduleName, fullPath);
         if (!fullPath) {
             try {
                 return nodeRequire(moduleName);
@@ -87,6 +89,7 @@ function genRequire(requiringDir) {
                 return packageConfigure;
             }
         } else {
+            console.log('executeModule', script, fullPath);
             executeModule(fullPath, script, debugPath, sid);
             tmpModuleStorage[sid] = undefined;
             return m.exports;

@@ -19,6 +19,10 @@ namespace Puerts
         public virtual string ReadFile(string filepath, out string debugpath) 
         {
             byte[] bytes = ReadByte(filepath, out debugpath);
+            if (bytes == null)
+            {
+                return null;
+            }
             return Encoding.UTF8.GetString(bytes, 0, bytes.Length);
         }
         protected internal abstract byte[] ReadByte(string filepath, out string debugpath);

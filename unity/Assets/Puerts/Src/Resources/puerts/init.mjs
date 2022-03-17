@@ -16,7 +16,8 @@ delete global.__tgjsLoadType;
 puerts.getNestedTypes = global.__tgjsGetNestedTypes;
 delete global.__tgjsGetNestedTypes;
 
-puerts.evalScript = global.__tgjsEvalScript || function(script, debugPath) {
-    return eval(script);
+puerts.evalScript = function(script, debugPath) {
+    throw new Error('eval is not supported');
+    // return eval(script);
 }
 delete global.__tgjsEvalScript;
