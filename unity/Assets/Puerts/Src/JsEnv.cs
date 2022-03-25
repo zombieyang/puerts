@@ -202,6 +202,7 @@ namespace Puerts
         */
         public T ExecuteModule<T>(string filename, string exportee = "")
         {
+            CheckLiveness();
             if (exportee == "" && typeof(T) != typeof(JSObject)) {
                 throw new Exception("T must be Puerts.JSObject when getting the module namespace");
             }
@@ -232,6 +233,7 @@ namespace Puerts
 
         public void ExecuteModule(string filename)
         {
+            CheckLiveness();
             if (loader.FileExists(filename))
             {
 #if THREAD_SAFE
@@ -256,6 +258,7 @@ namespace Puerts
 
         public void Eval(string chunk, string chunkName = "chunk")
         {
+            CheckLiveness();
 #if THREAD_SAFE
             lock(this) {
 #endif
@@ -273,6 +276,7 @@ namespace Puerts
 
         public TResult Eval<TResult>(string chunk, string chunkName = "chunk")
         {
+            CheckLiveness();
 #if THREAD_SAFE
             lock(this) {
 #endif

@@ -47,6 +47,9 @@ function Namespace() {}
 function createTypeProxy(namespace) {
     return new Proxy(new Namespace, {
         get: function(cache, name) {
+            if (puerts.disposed) {
+                throw new Error('puerts is disposed');
+            }
             if (!(name in cache)) {
                 let fullName = namespace ? (namespace + '.' + name) : name;
                 if (/\$\d+$/.test(name)) {
