@@ -47,6 +47,8 @@ namespace Puerts
         public int debugPort;
 #endif
 
+        private static string builtinJSExt = ".mjs";
+
         public JsEnv() 
             : this(new DefaultLoader(), -1, IntPtr.Zero, IntPtr.Zero)
         {
@@ -150,27 +152,26 @@ namespace Puerts
             }
 
             bool isNode = PuertsDLL.GetLibBackend() == 1;
-            string extName = ".mjs";
-            // string extName = ".mjs";
-            ExecuteModule("puerts/init" + extName);
-            ExecuteModule("puerts/log" + extName);
-            ExecuteModule("puerts/cjsload" + extName);
-            ExecuteModule("puerts/modular" + extName);
-            ExecuteModule("puerts/csharp" + extName);
-            ExecuteModule("puerts/timer" + extName);
+
+            ExecuteModule("puerts/init" + builtinJSExt);
+            ExecuteModule("puerts/log" + builtinJSExt);
+            ExecuteModule("puerts/cjsload" + builtinJSExt);
+            ExecuteModule("puerts/modular" + builtinJSExt);
+            ExecuteModule("puerts/csharp" + builtinJSExt);
+            ExecuteModule("puerts/timer" + builtinJSExt);
             
-            ExecuteModule("puerts/events" + extName);
-            ExecuteModule("puerts/promises" + extName);
+            ExecuteModule("puerts/events" + builtinJSExt);
+            ExecuteModule("puerts/promises" + builtinJSExt);
 #if !PUERTS_GENERAL
             if (!isNode) 
             {
 #endif
-                ExecuteModule("puerts/polyfill" + extName);
+                ExecuteModule("puerts/polyfill" + builtinJSExt);
 #if !PUERTS_GENERAL
             }
             else
             {
-                ExecuteModule("puerts/nodepatch" + extName);
+                ExecuteModule("puerts/nodepatch" + builtinJSExt);
             }
 #endif
 
@@ -717,6 +718,7 @@ namespace Puerts
             lock (jsEnvs)
             {
                 if (disposed) return;
+                ExecuteModule("puerts/dispose" + builtinJSExt);
                 jsEnvs[Idx] = null;
                 PuertsDLL.DestroyJSEngine(isolate);
                 isolate = IntPtr.Zero;

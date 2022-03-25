@@ -11,13 +11,19 @@ global.global = global;
 
 let puerts = global.puerts = global.puerts || {};
 
-puerts.loadType = global.__tgjsLoadType;
-delete global.__tgjsLoadType;
-puerts.getNestedTypes = global.__tgjsGetNestedTypes;
-delete global.__tgjsGetNestedTypes;
+const disposeChecker = () => { if (puerts.disposed) throw new Error('puerts is disposed') };
+puerts.loadType = wrapAndDeletePuertsHook('__tgjsLoadType', disposeChecker);
+puerts.getNestedTypes = wrapAndDeletePuertsHook('__tgjsGetNestedTypes', disposeChecker);
+puerts.evalScript = wrapAndDeletePuertsHook('__tgjsEvalScript', disposeChecker, function(script, debugPath) {
+    return eval(script);
+});
 
-puerts.evalScript = function(script, debugPath) {
-    throw new Error('eval is not supported');
-    // return eval(script);
+function wrapAndDeletePuertsHook(name, checker, polyfill) {
+    const fn = global[name] || polyfill;
+    delete global[name];
+
+    return function() {
+        checker.apply(this, arguments)
+        return fn.apply(this, arguments);
+    }
 }
-delete global.__tgjsEvalScript;
