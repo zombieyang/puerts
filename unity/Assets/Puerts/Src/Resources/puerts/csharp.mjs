@@ -44,6 +44,48 @@ function csTypeToClass(csType) {
 }
 
 function Namespace() {}
+function createClassProxy(nativeConstructor) {
+    const ret = function() {
+        return nativeConstructor.apply(this, arguments);
+    }
+
+    const prototypeProxy = new Proxy({}, {
+        get: function(cacheProrotype, name) {
+            if (puerts.disposed) {
+                throw new Error('puerts is disposed');
+            }
+            let originValue;
+            if (cacheProrotype[name]) {
+                return cacheProrotype[name];
+                
+            } else if (
+                (originValue = nativeConstructor.prototype[name])
+                && typeof originValue == 'function'
+            ) {
+                cacheProrotype[name] = function() {
+                    if (puerts.disposed) {
+                        throw new Error('puerts is disposed');
+                    }
+                    return originValue.apply(this, arguments);
+                }
+                return cacheProrotype[name];
+            }
+            return originValue;
+        }
+    });
+
+    return new Proxy(ret, {
+        get: function(classProxy, name) {
+            if (puerts.disposed) {
+                throw new Error('puerts is disposed');
+            }
+            if (name == 'prototype') {
+                return prototypeProxy;
+            }
+            return nativeConstructor[name];
+        }
+    });
+}
 function createTypeProxy(namespace) {
     return new Proxy(new Namespace, {
         get: function(cache, name) {
@@ -59,7 +101,7 @@ function createTypeProxy(namespace) {
                 } else {
                     let cls = csTypeToClass(fullName);
                     if (cls) {
-                        cache[name] = cls;
+                        cache[name] = createClassProxy(cls);
                     } else {
                         cache[name] = createTypeProxy(fullName);
                         //console.log(fullName + ' is a namespace');
