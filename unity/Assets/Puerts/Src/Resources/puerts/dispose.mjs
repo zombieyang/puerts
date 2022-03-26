@@ -18,12 +18,12 @@ function setToGoodbyeFuncRecursive(obj) {
         if (typeof obj[key] == 'function' && obj[key].prototype) {
             const prototype = obj[key].prototype;
             Object.keys(prototype).forEach((pkey)=> {
-                if (Object.getOwnPropertyDescriptor(prototype, pkey).configurable) {
+                // if (Object.getOwnPropertyDescriptor(prototype, pkey).configurable) {
                     Object.defineProperty(prototype, pkey, {
                         get: goodbye,
                         set: goodbye,
                     })
-                }
+                // }
             })
             Object.keys(obj[key]).forEach((skey)=> {
                 if (Object.getOwnPropertyDescriptor(obj[key], skey).configurable) {
