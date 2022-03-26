@@ -45,36 +45,49 @@ function csTypeToClass(csType) {
 
 function Namespace() {}
 function createClassProxy(nativeConstructor) {
-    const ret = function() {
-        return nativeConstructor.apply(this, arguments);
+    const constructorProxy = function(...args) {
+        if (puerts.disposed) {
+            throw new Error('puerts is disposed');
+        }
+
+        return new nativeConstructor(...args);
     }
 
     const prototypeProxy = new Proxy({}, {
-        get: function(cacheProrotype, name) {
+        set: function(cachePrototype, name, value) {
             if (puerts.disposed) {
                 throw new Error('puerts is disposed');
             }
+
+            nativeConstructor.prototype[name] = value;
+        },
+        get: function(cachePrototype, name) {
+            if (puerts.disposed) {
+                throw new Error('puerts is disposed');
+            }
+            return nativeConstructor.prototype[name];
             let originValue;
-            if (cacheProrotype[name]) {
-                return cacheProrotype[name];
+            if (cachePrototype[name]) {
+                return cachePrototype[name];
                 
             } else if (
                 (originValue = nativeConstructor.prototype[name])
                 && typeof originValue == 'function'
             ) {
-                cacheProrotype[name] = function() {
+                console.log('create wrap function ', name);
+                cachePrototype[name] = function() {
                     if (puerts.disposed) {
                         throw new Error('puerts is disposed');
                     }
                     return originValue.apply(this, arguments);
                 }
-                return cacheProrotype[name];
+                return cachePrototype[name];
             }
             return originValue;
         }
     });
 
-    return new Proxy(ret, {
+    return new Proxy(constructorProxy, {
         get: function(classProxy, name) {
             if (puerts.disposed) {
                 throw new Error('puerts is disposed');
@@ -82,7 +95,14 @@ function createClassProxy(nativeConstructor) {
             if (name == 'prototype') {
                 return prototypeProxy;
             }
-            return nativeConstructor[name];
+            return name in classProxy ? classProxy[name] : nativeConstructor[name];
+        },
+        set: function(classProxy, name, value) {
+            if (puerts.disposed) {
+                throw new Error('puerts is disposed');
+            }
+
+            nativeConstructor[name] = value;
         }
     });
 }
