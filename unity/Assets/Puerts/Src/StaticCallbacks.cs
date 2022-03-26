@@ -23,7 +23,6 @@ namespace Puerts
                 content = env.ResolveModuleContent(identifer);
                 if (content == null)
                 {
-                    System.Console.WriteLine(identifer + " return zero");
                     return IntPtr.Zero;
                 }
             }
