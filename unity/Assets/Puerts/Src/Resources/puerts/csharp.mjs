@@ -44,6 +44,8 @@ function csTypeToClass(csType) {
 }
 
 function Namespace() {}
+puerts.__$NamespaceType = Namespace;
+
 function createTypeProxy(namespace) {
     return new Proxy(new Namespace, {
         get: function(cache, name) {
@@ -170,4 +172,4 @@ puerts.$extension = (cls, extension) => {
     typeof console != 'undefined' && console.warn(`deprecated! if you already generate static wrap for ${cls} and ${extension}, you are no need to invoke $extension`); 
     return doExtension(cls, extension)
 };
-puerts.$reflectExtension = doExtension;
+puerts.$reflectExtension = doExtension; 
