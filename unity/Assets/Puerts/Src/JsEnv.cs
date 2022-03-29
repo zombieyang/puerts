@@ -722,7 +722,9 @@ namespace Puerts
             lock (jsEnvs)
             {
                 if (disposed) return;
-                ExecuteModule("puerts/dispose" + builtinJSExt);
+                try {
+                    ExecuteModule("puerts/dispose" + builtinJSExt);
+                } catch(Exception e) {}
                 jsEnvs[Idx] = null;
                 PuertsDLL.DestroyJSEngine(isolate);
                 isolate = IntPtr.Zero;
