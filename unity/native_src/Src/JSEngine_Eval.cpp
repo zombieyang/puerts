@@ -114,6 +114,7 @@ namespace puerts {
         char* Code = JsEngine->ModuleResolver(name_std.c_str(), JsEngine->Idx, Length);
         bool IsCJSModule = false;
         bool ShouldDeleteCode = true;
+        std::string codeStd;
 
         if (Code == nullptr) 
         {
@@ -121,19 +122,19 @@ namespace puerts {
             IsCJSModule = !(name_length > 4 && name_std.substr(name_length - 4, name_length).compare(".mjs") == 0);
             if (IsCJSModule) 
             {
-                std::string codeStd = CjsModulePrepend + name_std + CjsModuleAppend;
+                codeStd = CjsModulePrepend + name_std + CjsModuleAppend;
                 Length = codeStd.size();
                 Code = (char *)codeStd.c_str();
             }
             else
             {
-                return nullptr
+                return nullptr;
             }
         }
         JSValue func_val;
         JSModuleDef* module_ = nullptr;
 
-		if (JS_IsCompiled(Code))
+		if (Length > sizeof(unsigned int) && JS_IsCompiled(Code))
 		{
 			JSValue obj = JS_LoadBuffer(ctx, name, (uint8_t*)Code, Length);
 
