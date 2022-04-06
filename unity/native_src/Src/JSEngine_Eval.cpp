@@ -272,8 +272,15 @@ namespace puerts {
 
         JSModuleDef* EntryModule = js_module_loader(ctx, Path, nullptr);
         if (EntryModule == nullptr) {
-            Isolate->handleException();
-            LastExceptionInfo = FV8Utils::ExceptionToString(Isolate, TryCatch);
+            if (TryCatch.HasCaught())
+            {
+                Isolate->handleException();
+                LastExceptionInfo = FV8Utils::ExceptionToString(Isolate, TryCatch);
+            }
+            else
+            {
+                LastExceptionInfo = std::string("load error: ") + std::string(Path);
+            }
             return false;
         }
 

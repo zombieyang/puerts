@@ -33,6 +33,9 @@ namespace Puerts.UnitTest
             string mockContent;
             if (mockFileContent.TryGetValue(filepath, out mockContent))
             {
+                if (mockContent == null) {
+                    return null;
+                }
                 return Encoding.UTF8.GetBytes(mockContent);
             }
 
@@ -1147,6 +1150,18 @@ namespace Puerts.UnitTest
         public void ESModuleNotFound()
         {
             var jsEnv = new JsEnv(new TxtLoader());
+            Assert.Catch(() =>
+            {
+                jsEnv.ExecuteModule("whatever.mjs");
+            });
+            jsEnv.Dispose();
+        }
+        [Test]
+        public void ESModuleLoadFailed()
+        {
+            var loader = new TxtLoader();
+            loader.AddMockFileContent("whatever.mjs", null);
+            var jsEnv = new JsEnv(loader);
             Assert.Catch(() =>
             {
                 jsEnv.ExecuteModule("whatever.mjs");
