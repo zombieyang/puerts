@@ -218,6 +218,7 @@ jobs:
       - uses: actions/checkout@v2
       - name: Get backend artifact remote
         run: echo "$(cat unity/native_src/cmake/v8/backend.rc)" >> $GITHUB_ENV
+        shell: bash
       - name: Download artifact
         uses: dawidd6/action-download-artifact@v2
         with:
@@ -243,6 +244,7 @@ jobs:
       - uses: actions/checkout@v2
       - name: Get backend artifact remote
         run: echo "$(cat unity/native_src/cmake/quickjs/backend.rc)" >> $GITHUB_ENV
+        shell: bash
       - name: Download artifact
         uses: dawidd6/action-download-artifact@v2
         with:
@@ -268,6 +270,7 @@ jobs:
       - uses: actions/checkout@v2
       - name: Get backend artifact remote
         run: echo "$(cat unity/native_src/cmake/nodejs/backend.rc)" >> $GITHUB_ENV
+        shell: bash
       - name: Download artifact
         uses: dawidd6/action-download-artifact@v2
         with:
