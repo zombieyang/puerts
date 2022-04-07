@@ -1,4 +1,4 @@
-name: build unity plugins (custom backend)
+name: unity build plugins (custom backend)
 
 on: 
   workflow_dispatch:
