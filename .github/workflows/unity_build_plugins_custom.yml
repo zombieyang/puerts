@@ -156,7 +156,7 @@ jobs:
         run: |
           mv unity/native_src/v8 unity/native_src/v8_9.6 || echo 'not v8'
           mv unity/native_src/nodejs unity/native_src/nodejs_17 || echo 'not node'
-          ls -l
+          ls -l unity/native_src/
         shell: bash
       - name: Build
         run: |
