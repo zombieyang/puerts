@@ -192,7 +192,7 @@ elseif ( APPLE )
         # link
         foreach(LIB_FILE_NAME IN LISTS LIB_FILE_NAMES)
             target_link_libraries(puerts
-                ${ENGINE_ROOT}/Lib/macOS/${LIB_FILE_NAME}
+                ${ENGINE_ROOT}/Lib/macOS_arm64/${LIB_FILE_NAME}
             )
         endforeach()
     
