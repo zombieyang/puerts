@@ -91,7 +91,7 @@ if ( APPLE )
     else ()
         # set(CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD_64_BIT)")
         # 某些mac机器上会默认开始编译arm64版本，暂时先写死x86版本，后续再支持arm64
-        set(CMAKE_OSX_ARCHITECTURES x86_64)
+        set(CMAKE_OSX_ARCHITECTURES arm64)
 
         set(CMAKE_SKIP_RPATH FALSE)    
         set(CMAKE_INSTALL_RPATH "@loader_path/")
