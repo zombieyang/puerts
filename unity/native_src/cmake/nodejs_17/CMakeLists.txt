@@ -11,9 +11,9 @@ else ()
 endif()
 
 include_directories(    
-    ${PROJECT_SOURCE_DIR}/nodejs/include
-    ${PROJECT_SOURCE_DIR}/nodejs/deps/v8/include
-    ${PROJECT_SOURCE_DIR}/nodejs/deps/uv/include
+    ${PROJECT_SOURCE_DIR}/${JS_ENGINE}/include
+    ${PROJECT_SOURCE_DIR}/${JS_ENGINE}/deps/v8/include
+    ${PROJECT_SOURCE_DIR}/${JS_ENGINE}/deps/uv/include
 )
 
 target_compile_definitions (puerts PRIVATE WITH_NODEJS)

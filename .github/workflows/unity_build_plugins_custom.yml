@@ -26,6 +26,8 @@ jobs:
           name: ${{ env.BACKEND_ARTIFACT_NAME }}
           repo: ${{ env.BACKEND_ARTIFACT_REPO }}
           path: unity/native_src/
+      - name: fix temporary
+        run: mv unity/native_src/nodejs unity/native_src/nodejs_17
       - name: Install NDK
         run: |
           cd ~
@@ -59,6 +61,8 @@ jobs:
           name: ${{ env.BACKEND_ARTIFACT_NAME }}
           repo: ${{ env.BACKEND_ARTIFACT_REPO }}
           path: unity/native_src/
+      - name: fix temporary
+        run: mv unity/native_src/nodejs unity/native_src/nodejs_17
       - name: Use Xcode 12.0 for x86
         run: sudo xcode-select -switch "/Applications/Xcode_12.app"
       - name: Build
@@ -85,6 +89,8 @@ jobs:
           name: ${{ env.BACKEND_ARTIFACT_NAME }}
           repo: ${{ env.BACKEND_ARTIFACT_REPO }}
           path: unity/native_src/
+      - name: fix temporary
+        run: mv unity/native_src/nodejs unity/native_src/nodejs_17
       - name: Build
         run: |
           cd unity/native_src
@@ -109,6 +115,8 @@ jobs:
           name: ${{ env.BACKEND_ARTIFACT_NAME }}
           repo: ${{ env.BACKEND_ARTIFACT_REPO }}
           path: unity/native_src/
+      - name: fix temporary
+        run: mv unity/native_src/nodejs unity/native_src/nodejs_17
       - name: Use Xcode 12.0 for x86
         run: sudo xcode-select -switch "/Applications/Xcode_12.app"
       - name: Build
@@ -136,6 +144,8 @@ jobs:
           name: ${{ env.BACKEND_ARTIFACT_NAME }}
           repo: ${{ env.BACKEND_ARTIFACT_REPO }}
           path: unity/native_src/
+      - name: fix temporary
+        run: mv unity/native_src/nodejs unity/native_src/nodejs_17
       - name: Build
         run: |
           cd unity\native_src
@@ -166,6 +176,8 @@ jobs:
           name: ${{ env.BACKEND_ARTIFACT_NAME }}
           repo: ${{ env.BACKEND_ARTIFACT_REPO }}
           path: unity/native_src/
+      - name: fix temporary
+        run: mv unity/native_src/nodejs unity/native_src/nodejs_17
       - name: Build
         run: |
           cd unity/native_src
