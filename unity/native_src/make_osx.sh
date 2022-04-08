@@ -12,8 +12,8 @@ cmake --install build_osx_$ENGINE --prefix "$(pwd)/build_osx_$ENGINE"
 mv build_osx_$ENGINE/bin/libpuerts.dylib build_osx_$ENGINE/bin/puerts.bundle
 cp -r $ENGINE/Lib/macOS/*.dylib build_osx_$ENGINE/bin/
 
-mkdir -p ../Assets/Plugins/macOS
-cp -r build_osx_$ENGINE/bin/* ../Assets/Plugins/macOS/
+mkdir -p ../Assets/Plugins/x86_64
+cp -r build_osx_$ENGINE/bin/* ../Assets/Plugins/x86_64
 
 
 # mkdir -p build_osx && cd build_osx
