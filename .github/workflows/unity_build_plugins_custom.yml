@@ -28,6 +28,7 @@ jobs:
           path: unity/native_src/
       - name: fix temporary
         run: mv unity/native_src/nodejs unity/native_src/nodejs_17
+        run: mv unity/native_src/v8 unity/native_src/v8_9.6
       - name: Install NDK
         run: |
           cd ~
@@ -63,6 +64,7 @@ jobs:
           path: unity/native_src/
       - name: fix temporary
         run: mv unity/native_src/nodejs unity/native_src/nodejs_17
+        run: mv unity/native_src/v8 unity/native_src/v8_9.6
       - name: Use Xcode 12.0 for x86
         run: sudo xcode-select -switch "/Applications/Xcode_12.app"
       - name: Build
@@ -91,6 +93,7 @@ jobs:
           path: unity/native_src/
       - name: fix temporary
         run: mv unity/native_src/nodejs unity/native_src/nodejs_17
+        run: mv unity/native_src/v8 unity/native_src/v8_9.6
       - name: Build
         run: |
           cd unity/native_src
@@ -117,6 +120,7 @@ jobs:
           path: unity/native_src/
       - name: fix temporary
         run: mv unity/native_src/nodejs unity/native_src/nodejs_17
+        run: mv unity/native_src/v8 unity/native_src/v8_9.6
       - name: Use Xcode 12.0 for x86
         run: sudo xcode-select -switch "/Applications/Xcode_12.app"
       - name: Build
@@ -146,6 +150,7 @@ jobs:
           path: unity/native_src/
       - name: fix temporary
         run: mv unity/native_src/nodejs unity/native_src/nodejs_17
+        run: mv unity/native_src/v8 unity/native_src/v8_9.6
       - name: Build
         run: |
           cd unity\native_src
@@ -178,6 +183,7 @@ jobs:
           path: unity/native_src/
       - name: fix temporary
         run: mv unity/native_src/nodejs unity/native_src/nodejs_17
+        run: mv unity/native_src/v8 unity/native_src/v8_9.6
       - name: Build
         run: |
           cd unity/native_src
