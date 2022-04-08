@@ -28,8 +28,8 @@ jobs:
           path: unity/native_src/
       - name: fix temporary
         run: |
-          mv unity/native_src/nodejs unity/native_src/nodejs_17
-          mv unity/native_src/v8 unity/native_src/v8_9.6
+          mv unity/native_src/nodejs unity/native_src/nodejs_17 || echo 'not node'
+          mv unity/native_src/v8 unity/native_src/v8_9.6 || echo 'not v8'
       - name: Install NDK
         run: |
           cd ~
@@ -47,7 +47,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           path: ./unity/Assets/Plugins/**/*
-          name: Unity_Plugins_${{ github.event.inputs.backend }}
+          name: Unity_Plugins(${{ github.event.inputs.backend }})
   ios:
     runs-on: macos-10.15
 
@@ -65,8 +65,8 @@ jobs:
           path: unity/native_src/
       - name: fix temporary
         run: |
-          mv unity/native_src/nodejs unity/native_src/nodejs_17
-          mv unity/native_src/v8 unity/native_src/v8_9.6
+          mv unity/native_src/nodejs unity/native_src/nodejs_17 || echo 'not node'
+          mv unity/native_src/v8 unity/native_src/v8_9.6 || echo 'not v8'
       - name: Use Xcode 12.0 for x86
         run: sudo xcode-select -switch "/Applications/Xcode_12.app"
       - name: Build
@@ -77,7 +77,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           path: ./unity/Assets/Plugins/**/*
-          name: Unity_Plugins_${{ github.event.inputs.backend }}
+          name: Unity_Plugins(${{ github.event.inputs.backend }})
   osx_arm64:
     runs-on: macos-11
 
@@ -95,8 +95,8 @@ jobs:
           path: unity/native_src/
       - name: fix temporary
         run: |
-          mv unity/native_src/nodejs unity/native_src/nodejs_17
-          mv unity/native_src/v8 unity/native_src/v8_9.6
+          mv unity/native_src/nodejs unity/native_src/nodejs_17 || echo 'not node'
+          mv unity/native_src/v8 unity/native_src/v8_9.6 || echo 'not v8'
       - name: Build
         run: |
           cd unity/native_src
@@ -105,7 +105,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           path: ./unity/Assets/Plugins/**/*
-          name: Unity_Plugins_${{ github.event.inputs.backend }}
+          name: Unity_Plugins(${{ github.event.inputs.backend }})
   osx:
     runs-on: macos-10.15
 
@@ -123,8 +123,8 @@ jobs:
           path: unity/native_src/
       - name: fix temporary
         run: |
-          mv unity/native_src/nodejs unity/native_src/nodejs_17
-          mv unity/native_src/v8 unity/native_src/v8_9.6
+          mv unity/native_src/nodejs unity/native_src/nodejs_17 || echo 'not node'
+          mv unity/native_src/v8 unity/native_src/v8_9.6 || echo 'not v8'
       - name: Use Xcode 12.0 for x86
         run: sudo xcode-select -switch "/Applications/Xcode_12.app"
       - name: Build
@@ -135,7 +135,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           path: ./unity/Assets/Plugins/**/*
-          name: Unity_Plugins_${{ github.event.inputs.backend }}
+          name: Unity_Plugins(${{ github.event.inputs.backend }})
   windows:
     runs-on: windows-2019
 
@@ -154,8 +154,8 @@ jobs:
           path: unity/native_src/
       - name: fix temporary
         run: |
-          mv unity/native_src/nodejs unity/native_src/nodejs_17
-          mv unity/native_src/v8 unity/native_src/v8_9.6
+          mv unity/native_src/nodejs unity/native_src/nodejs_17 || echo 'not node'
+          mv unity/native_src/v8 unity/native_src/v8_9.6 || echo 'not v8'
       - name: Build
         run: |
           cd unity\native_src
@@ -165,7 +165,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           path: ./unity/Assets/Plugins/**/*
-          name: Unity_Plugins_${{ github.event.inputs.backend }}
+          name: Unity_Plugins(${{ github.event.inputs.backend }})
   linux64:
     runs-on: ubuntu-latest
 
@@ -188,8 +188,8 @@ jobs:
           path: unity/native_src/
       - name: fix temporary
         run: |
-          mv unity/native_src/nodejs unity/native_src/nodejs_17
-          mv unity/native_src/v8 unity/native_src/v8_9.6
+          mv unity/native_src/nodejs unity/native_src/nodejs_17 || echo 'not node'
+          mv unity/native_src/v8 unity/native_src/v8_9.6 || echo 'not v8'
       - name: Build
         run: |
           cd unity/native_src
@@ -199,5 +199,5 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           path: ./unity/Assets/Plugins/**/*
-          name: Unity_Plugins_${{ github.event.inputs.backend }}
+          name: Unity_Plugins(${{ github.event.inputs.backend }})
  
