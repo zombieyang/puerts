@@ -160,8 +160,8 @@ jobs:
       - name: Build
         run: |
           cd unity\native_src
-          # .\make_win64.bat ${{ github.event.inputs.backend }}
-          .\make_win32.bat ${{ github.event.inputs.backend }}
+          .\make_win64.bat ${{ github.event.inputs.backend }}
+          # .\make_win32.bat ${{ github.event.inputs.backend }}
       - name: Upload
         uses: actions/upload-artifact@v2
         with:
