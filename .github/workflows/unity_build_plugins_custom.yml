@@ -156,13 +156,11 @@ jobs:
         run: |
           mv unity/native_src/v8 unity/native_src/v8_9.6 || echo 'not v8'
           mv unity/native_src/nodejs unity/native_src/nodejs_17 || echo 'not node'
-          ls -l unity/native_src/v8_9.6
-          ls -l unity/native_src/v8_9.6/Inc
         shell: bash
       - name: Build
         run: |
           cd unity\native_src
-          .\make_win64.bat ${{ github.event.inputs.backend }}
+          # .\make_win64.bat ${{ github.event.inputs.backend }}
           .\make_win32.bat ${{ github.event.inputs.backend }}
       - name: Upload
         uses: actions/upload-artifact@v2
