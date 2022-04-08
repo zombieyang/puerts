@@ -33,6 +33,10 @@ set(ENGINE_INC ${ENGINE_ROOT}/Inc)
 
 set(ThirdParty ${PROJECT_SOURCE_DIR}/../../unreal/Puerts/ThirdParty)
 
+message('==============================')
+message(${ENGINE_INC})
+message('==============================')
+
 include_directories(
     ${PROJECT_SOURCE_DIR}
     ${ENGINE_INC}
