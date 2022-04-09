@@ -26,10 +26,6 @@ jobs:
           name: ${{ env.BACKEND_ARTIFACT_NAME }}
           repo: ${{ env.BACKEND_ARTIFACT_REPO }}
           path: unity/native_src/
-      - name: fix temporary
-        run: |
-          mv unity/native_src/nodejs unity/native_src/nodejs_17 || echo 'not node'
-          mv unity/native_src/v8 unity/native_src/v8_9.6 || echo 'not v8'
       - name: Install NDK
         run: |
           cd ~
@@ -63,10 +59,6 @@ jobs:
           name: ${{ env.BACKEND_ARTIFACT_NAME }}
           repo: ${{ env.BACKEND_ARTIFACT_REPO }}
           path: unity/native_src/
-      - name: fix temporary
-        run: |
-          mv unity/native_src/nodejs unity/native_src/nodejs_17 || echo 'not node'
-          mv unity/native_src/v8 unity/native_src/v8_9.6 || echo 'not v8'
       - name: Use Xcode 12.0 for x86
         run: sudo xcode-select -switch "/Applications/Xcode_12.app"
       - name: Build
@@ -93,10 +85,6 @@ jobs:
           name: ${{ env.BACKEND_ARTIFACT_NAME }}
           repo: ${{ env.BACKEND_ARTIFACT_REPO }}
           path: unity/native_src/
-      - name: fix temporary
-        run: |
-          mv unity/native_src/nodejs unity/native_src/nodejs_17 || echo 'not node'
-          mv unity/native_src/v8 unity/native_src/v8_9.6 || echo 'not v8'
       - name: Build
         run: |
           cd unity/native_src
@@ -121,10 +109,6 @@ jobs:
           name: ${{ env.BACKEND_ARTIFACT_NAME }}
           repo: ${{ env.BACKEND_ARTIFACT_REPO }}
           path: unity/native_src/
-      - name: fix temporary
-        run: |
-          mv unity/native_src/nodejs unity/native_src/nodejs_17 || echo 'not node'
-          mv unity/native_src/v8 unity/native_src/v8_9.6 || echo 'not v8'
       - name: Use Xcode 12.0 for x86
         run: sudo xcode-select -switch "/Applications/Xcode_12.app"
       - name: Build
@@ -152,10 +136,6 @@ jobs:
           name: ${{ env.BACKEND_ARTIFACT_NAME }}
           repo: ${{ env.BACKEND_ARTIFACT_REPO }}
           path: unity/native_src/
-      - name: fix temporary
-        run: |
-          mv unity/native_src/v8 unity/native_src/v8_9.6 || echo 'not v8'
-          mv unity/native_src/nodejs unity/native_src/nodejs_17 || echo 'not node'
         shell: bash
       - name: Build
         run: |
@@ -187,10 +167,6 @@ jobs:
           name: ${{ env.BACKEND_ARTIFACT_NAME }}
           repo: ${{ env.BACKEND_ARTIFACT_REPO }}
           path: unity/native_src/
-      - name: fix temporary
-        run: |
-          mv unity/native_src/nodejs unity/native_src/nodejs_17 || echo 'not node'
-          mv unity/native_src/v8 unity/native_src/v8_9.6 || echo 'not v8'
       - name: Build
         run: |
           cd unity/native_src
