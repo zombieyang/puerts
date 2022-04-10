@@ -43,7 +43,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           path: ./unity/Assets/Plugins/**/*
-          name: Unity_Plugins_V8
+          name: Unity_Plugins(${{ github.event.inputs.backend }})
   ios:
     runs-on: macos-10.15
 
@@ -69,7 +69,31 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           path: ./unity/Assets/Plugins/**/*
-          name: Unity_Plugins_V8
+          name: Unity_Plugins(${{ github.event.inputs.backend }})
+  osx_arm64:
+    runs-on: macos-11
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Get backend artifact remote
+        run: echo "$(cat unity/native_src/cmake/${{ github.event.inputs.backend }}/backend.rc)" >> $GITHUB_ENV
+      - name: Download artifact
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          workflow: ${{ env.BACKEND_ARTIFACT_WORKFLOW }}
+          name: ${{ env.BACKEND_ARTIFACT_NAME }}
+          repo: ${{ env.BACKEND_ARTIFACT_REPO }}
+          path: unity/native_src/
+      - name: Build
+        run: |
+          cd unity/native_src
+          sh ./make_osx_arm64.sh ${{ github.event.inputs.backend }}
+      - name: Upload
+        uses: actions/upload-artifact@v2
+        with:
+          path: ./unity/Assets/Plugins/**/*
+          name: Unity_Plugins(${{ github.event.inputs.backend }})
   osx:
     runs-on: macos-10.15
 
@@ -95,7 +119,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           path: ./unity/Assets/Plugins/**/*
-          name: Unity_Plugins_V8
+          name: Unity_Plugins(${{ github.event.inputs.backend }})
   windows:
     runs-on: windows-2019
 
@@ -112,16 +136,17 @@ jobs:
           name: ${{ env.BACKEND_ARTIFACT_NAME }}
           repo: ${{ env.BACKEND_ARTIFACT_REPO }}
           path: unity/native_src/
+        shell: bash
       - name: Build
         run: |
           cd unity\native_src
           .\make_win64.bat ${{ github.event.inputs.backend }}
-          .\make_win32.bat ${{ github.event.inputs.backend }}
+          # .\make_win32.bat ${{ github.event.inputs.backend }}
       - name: Upload
         uses: actions/upload-artifact@v2
         with:
           path: ./unity/Assets/Plugins/**/*
-          name: Unity_Plugins_V8
+          name: Unity_Plugins(${{ github.event.inputs.backend }})
   linux64:
     runs-on: ubuntu-latest
 
@@ -151,5 +176,5 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           path: ./unity/Assets/Plugins/**/*
-          name: Unity_Plugins_V8
+          name: Unity_Plugins(${{ github.event.inputs.backend }})
  
