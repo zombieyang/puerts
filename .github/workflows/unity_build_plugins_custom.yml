@@ -136,7 +136,6 @@ jobs:
           name: ${{ env.BACKEND_ARTIFACT_NAME }}
           repo: ${{ env.BACKEND_ARTIFACT_REPO }}
           path: unity/native_src/
-        shell: bash
       - name: Build
         run: |
           cd unity\native_src
