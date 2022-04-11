@@ -12,14 +12,38 @@
 #include "DataTransfer.h"
 #include "ArrayBuffer.h"
 
-#define UsingUClass(CLS)                              \
-    __DefScriptTTypeName(CLS, CLS) namespace puerts   \
-    {                                                 \
-        template <>                                   \
-        struct is_uetype<CLS> : public std::true_type \
-        {                                             \
-        };                                            \
+#define UsingUClass(CLS)                          \
+    __DefScriptTTypeName(CLS, CLS);               \
+    namespace puerts                              \
+    {                                             \
+    template <>                                   \
+    struct is_uetype<CLS> : public std::true_type \
+    {                                             \
+    };                                            \
     }
+
+#define UsingTArrayWithName(CLS, CLSNAME)             \
+    namespace puerts                                  \
+    {                                                 \
+    template <>                                       \
+    struct ScriptTypeName<TArray<CLS>>                \
+    {                                                 \
+        static constexpr const char* value = CLSNAME; \
+    };                                                \
+    }                                                 \
+    __DefObjectType(TArray<CLS>) __DefCDataPointerConverter(TArray<CLS>)
+
+#define RegisterTArray(CLS)                                                                              \
+    puerts::DefineClass<TArray<CLS>>()                                                                   \
+        .Method("Add", SelectFunction(int (TArray<CLS>::*)(const CLS&), &TArray<CLS>::Add))              \
+        .Method("Get", SelectFunction(CLS& (TArray<CLS>::*) (int), &TArray<CLS>::operator[]))            \
+        .Method("Num", MakeFunction(&TArray<CLS>::Num))                                                  \
+        .Method("Contains", MakeFunction(&TArray<CLS>::Contains<CLS>))                                   \
+        .Method("FindIndex", SelectFunction(int (TArray<CLS>::*)(const CLS&) const, &TArray<CLS>::Find)) \
+        .Method("RemoveAt", SelectFunction(void (TArray<CLS>::*)(int), &TArray<CLS>::RemoveAt))          \
+        .Method("IsValidIndex", MakeFunction(&TArray<CLS>::IsValidIndex))                                \
+        .Method("Empty", MakeFunction(&TArray<CLS>::Empty))                                              \
+        .Register()
 
 #define UsingUStruct(CLS) UsingUClass(CLS)
 
@@ -27,25 +51,6 @@ namespace puerts
 {
 namespace converter
 {
-template <>
-struct Converter<const TCHAR*>
-{
-    static v8::Local<v8::Value> toScript(v8::Local<v8::Context> context, const TCHAR* value)
-    {
-        return v8::String::NewFromUtf8(context->GetIsolate(), TCHAR_TO_UTF8(value), v8::NewStringType::kNormal).ToLocalChecked();
-    }
-
-    static const TCHAR* toCpp(v8::Local<v8::Context> context, const v8::Local<v8::Value>& value)
-    {
-        return UTF8_TO_TCHAR(*v8::String::Utf8Value(context->GetIsolate(), value));
-    }
-
-    static bool accept(v8::Local<v8::Context> context, const v8::Local<v8::Value>& value)
-    {
-        return value->IsString();
-    }
-};
-
 template <>
 struct Converter<FString>
 {
@@ -200,12 +205,6 @@ struct ScriptTypeName<FText>
 };
 
 template <>
-struct ScriptTypeName<const TCHAR*>
-{
-    static constexpr const char* value = "string";
-};
-
-template <>
 struct ScriptTypeName<FArrayBuffer>
 {
     static constexpr const char* value = "ArrayBuffer";
@@ -238,7 +237,6 @@ struct Converter<T*,
     static T* toCpp(v8::Local<v8::Context> context, const v8::Local<v8::Value>& value)
     {
         return ::puerts::DataTransfer::GetPointerFast<T>(value.As<v8::Object>());
-        ;
     }
 
     static bool accept(v8::Local<v8::Context> context, const v8::Local<v8::Value>& value)

@@ -32,6 +32,9 @@
 #include "CodeGenerator.h"
 #include "JSClassRegister.h"
 #include "Engine/CollisionProfile.h"
+#if (ENGINE_MAJOR_VERSION >= 5)
+#include "ToolMenus.h"
+#endif
 
 #define STRINGIZE(x) #x
 #define STRINGIZE_VALUE_OF(x) STRINGIZE(x)
@@ -44,7 +47,8 @@ static FString SafeName(const FString& Name)
                    .Replace(TEXT("("), TEXT("_"))
                    .Replace(TEXT(")"), TEXT("_"))
                    .Replace(TEXT("?"), TEXT("$"))
-                   .Replace(TEXT(","), TEXT("_"));
+                   .Replace(TEXT(","), TEXT("_"))
+                   .Replace(TEXT("="), TEXT("_"));
     if (Ret.Len() > 0)
     {
         auto FirstChar = Ret[0];
@@ -165,6 +169,8 @@ void FTypeScriptDeclarationGenerator::Begin(FString ModuleName)
     Output << "/// <reference path=\"puerts.d.ts\" />\n";
     Output << "declare module \"" << ModuleName << "\" {\n";
     Output << "    import {$Ref, $Nullable} from \"puerts\"\n\n";
+    Output << "    import * as cpp from \"cpp\"\n\n";
+    Output << "    import * as UE from \"ue\"\n\n";
     Output.Indent(4);
 }
 
@@ -177,12 +183,17 @@ bool IsChildOf(UClass* Class, const FString& Name)
     return IsChildOf(Class->GetSuperClass(), Name);
 }
 
-const FString GetNamePrefix(const puerts::CTypeInfo* TypeInfo)
+bool IsUEContainer(const char* name)
 {
-    return TypeInfo->IsObjectType() ? "cpp." : "";
+    return !(strncmp(name, "TArray", 6) && strncmp(name, "TSet", 4) && strncmp(name, "TMap", 4));
 }
 
-const FString GetName(const puerts::CTypeInfo* TypeInfo)
+FString GetNamePrefix(const puerts::CTypeInfo* TypeInfo)
+{
+    return TypeInfo->IsObjectType() && !(IsUEContainer(TypeInfo->Name())) ? "cpp." : "";
+}
+
+FString GetName(const puerts::CTypeInfo* TypeInfo)
 {
     FString Ret = UTF8_TO_TCHAR(TypeInfo->Name());
     if (TypeInfo->IsUEType())
@@ -273,8 +284,6 @@ void FTypeScriptDeclarationGenerator::GenTypeScriptDeclaration()
 {
     Begin();
 
-    Output << "    import * as cpp from \"cpp\"\n\n";
-
     TArray<UClass*> SortedClasses(GetSortedClasses());
     for (int i = 0; i < SortedClasses.Num(); ++i)
     {
@@ -300,9 +309,25 @@ const FString& FTypeScriptDeclarationGenerator::GetNamespace(UObject* Obj)
     auto Iter = NamespaceMap.find(Obj);
     if (Iter == NamespaceMap.end())
     {
-        TArray<FString> PathFrags;
-        Cast<UPackage>(Obj->GetOuter())->GetName().ParseIntoArray(PathFrags, TEXT("/"));
-        NamespaceMap[Obj] = FString::Join(PathFrags, TEXT("."));
+        UPackage* Pkg = Obj->GetPackage();
+        if (Pkg)
+        {
+            TArray<FString> PathFrags;
+            Pkg->GetName().ParseIntoArray(PathFrags, TEXT("/"));
+            for (int i = 0; i < PathFrags.Num(); i++)
+            {
+                auto FirstChar = PathFrags[i][0];
+                if ((FirstChar >= (TCHAR) '0' && FirstChar <= (TCHAR) '9') || FirstChar == (TCHAR) '$')
+                {
+                    PathFrags[i] = TEXT("$") + PathFrags[i];
+                }
+            }
+            NamespaceMap[Obj] = FString::Join(PathFrags, TEXT("."));
+        }
+        else
+        {
+            NamespaceMap[Obj] = TEXT("");
+        }
         Iter = NamespaceMap.find(Obj);
     }
     return Iter->second;
@@ -310,16 +335,20 @@ const FString& FTypeScriptDeclarationGenerator::GetNamespace(UObject* Obj)
 
 FString FTypeScriptDeclarationGenerator::GetNameWithNamespace(UObject* Obj)
 {
-#if defined(WITH_BP_NAMESPACE)
+#if !defined(WITHOUT_BP_NAMESPACE)
     if (!Obj->IsNative())
-        return GetNamespace(Obj) + TEXT(".") + SafeName(Obj->GetName());
-#endif
+    {
+        return (RefFromOuter ? TEXT("") : TEXT("UE.")) + GetNamespace(Obj) + TEXT(".") + SafeName(Obj->GetName());
+    }
+    return (RefFromOuter ? TEXT("") : TEXT("UE.")) + SafeName(Obj->GetName());
+#else
     return SafeName(Obj->GetName());
+#endif
 }
 
 void FTypeScriptDeclarationGenerator::NamespaceBegin(UObject* Obj)
 {
-#if defined(WITH_BP_NAMESPACE)
+#if !defined(WITHOUT_BP_NAMESPACE)
     if (!Obj->IsNative())
     {
         Output << "    namespace " << GetNamespace(Obj) << " {\n";
@@ -330,7 +359,7 @@ void FTypeScriptDeclarationGenerator::NamespaceBegin(UObject* Obj)
 
 void FTypeScriptDeclarationGenerator::NamespaceEnd(UObject* Obj)
 {
-#if defined(WITH_BP_NAMESPACE)
+#if !defined(WITHOUT_BP_NAMESPACE)
     if (!Obj->IsNative())
     {
         Output.Indent(-4);
@@ -410,7 +439,7 @@ bool FTypeScriptDeclarationGenerator::GenTypeDecl(FStringBuffer& StringBuffer, P
         if (ByteProperty->GetIntPropertyEnum())
         {
             AddToGen.Add(ByteProperty->GetIntPropertyEnum());
-            StringBuffer << SafeName(ByteProperty->GetIntPropertyEnum()->GetName());
+            StringBuffer << GetNameWithNamespace(ByteProperty->GetIntPropertyEnum());
         }
         else
         {
@@ -426,6 +455,10 @@ bool FTypeScriptDeclarationGenerator::GenTypeDecl(FStringBuffer& StringBuffer, P
         if (StructProperty->Struct->GetName() == TEXT("JsObject"))
         {
             StringBuffer << "object";
+        }
+        else if (StructProperty->Struct->GetName() == TEXT("ArrayBuffer"))
+        {
+            StringBuffer << "ArrayBuffer";
         }
         else
         {
@@ -1000,10 +1033,38 @@ private:
     TSharedPtr<class FUICommandList> PluginCommands;
     TUniquePtr<FAutoConsoleCommand> ConsoleCommand;
 
+#if (ENGINE_MAJOR_VERSION >= 5)
+    void RegisterMenus()
+    {
+        // Owner will be used for cleanup in call to UToolMenus::UnregisterOwner
+        FToolMenuOwnerScoped OwnerScoped(this);
+
+        {
+            UToolMenu* Menu = UToolMenus::Get()->ExtendMenu("LevelEditor.MainMenu.Window");
+            {
+                FToolMenuSection& Section = Menu->FindOrAddSection("WindowLayout");
+                Section.AddMenuEntryWithCommandList(FGenDTSCommands::Get().PluginAction, PluginCommands);
+            }
+        }
+
+        {
+            UToolMenu* ToolbarMenu = UToolMenus::Get()->ExtendMenu("LevelEditor.LevelEditorToolBar.PlayToolBar");
+            {
+                FToolMenuSection& Section = ToolbarMenu->FindOrAddSection("PluginTools");
+                {
+                    FToolMenuEntry& Entry =
+                        Section.AddEntry(FToolMenuEntry::InitToolBarButton(FGenDTSCommands::Get().PluginAction));
+                    Entry.SetCommandList(PluginCommands);
+                }
+            }
+        }
+    }
+#else
     void AddToolbarExtension(FToolBarBuilder& Builder)
     {
         Builder.AddToolBarButton(FGenDTSCommands::Get().PluginAction);
     }
+#endif
 
     void GenUeDts()
     {
@@ -1044,6 +1105,10 @@ public:
         PluginCommands->MapAction(FGenDTSCommands::Get().PluginAction,
             FExecuteAction::CreateRaw(this, &FDeclarationGenerator::GenUeDts), FCanExecuteAction());
 
+#if (ENGINE_MAJOR_VERSION >= 5)
+        UToolMenus::RegisterStartupCallback(
+            FSimpleMulticastDelegate::FDelegate::CreateRaw(this, &FDeclarationGenerator::RegisterMenus));
+#else
         FLevelEditorModule& LevelEditorModule = FModuleManager::LoadModuleChecked<FLevelEditorModule>("LevelEditor");
 
         {
@@ -1053,6 +1118,7 @@ public:
 
             LevelEditorModule.GetToolBarExtensibilityManager()->AddExtender(ToolbarExtender);
         }
+#endif
 
         ConsoleCommand = MakeUnique<FAutoConsoleCommand>(TEXT("Puerts.Gen"), TEXT("Execute GenDTS action"),
             FConsoleCommandDelegate::CreateRaw(this, &FDeclarationGenerator::GenUeDts));
@@ -1061,6 +1127,9 @@ public:
     void ShutdownModule() override
     {
         // IModularFeatures::Get().UnregisterModularFeature(TEXT("ScriptGenerator"), this);
+#if (ENGINE_MAJOR_VERSION >= 5)
+        UToolMenus::UnRegisterStartupCallback(this);
+#endif
         FGenDTSStyle::Shutdown();
         FGenDTSCommands::Unregister();
     }

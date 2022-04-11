@@ -1,0 +1,28 @@
+/*
+ * Tencent is pleased to support the open source community by making Puerts available.
+ * Copyright (C) 2020 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Puerts is licensed under the BSD 3-Clause License, except for the third-party components listed in the file 'LICENSE' which may be subject to their corresponding license terms. 
+ * This file is subject to the terms and conditions defined in file 'LICENSE', which is part of this source code package.
+ */
+
+var global = global || globalThis || (function () { return this; }());
+// polyfill old code after use esm module.
+global.global = global;
+
+let puerts = global.puerts = global.puerts || {};
+
+puerts.loadType = global.__tgjsLoadType;
+delete global.__tgjsLoadType;
+puerts.getNestedTypes = global.__tgjsGetNestedTypes;
+delete global.__tgjsGetNestedTypes;
+
+<<<<<<< HEAD:unity/Assets/Puerts/Src/Resources/puerts/init.mjs
+puerts.evalScript = function(script, debugPath) {
+    throw new Error('eval is not supported');
+    // return eval(script);
+=======
+puerts.evalScript = global.__tgjsEvalScript || function(script, debugPath) {
+    return eval(script);
+>>>>>>> zombie/master:unity/Assets/Puerts/Runtime/Resources/puerts/init.mjs
+}
+delete global.__tgjsEvalScript;

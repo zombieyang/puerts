@@ -9,16 +9,20 @@ declare module "puerts" {
     import {Object, Class, $Delegate} from "ue"
     
     interface $Ref<T> {
-        value: T
+        __doNoAccess: T
+    }
+
+    interface $InRef<T> {
+        __doNoAccess: T
     }
     
     type $Nullable<T> = T | null;
     
-    function $ref<T>(x : T) : $Ref<T>;
+    function $ref<T>(x? : T) : $Ref<T>;
     
-    function $unref<T>(x: $Ref<T>) : T;
+    function $unref<T>(x: $Ref<T> | $InRef<T>) : T;
     
-    function $set<T>(x: $Ref<T>, val:T) : void;
+    function $set<T>(x: $Ref<T> | $InRef<T>, val:T) : void;
     
     const argv : {
         getByIndex(index: number): Object;
@@ -44,6 +48,8 @@ declare module "puerts" {
     function toManualReleaseDelegate<T extends (...args: any) => any>(func: T): $Delegate<T>;
     
     function releaseManualReleaseDelegate<T extends (...args: any) => any>(func: T): void;
+    
+    function toDelegate<T extends Object, K extends keyof T>(obj: T, key: T[K] extends (...args: any) => any ? K : never) : $Delegate<T[K] extends (...args: any) => any ? T[K] : never>;
 
     /*function getProperties(obj: Object, ...propNames:string[]): any;
     function getPropertiesAsync(obj: Object, ...propNames:string[]): Promise<any>;

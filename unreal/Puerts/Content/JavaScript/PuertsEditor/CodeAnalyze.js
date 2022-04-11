@@ -8,16 +8,20 @@ const ts = require("typescript");
  */
 class MetaSpecifier {
     /**
+     * the identity of the specifier
+     */
+    Specifier = "";
+    /**
+     * the value
+     */
+    Values;
+    /**
      * the constructor
      * @param specifier
      * @param values
      * @returns
      */
     constructor(specifier, values) {
-        /**
-         * the identity of the specifier
-         */
-        this.Specifier = "";
         this.Specifier = specifier;
         this.Values = values;
     }
@@ -73,107 +77,107 @@ class MetaSpecifier {
     IsMetaKeyValues() {
         return this.Values != null;
     }
+    /**
+     * the common meta data, the behavior is sync with unreal engine 5.0 early preview
+     */
+    static CommonMetaData = new Map([
+        ["DisplayName", (specifier, metaData) => {
+                if (specifier.IsMetaKeyValue()) {
+                    metaData.set("DisplayName", specifier.Values[0]);
+                    return true;
+                }
+                return false;
+            }],
+        ["FriendlyName", (specifier, metaData) => {
+                if (specifier.IsMetaKeyValue()) {
+                    metaData.set("FriendlyName", specifier.Values[0]);
+                    return true;
+                }
+                return false;
+            }],
+        ["BlueprintInternalUseOnly", (specifier, metaData) => {
+                if (specifier.IsMetaKey()) {
+                    metaData.set("BlueprintInternalUseOnly", 'true');
+                    metaData.set("BlueprintType", 'true');
+                    return true;
+                }
+                return false;
+            }],
+        ["BlueprintType", (specifier, metaData) => {
+                if (specifier.IsMetaKey()) {
+                    metaData.set("BlueprintType", 'true');
+                    return true;
+                }
+                return false;
+            }],
+        ["NotBlueprintType", (specifier, metaData) => {
+                if (specifier.IsMetaKey()) {
+                    metaData.set("NotBlueprintType", 'true');
+                    metaData.delete('BlueprintType');
+                    return true;
+                }
+                return false;
+            }],
+        ["Blueprintable", (specifier, metaData) => {
+                if (specifier.IsMetaKey()) {
+                    metaData.set("IsBlueprintBase", 'true');
+                    metaData.set("BlueprintType", 'true');
+                    return true;
+                }
+                return false;
+            }],
+        ["CallInEditor", (specifier, metaData) => {
+                if (specifier.IsMetaKey()) {
+                    metaData.set("CallInEditor", 'true');
+                    return true;
+                }
+                return false;
+            }],
+        ["NotBlueprintable", (specifier, metaData) => {
+                if (specifier.IsMetaKey()) {
+                    metaData.set("IsBlueprintBase", 'false');
+                    metaData.delete("BlueprintType");
+                    return true;
+                }
+                return false;
+            }],
+        ["Category", (specifier, metaData) => {
+                if (specifier.IsMetaKeyValue()) {
+                    metaData.set("Category", specifier.Values[0]);
+                    return true;
+                }
+                return false;
+            }],
+        ["Experimental", (specifier, metaData) => {
+                if (specifier.IsMetaKey()) {
+                    metaData.set("DevelopmentStatus", "Experimental");
+                    return true;
+                }
+                return false;
+            }],
+        ["EarlyAccessPreview", (specifier, metaData) => {
+                if (specifier.IsMetaKey()) {
+                    metaData.set("DevelopmentStatus", "EarlyAccessPreview");
+                    return true;
+                }
+                return false;
+            }],
+        ["DocumentationPolicy", (specifier, metaData) => {
+                if (specifier.IsMetaKey()) {
+                    metaData.set("DocumentationPolicy", 'Strict');
+                    return true;
+                }
+                return false;
+            }],
+        ["SparseClassDataType", (specifier, metaData) => {
+                if (specifier.IsMetaKeyValue()) {
+                    metaData.set("SparseClassDataType", specifier.Values[0]);
+                    return true;
+                }
+                return false;
+            }]
+    ]);
 }
-/**
- * the common meta data, the behavior is sync with unreal engine 5.0 early preview
- */
-MetaSpecifier.CommonMetaData = new Map([
-    ["DisplayName", (specifier, metaData) => {
-            if (specifier.IsMetaKeyValue()) {
-                metaData.set("DisplayName", specifier.Values[0]);
-                return true;
-            }
-            return false;
-        }],
-    ["FriendlyName", (specifier, metaData) => {
-            if (specifier.IsMetaKeyValue()) {
-                metaData.set("FriendlyName", specifier.Values[0]);
-                return true;
-            }
-            return false;
-        }],
-    ["BlueprintInternalUseOnly", (specifier, metaData) => {
-            if (specifier.IsMetaKey()) {
-                metaData.set("BlueprintInternalUseOnly", 'true');
-                metaData.set("BlueprintType", 'true');
-                return true;
-            }
-            return false;
-        }],
-    ["BlueprintType", (specifier, metaData) => {
-            if (specifier.IsMetaKey()) {
-                metaData.set("BlueprintType", 'true');
-                return true;
-            }
-            return false;
-        }],
-    ["NotBlueprintType", (specifier, metaData) => {
-            if (specifier.IsMetaKey()) {
-                metaData.set("NotBlueprintType", 'true');
-                metaData.delete('BlueprintType');
-                return true;
-            }
-            return false;
-        }],
-    ["Blueprintable", (specifier, metaData) => {
-            if (specifier.IsMetaKey()) {
-                metaData.set("IsBlueprintBase", 'true');
-                metaData.set("BlueprintType", 'true');
-                return true;
-            }
-            return false;
-        }],
-    ["CallInEditor", (specifier, metaData) => {
-            if (specifier.IsMetaKey()) {
-                metaData.set("CallInEditor", 'true');
-                return true;
-            }
-            return false;
-        }],
-    ["NotBlueprintable", (specifier, metaData) => {
-            if (specifier.IsMetaKey()) {
-                metaData.set("IsBlueprintBase", 'false');
-                metaData.delete("BlueprintType");
-                return true;
-            }
-            return false;
-        }],
-    ["Category", (specifier, metaData) => {
-            if (specifier.IsMetaKeyValue()) {
-                metaData.set("Category", specifier.Values[0]);
-                return true;
-            }
-            return false;
-        }],
-    ["Experimental", (specifier, metaData) => {
-            if (specifier.IsMetaKey()) {
-                metaData.set("DevelopmentStatus", "Experimental");
-                return true;
-            }
-            return false;
-        }],
-    ["EarlyAccessPreview", (specifier, metaData) => {
-            if (specifier.IsMetaKey()) {
-                metaData.set("DevelopmentStatus", "EarlyAccessPreview");
-                return true;
-            }
-            return false;
-        }],
-    ["DocumentationPolicy", (specifier, metaData) => {
-            if (specifier.IsMetaKey()) {
-                metaData.set("DocumentationPolicy", 'Strict');
-                return true;
-            }
-            return false;
-        }],
-    ["SparseClassDataType", (specifier, metaData) => {
-            if (specifier.IsMetaKeyValue()) {
-                metaData.set("SparseClassDataType", specifier.Values[0]);
-                return true;
-            }
-            return false;
-        }]
-]);
 ;
 function some(array, predicate) {
     if (array) {
@@ -941,10 +945,10 @@ function getCustomSystem() {
         console.log(s);
     }
     function readFile(path, encoding) {
-        let data = puerts_1.$ref(undefined);
+        let data = (0, puerts_1.$ref)(undefined);
         const res = UE.FileSystemOperation.ReadFile(path, data);
         if (res) {
-            return puerts_1.$unref(data);
+            return (0, puerts_1.$unref)(data);
         }
         else {
             console.warn("readFile: read file fail! path=" + path);
@@ -1014,10 +1018,10 @@ function logErrors(allDiagnostics) {
         let message = ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n");
         if (diagnostic.file) {
             let { line, character } = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
-            console.warn(`  Error ${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message}`);
+            console.error(`  Error ${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message}`);
         }
         else {
-            console.warn(`  Error: ${message}`);
+            console.error(`  Error: ${message}`);
         }
     });
 }
@@ -1114,7 +1118,7 @@ const PropertyFlags = {
     CPF_NativeAccessSpecifierPublic: 0x0010000000000000,
     CPF_NativeAccessSpecifierProtected: 0x0020000000000000,
     CPF_NativeAccessSpecifierPrivate: 0x0040000000000000,
-    CPF_SkipSerialization: 0x0080000000000000,
+    CPF_SkipSerialization: 0x0080000000000000, ///< Property shouldn't be serialized, can still be exported to text
 };
 const ELifetimeCondition = {
     "COND_InitialOnly": 1,
@@ -1130,7 +1134,7 @@ const ELifetimeCondition = {
     "COND_SimulatedOnlyNoReplay": 11,
     "COND_SimulatedOrPhysicsNoReplay": 12,
     "COND_SkipReplay": 13,
-    "COND_Never": 15,
+    "COND_Never": 15, // This property will never be replicated						
 };
 function readAndParseConfigFile(configFilePath) {
     let readResult = ts.readConfigFile(configFilePath, customSystem.readFile);
@@ -1149,7 +1153,7 @@ function watch(configFilePath) {
     const fileVersions = {};
     let beginTime = new Date().getTime();
     fileNames.forEach(fileName => {
-        fileVersions[fileName] = { version: UE.FileSystemOperation.FileMD5Hash(fileName) };
+        fileVersions[fileName] = { version: UE.FileSystemOperation.FileMD5Hash(fileName), processed: false };
     });
     console.log("calc md5 using " + (new Date().getTime() - beginTime) + "ms");
     function getDefaultLibLocation() {
@@ -1164,7 +1168,7 @@ function watch(configFilePath) {
             }
             else {
                 let md5 = UE.FileSystemOperation.FileMD5Hash(fileName);
-                fileVersions[fileName] = { version: md5 };
+                fileVersions[fileName] = { version: md5, processed: false };
                 return md5;
             }
         },
@@ -1216,15 +1220,21 @@ function watch(configFilePath) {
             catch { }
         }
         fileNames.forEach(fileName => {
-            if (!(fileName in restoredFileVersions) || restoredFileVersions[fileName].version != fileVersions[fileName].version) {
+            if (!(fileName in restoredFileVersions) || restoredFileVersions[fileName].version != fileVersions[fileName].version || !restoredFileVersions[fileName].processed) {
                 onSourceFileAddOrChange(fileName, false, program, true, false);
                 changed = true;
             }
+            else {
+                fileVersions[fileName].processed = true;
+            }
         });
         fileNames.forEach(fileName => {
-            if (!(fileName in restoredFileVersions) || restoredFileVersions[fileName].version != fileVersions[fileName].version) {
+            if (!(fileName in restoredFileVersions) || restoredFileVersions[fileName].version != fileVersions[fileName].version || !restoredFileVersions[fileName].processed) {
                 onSourceFileAddOrChange(fileName, false, program, false);
                 changed = true;
+            }
+            else {
+                fileVersions[fileName].processed = true;
             }
         });
         if (changed) {
@@ -1271,7 +1281,7 @@ function watch(configFilePath) {
             if (!(fileName in fileVersions)) {
                 console.log(`new file: ${fileName} ...`);
                 newFiles.push(fileName);
-                fileVersions[fileName] = { version: "" };
+                fileVersions[fileName] = { version: UE.FileSystemOperation.FileMD5Hash(fileName), processed: false };
             }
         });
         if (newFiles.length > 0) {
@@ -1356,6 +1366,7 @@ function watch(configFilePath) {
                         }
                     }
                 }
+                fileVersions[sourceFilePath].processed = true;
             }
             function typeNameToString(node) {
                 if (ts.isIdentifier(node)) {
@@ -1377,15 +1388,22 @@ function watch(configFilePath) {
             function getUClassOfType(type) {
                 if (!type)
                     return undefined;
-                if (getModule(type) == 'ue') {
-                    try {
-                        let jsCls = UE[type.symbol.getName()];
-                        if (typeof jsCls.StaticClass == 'function') {
-                            return jsCls.StaticClass();
+                let moduleNames = getModuleNames(type);
+                if (moduleNames.length > 0 && moduleNames[0] == 'ue') {
+                    if (moduleNames.length == 1) {
+                        try {
+                            let jsCls = UE[type.symbol.getName()];
+                            if (typeof jsCls.StaticClass == 'function') {
+                                return jsCls.StaticClass();
+                            }
+                        }
+                        catch (e) {
+                            console.error(`load ue type [${type.symbol.getName()}], throw: ${e}`);
                         }
                     }
-                    catch (e) {
-                        console.error(`load ue type [${type.symbol.getName()}], throw: ${e}`);
+                    else if (moduleNames.length == 2) {
+                        let classPath = '/' + moduleNames[1] + '.' + type.symbol.getName();
+                        return UE.Field.Load(classPath);
                     }
                 }
                 else if (type.symbol && type.symbol.valueDeclaration) {
@@ -1439,7 +1457,7 @@ function watch(configFilePath) {
                         let typeName = type.symbol.getName();
                         if (typeName == 'BigInt') {
                             let category = "int64";
-                            let pinType = new UE.PEGraphPinType(category, undefined, UE.EPinContainerType.None, false);
+                            let pinType = new UE.PEGraphPinType(category, undefined, UE.EPinContainerType.None, false, false);
                             return { pinType: pinType };
                         }
                         if (!typeNode.typeArguments || typeNode.typeArguments.length == 0) {
@@ -1448,12 +1466,12 @@ function watch(configFilePath) {
                             if (!uclass) {
                                 let uenum = UE.Enum.Find(type.symbol.getName());
                                 if (uenum) {
-                                    return { pinType: new UE.PEGraphPinType("byte", uenum, UE.EPinContainerType.None, false) };
+                                    return { pinType: new UE.PEGraphPinType("byte", uenum, UE.EPinContainerType.None, false, false) };
                                 }
                                 console.warn("can not find type of " + typeName);
                                 return undefined;
                             }
-                            let pinType = new UE.PEGraphPinType(category, uclass, UE.EPinContainerType.None, false);
+                            let pinType = new UE.PEGraphPinType(category, uclass, UE.EPinContainerType.None, false, false);
                             return { pinType: pinType };
                         }
                         else { //TArray, TSet, TMap
@@ -1473,7 +1491,7 @@ function watch(configFilePath) {
                                 });
                             }
                             let result = tsTypeToPinType(typeArguments[0], children[1]);
-                            if (!result || result.pinType.PinContainerType != UE.EPinContainerType.None && typeName != '$Ref') {
+                            if (!result || result.pinType.PinContainerType != UE.EPinContainerType.None && typeName != '$Ref' && typeName != '$InRef') {
                                 console.warn("can not find pin type of typeArguments[0] " + typeName);
                                 return undefined;
                             }
@@ -1501,6 +1519,11 @@ function watch(configFilePath) {
                             }
                             else if (typeName == '$Ref') {
                                 result.pinType.bIsReference = true;
+                                return result;
+                            }
+                            else if (typeName == '$InRef') {
+                                result.pinType.bIsReference = true;
+                                result.pinType.bIn = true;
                                 return result;
                             }
                             else if (typeName == 'TMap') {
@@ -1542,7 +1565,7 @@ function watch(configFilePath) {
                                 console.warn("not support kind: " + typeNode.kind);
                                 return undefined;
                         }
-                        let pinType = new UE.PEGraphPinType(category, undefined, UE.EPinContainerType.None, false);
+                        let pinType = new UE.PEGraphPinType(category, undefined, UE.EPinContainerType.None, false, false);
                         return { pinType: pinType };
                     }
                 }
@@ -2995,6 +3018,11 @@ function watch(configFilePath) {
                                 bp.ClearParameter();
                                 return;
                             }
+                            if (paramPinType.pinType.PinContainerType == UE.EPinContainerType.Array && paramPinType.pinType.bIsReference == false) {
+                                console.warn(symbol.getName() + " of " + checker.typeToString(type) + " has TArray<T> parameter, using $InRef<UE.TArray<T>> instead!");
+                                bp.ClearParameter();
+                                return;
+                            }
                             postProcessPinType(signature.parameters[i].valueDeclaration, paramPinType.pinType, false);
                             // bp.AddParameter(signature.parameters[i].getName(), paramPinType.pinType, paramPinType.pinValueType);
                             bp.AddParameterWithMetaData(signature.parameters[i].getName(), paramPinType.pinType, paramPinType.pinValueType, compileParamMetaData(signature.parameters[i]));
@@ -3058,10 +3086,34 @@ function watch(configFilePath) {
                 bp.HasConstructor = hasConstructor;
                 bp.Save();
             }
-            function getModule(type) {
+            function getModuleNames(type) {
+                let ret = [];
                 if (type.symbol && type.symbol.valueDeclaration && type.symbol.valueDeclaration.parent && ts.isModuleBlock(type.symbol.valueDeclaration.parent)) {
-                    return type.symbol.valueDeclaration.parent.parent.name.text;
+                    let moduleBody = type.symbol.valueDeclaration.parent;
+                    while (moduleBody) {
+                        let moduleDeclaration = moduleBody.parent;
+                        let nameOfModule = undefined;
+                        while (moduleDeclaration) {
+                            let ns = moduleDeclaration.name.text;
+                            ns = ns.startsWith("$") ? ns.substring(1) : ns;
+                            nameOfModule = nameOfModule ? (ns + '/' + nameOfModule) : ns;
+                            if (ts.isModuleDeclaration(moduleDeclaration.parent)) {
+                                moduleDeclaration = moduleDeclaration.parent;
+                            }
+                            else {
+                                break;
+                            }
+                        }
+                        ret.push(nameOfModule);
+                        if (moduleDeclaration && ts.isModuleBlock(moduleDeclaration.parent)) {
+                            moduleBody = moduleDeclaration.parent;
+                        }
+                        else {
+                            break;
+                        }
+                    }
                 }
+                return ret.reverse();
             }
         }
     }

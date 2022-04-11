@@ -6,6 +6,8 @@
  * which is part of this source code package.
  */
 
+#ifndef WITH_QUICKJS
+
 #include "pesapi.h"
 #include "DataTransfer.h"
 #include "JSClassRegister.h"
@@ -294,8 +296,7 @@ pesapi_value pesapi_create_ref(pesapi_env env, pesapi_value pvalue)
     auto value = v8impl::V8LocalValueFromPesapiValue(pvalue);
 
     auto result = v8::Object::New(context->GetIsolate());
-    auto _unused = result->Set(
-        context, v8::String::NewFromUtf8(context->GetIsolate(), "value", v8::NewStringType::kNormal).ToLocalChecked(), value);
+    auto _unused = result->Set(context, 0, value);
     return v8impl::PesapiValueFromV8LocalValue(result);
 }
 
@@ -305,9 +306,7 @@ pesapi_value pesapi_get_value_ref(pesapi_env env, pesapi_value pvalue)
     auto value = v8impl::V8LocalValueFromPesapiValue(pvalue);
 
     auto outer = value->ToObject(context).ToLocalChecked();
-    auto realvalue =
-        outer->Get(context, v8::String::NewFromUtf8(context->GetIsolate(), "value", v8::NewStringType::kNormal).ToLocalChecked())
-            .ToLocalChecked();
+    auto realvalue = outer->Get(context, 0).ToLocalChecked();
     return v8impl::PesapiValueFromV8LocalValue(realvalue);
 }
 
@@ -319,8 +318,7 @@ void pesapi_update_value_ref(pesapi_env env, pesapi_value ref, pesapi_value pval
     if (holder->IsObject())
     {
         auto outer = holder->ToObject(context).ToLocalChecked();
-        auto _unused = outer->Set(
-            context, v8::String::NewFromUtf8(context->GetIsolate(), "value", v8::NewStringType::kNormal).ToLocalChecked(), value);
+        auto _unused = outer->Set(context, 0, value);
     }
 }
 
@@ -570,3 +568,5 @@ void pesapi_define_class(const char* type_name, const char* super_type_name, pes
 }
 
 EXTERN_C_END
+
+#endif

@@ -18,7 +18,7 @@ namespace Puerts.UnitTest
     {
         private string root = Path.Combine(
             System.Text.RegularExpressions.Regex.Replace(Path.GetDirectoryName(Assembly.GetExecutingAssembly().GetName().CodeBase), "^file:(\\\\)?", ""),
-            "../../Assets/Puerts/Src/Resources"
+            "../../Assets/Puerts/Runtime/Resources"
         );
 
         public override bool FileExists(string filepath)
@@ -134,6 +134,37 @@ namespace Puerts.UnitTest
                 ].join('')
             ");
             Assert.AreEqual("truetrue", ret);
+        }
+
+        [Test]
+        public void DoubleInheritStaticMethod()
+        {
+            var jsEnv = new JsEnv(new TxtLoader());
+            bool res = jsEnv.Eval<bool>(@"
+                const CS = require('csharp');
+                CS.Puerts.UnitTest.ParentParent.doSth();
+                CS.Puerts.UnitTest.SonClass.doSth();
+                true
+            ");
+            Assert.AreEqual(true, res);
+            jsEnv.Dispose();
+        }
+
+        [Test]
+        public void RecursiveJSFunctionInvoke()
+        {
+            var jsEnv = new JsEnv(new TxtLoader());
+            jsEnv.UsingFunc<int, int>();
+            int result = jsEnv.Eval<int>(@"
+                const CS = require('csharp');
+                function fibonacci(num) {
+                    if (num == 0 || num == 1) { return num }
+                    return CS.Puerts.UnitTest.Util.InvokeJSFunctionIntInt(fibonacci, num - 1) + CS.Puerts.UnitTest.Util.InvokeJSFunctionIntInt(fibonacci, num - 2)
+                }
+
+                CS.Puerts.UnitTest.Util.InvokeJSFunctionIntInt(fibonacci, 6);
+            ");
+            Assert.AreEqual(8, result);
         }
 
         [Test]
@@ -1205,6 +1236,23 @@ namespace Puerts.UnitTest
             Func<string> func = jsEnv.ExecuteModule<Func<string>>("whatever.mjs", "func");
 
             Assert.True(func() == "hello world");
+
+            jsEnv.Dispose();
+        }
+        [Test]
+        public void ESModuleImportCSharpNamespace()
+        {
+            var loader = new TxtLoader();
+            loader.AddMockFileContent("whatever.mjs", @"
+                import csharp from 'csharp';
+                const func = function() { return csharp.System.String.Join(' ', 'hello', 'world') }
+                export { func };
+            ");
+            var jsEnv = new JsEnv(loader);
+            var ns = jsEnv.ExecuteModule<JSObject>("whatever.mjs");
+
+            Assert.True(ns != null);
+            Assert.True(ns.GetType() == typeof(JSObject));
 
             jsEnv.Dispose();
         }

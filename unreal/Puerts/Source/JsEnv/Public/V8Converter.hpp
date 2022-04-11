@@ -102,8 +102,7 @@ V8_INLINE void UpdateRefValue(v8::Local<v8::Context> context, v8::Local<v8::Valu
     if (holder->IsObject())
     {
         auto outer = holder->ToObject(context).ToLocalChecked();
-        auto _unused = outer->Set(
-            context, v8::String::NewFromUtf8(context->GetIsolate(), "value", v8::NewStringType::kNormal).ToLocalChecked(), value);
+        auto _unused = outer->Set(context, 0, value);
     }
 }
 
@@ -111,6 +110,11 @@ template <typename T>
 V8_INLINE T* FastGetNativeObjectPointer(v8::Local<v8::Context> context, v8::Local<v8::Object> Object)
 {
     return DataTransfer::GetPointerFast<T>(Object);
+}
+
+V8_INLINE v8::Local<v8::Value> GetUndefined(v8::Local<v8::Context> context)
+{
+    return v8::Undefined(context->GetIsolate());
 }
 
 }    // namespace puerts
@@ -294,13 +298,12 @@ struct Converter<bool>
 };
 
 template <typename T>
-struct Converter<std::reference_wrapper<T>>
+struct Converter<std::reference_wrapper<T>, typename std::enable_if<!is_objecttype<T>::value && !is_uetype<T>::value>::type>
 {
     static v8::Local<v8::Value> toScript(v8::Local<v8::Context> context, const T& value)
     {
         auto result = v8::Object::New(context->GetIsolate());
-        auto _unused =
-            result->Set(context, Converter<const char*>::toScript(context, "value"), Converter<T>::toScript(context, value));
+        auto _unused = result->Set(context, 0, Converter<T>::toScript(context, value));
         return result;
     }
 
@@ -309,12 +312,44 @@ struct Converter<std::reference_wrapper<T>>
         if (value->IsObject())
         {
             auto outer = value->ToObject(context).ToLocalChecked();
-            auto realvalue = outer->Get(context, Converter<const char*>::toScript(context, "value")).ToLocalChecked();
+            auto realvalue = outer->Get(context, 0).ToLocalChecked();
             return Converter<T>::toCpp(context, realvalue);
         }
         else
         {
             return {};
+        }
+    }
+
+    static bool accept(v8::Local<v8::Context> context, const v8::Local<v8::Value>& value)
+    {
+        return value->IsObject();    // do not checked inner
+    }
+};
+
+template <typename T>
+struct Converter<std::reference_wrapper<T>, typename std::enable_if<is_objecttype<T>::value || is_uetype<T>::value>::type>
+{
+    static v8::Local<v8::Value> toScript(v8::Local<v8::Context> context, const T& value)
+    {
+        auto result = v8::Object::New(context->GetIsolate());
+        auto _unused = result->Set(context, 0, Converter<T>::toScript(context, value));
+        return result;
+    }
+
+    static std::reference_wrapper<T> toCpp(v8::Local<v8::Context> context, const v8::Local<v8::Value>& value)
+    {
+        static T _result;
+        if (!value.IsEmpty() && value->IsObject())
+        {
+            auto outer = value->ToObject(context).ToLocalChecked();
+            auto realvalue = outer->Get(context, 0).ToLocalChecked();
+            auto Ptr = Converter<typename std::decay<T>::type*>::toCpp(context, realvalue);
+            return Ptr ? *Ptr : _result;
+        }
+        else
+        {
+            return _result;
         }
     }
 
