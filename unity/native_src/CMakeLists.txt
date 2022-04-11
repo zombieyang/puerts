@@ -89,10 +89,10 @@ if ( APPLE )
         )
 		set_xcode_property (puerts IPHONEOS_DEPLOYMENT_TARGET "7.0" "all")
     else ()
-        if ( NOT DEFINED FOR_SILICON )
-            set(CMAKE_OSX_ARCHITECTURES x86_64)
-        else ()
+        if ( FOR_SILICON )
             set(CMAKE_OSX_ARCHITECTURES arm64)
+        else ()
+            set(CMAKE_OSX_ARCHITECTURES x86_64)
         endif ()
         
         set(CMAKE_SKIP_RPATH FALSE)    
@@ -194,15 +194,15 @@ elseif ( APPLE )
         # link
         foreach(LIB_FILE_NAME IN LISTS LIB_FILE_NAMES)
         
-            if ( NOT DEFINED FOR_SILICON )
-                target_link_libraries(puerts
-                    ${ENGINE_ROOT}/Lib/macOS/${LIB_FILE_NAME}
-                )
-            else ()
+            if ( FOR_SILICON )
                 target_link_libraries(puerts
                     ${ENGINE_ROOT}/Lib/macOS_arm64/${LIB_FILE_NAME}
                 )
                 target_compile_definitions (puerts PRIVATE PLATFORM_MAC_ARM64)
+            else ()
+                target_link_libraries(puerts
+                    ${ENGINE_ROOT}/Lib/macOS/${LIB_FILE_NAME}
+                )
             endif ()
         endforeach()
     
