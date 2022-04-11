@@ -51,11 +51,8 @@ function csTypeToClass(csType) {
 }
 
 function Namespace() {}
-<<<<<<< HEAD:unity/Assets/Puerts/Src/Resources/puerts/csharp.mjs
 puerts.__$NamespaceType = Namespace;
 
-=======
->>>>>>> zombie/master:unity/Assets/Puerts/Runtime/Resources/puerts/csharp.mjs
 function createTypeProxy(namespace) {
     return new Proxy(new Namespace, {
         get: function(cache, name) {
@@ -182,8 +179,4 @@ puerts.$extension = (cls, extension) => {
     typeof console != 'undefined' && console.warn(`deprecated! if you already generate static wrap for ${cls} and ${extension}, you are no need to invoke $extension`); 
     return doExtension(cls, extension)
 };
-<<<<<<< HEAD:unity/Assets/Puerts/Src/Resources/puerts/csharp.mjs
 puerts.$reflectExtension = doExtension; 
-=======
-puerts.$reflectExtension = doExtension;
->>>>>>> zombie/master:unity/Assets/Puerts/Runtime/Resources/puerts/csharp.mjs
