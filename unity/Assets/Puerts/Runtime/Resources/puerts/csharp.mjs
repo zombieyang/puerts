@@ -12,11 +12,6 @@ function csTypeToClass(csType) {
     let cls = puerts.loadType(csType);
     
     if (cls) {
-<<<<<<< HEAD:unity/Assets/Puerts/Src/Resources/puerts/csharp.mjs
-        let parentPrototype = Object.getPrototypeOf(cls.prototype);
-        if (parentPrototype) {
-            Object.setPrototypeOf(cls, parentPrototype.constructor);//v8 api的inherit并不能把静态属性也继承，通过这种方式修复下
-=======
         let currentCls = cls, parentPrototype = Object.getPrototypeOf(currentCls.prototype);
 
         // 此处parentPrototype如果是一个泛型，会丢失父父的继承信息，必须循环找下去
@@ -27,26 +22,17 @@ function csTypeToClass(csType) {
             currentCls = parentPrototype.constructor;
             parentPrototype = Object.getPrototypeOf(currentCls.prototype);
             if (currentCls === Object || currentCls === Function || currentCls.__static_inherit__) break;
->>>>>>> zombie/master:unity/Assets/Puerts/Runtime/Resources/puerts/csharp.mjs
         }
 
         for(var key in cls) {
             let desc = Object.getOwnPropertyDescriptor(cls, key);
             if (desc && desc.configurable && (typeof desc.get) == 'function' && (typeof desc.value) == 'undefined') {
                 let val = cls[key];
-<<<<<<< HEAD:unity/Assets/Puerts/Src/Resources/puerts/csharp.mjs
                 // Object.defineProperty(cls, key, {
                 //     value: val,
                 //     writable: false,
                 //     configurable: false
                 // });
-=======
-                Object.defineProperty(cls, key, {
-                    value: val,
-                    writable: false,
-                    configurable: false
-                });
->>>>>>> zombie/master:unity/Assets/Puerts/Runtime/Resources/puerts/csharp.mjs
                 if (cls.__p_isEnum && (typeof val) == 'number') {
                     cls[val] = key;
                 }

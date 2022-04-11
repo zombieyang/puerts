@@ -7,11 +7,7 @@
 
 var global = global || globalThis || (function () { return this; }());
 
-<<<<<<< HEAD:unity/Assets/Puerts/Src/Resources/puerts/log.mjs
-let UnityEngine_Debug = puerts.loadType('System.Console');
-=======
 let UnityEngine_Debug = puerts.loadType('UnityEngine.Debug');
->>>>>>> zombie/master:unity/Assets/Puerts/Runtime/Resources/puerts/log.mjs
 
 if (UnityEngine_Debug) {
     const console_org = global.console;

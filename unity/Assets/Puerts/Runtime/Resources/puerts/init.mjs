@@ -16,13 +16,7 @@ delete global.__tgjsLoadType;
 puerts.getNestedTypes = global.__tgjsGetNestedTypes;
 delete global.__tgjsGetNestedTypes;
 
-<<<<<<< HEAD:unity/Assets/Puerts/Src/Resources/puerts/init.mjs
-puerts.evalScript = function(script, debugPath) {
-    throw new Error('eval is not supported');
-    // return eval(script);
-=======
 puerts.evalScript = global.__tgjsEvalScript || function(script, debugPath) {
     return eval(script);
->>>>>>> zombie/master:unity/Assets/Puerts/Runtime/Resources/puerts/init.mjs
 }
 delete global.__tgjsEvalScript;
