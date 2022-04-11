@@ -25,36 +25,21 @@ if (UnityEngine_Debug) {
     
     console.log = function() {
         if (console_org) console_org.log.apply(null, Array.prototype.slice.call(arguments));
-<<<<<<< HEAD:unity/Assets/Puerts/Src/Resources/puerts/log.mjs
-        UnityEngine_Debug.WriteLine(toString(arguments));
-=======
         UnityEngine_Debug.Log(toString(arguments));
->>>>>>> zombie/master:unity/Assets/Puerts/Runtime/Resources/puerts/log.mjs
     }
     
     console.info = function() {
         if (console_org) console_org.info.apply(null, Array.prototype.slice.call(arguments));
-<<<<<<< HEAD:unity/Assets/Puerts/Src/Resources/puerts/log.mjs
-        UnityEngine_Debug.WriteLine(toString(arguments));
-=======
         UnityEngine_Debug.Log(toString(arguments));
->>>>>>> zombie/master:unity/Assets/Puerts/Runtime/Resources/puerts/log.mjs
     }
     
     console.warn = function() {
         if (console_org) console_org.warn.apply(null, Array.prototype.slice.call(arguments));
-<<<<<<< HEAD:unity/Assets/Puerts/Src/Resources/puerts/log.mjs
-        UnityEngine_Debug.WriteLine(toString(arguments));
-=======
         UnityEngine_Debug.LogWarning(toString(arguments));
->>>>>>> zombie/master:unity/Assets/Puerts/Runtime/Resources/puerts/log.mjs
     }
     
     console.error = function() {
         if (console_org) console_org.error.apply(null, Array.prototype.slice.call(arguments));
-<<<<<<< HEAD:unity/Assets/Puerts/Src/Resources/puerts/log.mjs
-        UnityEngine_Debug.WriteLine(toString(arguments));
-=======
         UnityEngine_Debug.LogError(toString(arguments));
     }
     
@@ -64,7 +49,6 @@ if (UnityEngine_Debug) {
         stack = stack.substring(stack.indexOf("\n")+1); // remove first line ("Error")
         stack = stack.replace(/^ {4}/gm, ""); // remove indentation
         UnityEngine_Debug.Log(toString(arguments) + "\n" + stack + "\n");
->>>>>>> zombie/master:unity/Assets/Puerts/Runtime/Resources/puerts/log.mjs
     }
     
     global.console = console;
