@@ -202,6 +202,7 @@ elseif ( APPLE )
                 target_link_libraries(puerts
                     ${ENGINE_ROOT}/Lib/macOS_arm64/${LIB_FILE_NAME}
                 )
+                target_compile_definitions (puerts PRIVATE PLATFORM_MAC_ARM64)
             endif ()
         endforeach()
     
