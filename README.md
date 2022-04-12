@@ -47,9 +47,9 @@ puerts init
 
 ### 最新版本
 
-* unreal：待发布
+* [![unreal](https://img.shields.io/badge/unreal-v1.0.0-blue.svg)](https://github.com/Tencent/puerts/releases/tag/Unreal_v1.0.0)
 
-* [![unity](https://img.shields.io/badge/unity-v1.3.2-blue.svg)](https://github.com/Tencent/puerts/releases)
+* [![unity](https://img.shields.io/badge/unity-v1.3.2-blue.svg)](https://github.com/Tencent/puerts/releases/tag/Unity_v1.3.2)
 
 ### changelog
 
@@ -103,8 +103,6 @@ console.log(actor.K2_GetActorLocation().ToString());
 
 * [unreal手册](doc/unreal/manual.md)
 * [unity手册](doc/unity/manual.md)
-* [unreal下脚本和引擎交互](doc/unreal/interact_with_uclass.md)
-* [纯c++api的支持](doc/unreal/template_binding.md)
 
 ## 支持的引擎，平台
 
@@ -127,11 +125,7 @@ console.log(actor.K2_GetActorLocation().ToString());
 
 ## 示例
 
-### Unreal继承引擎类模式
-
-* [FPS demo](https://github.com/chexiongsheng/puerts_fps_demo) ： 以一个FPS游戏例子演示如何使用Puerts的继承引擎类模式
-
-### Unreal自创建虚拟机模式
+### Unreal
 
 * [QuickStart.ts](https://github.com/chexiongsheng/puerts_unreal_demo/blob/master/TsProj/QuickStart.ts) ： 演示TypeScript和UE4引擎互相调用
 
@@ -140,6 +134,8 @@ console.log(actor.K2_GetActorLocation().ToString());
 * [AsyncTest.ts](https://github.com/chexiongsheng/puerts_unreal_demo/blob/master/TsProj/AsyncTest.ts) ： 将异步加载蓝图，Delay封装成async/await
 
 * [UsingWidget.ts](https://github.com/chexiongsheng/puerts_unreal_demo/blob/master/TsProj/UsingWidget.ts) ： UI加载，绑定事件，获取数据的演示
+
+* [FPS demo](https://github.com/chexiongsheng/puerts_fps_demo) ： 以一个FPS游戏例子演示如何使用Puerts的“继承引擎类功能”，该功能的介绍见[unreal手册](doc/unreal/manual.md)
 
 ### Unity
 

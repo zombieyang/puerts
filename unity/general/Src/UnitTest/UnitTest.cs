@@ -7,51 +7,9 @@
 
 using NUnit.Framework;
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Reflection;
-using System.Text;
 
 namespace Puerts.UnitTest
 {
-    public class TxtLoader : ILoader
-    {
-        private string root = Path.Combine(
-            System.Text.RegularExpressions.Regex.Replace(Path.GetDirectoryName(Assembly.GetExecutingAssembly().GetName().CodeBase), "^file:(\\\\)?", ""),
-            "../../Assets/Puerts/Runtime/Resources"
-        );
-
-        public override bool FileExists(string filepath)
-        {
-            return mockFileContent.ContainsKey(filepath) || File.Exists(Path.Combine(root, filepath));
-        }
-
-        protected override byte[] ReadByte(string filepath, out string debugpath)
-        {
-            debugpath = Path.Combine(root, filepath);
-
-            string mockContent;
-            if (mockFileContent.TryGetValue(filepath, out mockContent))
-            {
-                if (mockContent == null) {
-                    return null;
-                }
-                return Encoding.UTF8.GetBytes(mockContent);
-            }
-
-            using (StreamReader reader = new StreamReader(debugpath))
-            {
-                return Encoding.UTF8.GetBytes(reader.ReadToEnd());
-            }
-        }
-
-        private Dictionary<string, string> mockFileContent = new Dictionary<string, string>();
-        public void AddMockFileContent(string fileName, string content) {
-            mockFileContent.Add(fileName, content);
-        }
-
-    }
-
     [TestFixture]
     public class PuertsTest
     {
