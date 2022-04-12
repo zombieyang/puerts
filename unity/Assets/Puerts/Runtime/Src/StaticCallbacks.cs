@@ -23,7 +23,7 @@ namespace Puerts
                 content = env.ResolveModuleContent(identifer);
                 if (content == null)
                 {
-                    content = Encoding.UTF8.GetBytes("throw new Error(`ExecuteModule '" + identifer + "' with null content`)");
+                    return IntPtr.Zero;
                 }
             }
             catch (Exception e)
