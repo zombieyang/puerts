@@ -55,6 +55,9 @@
     <Compile Include="..\Src\UnitTest\ArrayBufferTest.cs">
       <Link>Src\UnitTest\ArrayBufferTest.cs</Link>
     </Compile>
+    <Compile Include="..\Src\UnitTest\EvalAndModuleTest.cs">
+      <Link>Src\UnitTest\EvalAndModuleTest.cs</Link>
+    </Compile>
     <Compile Include="..\Src\UnitTest\OptionalParametersTest.cs">
       <Link>Src\UnitTest\OptionalParametersTest.cs</Link>
     </Compile>
