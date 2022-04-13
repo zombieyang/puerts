@@ -98,7 +98,7 @@ namespace puerts {
 
     JSModuleDef* js_module_loader(JSContext* ctx, const char *name, void *opaque) {
         JSRuntime *rt = JS_GetRuntime(ctx);
-        v8::Isolate* Isolate = (v8::Isolate*)JS_GetRuntimeOpaque(rt);
+        v8::Isolate* Isolate = (v8::Isolate*)pxsRuntimeOpaque(rt, (void*)"PUERTS", PXS_OPAQUE_GET);
         JSEngine* JsEngine = FV8Utils::IsolateData<JSEngine>(Isolate);
 
         std::string name_std(name);

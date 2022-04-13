@@ -2,6 +2,7 @@ if ( WIN32 )
     set(LIB_FILE_NAMES 
         v8qjs.lib
         quickjs.lib
+        PxKit.lib
     )
 elseif ( ANDROID )
     set(LIB_FILE_NAMES 
