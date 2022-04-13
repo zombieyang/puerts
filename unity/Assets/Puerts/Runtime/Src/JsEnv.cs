@@ -100,101 +100,117 @@ namespace Puerts
             {
                 throw new InvalidProgramException("create jsengine fail");
             }
-            lock (jsEnvs)
+            
+            try 
             {
-                Idx = -1;
-                for (int i = 0; i < jsEnvs.Count; i++)
+                lock (jsEnvs)
                 {
-                    if (jsEnvs[i] == null)
+                    Idx = -1;
+                    for (int i = 0; i < jsEnvs.Count; i++)
                     {
-                        Idx = i;
-                        jsEnvs[Idx] = this;
-                        break;
+                        if (jsEnvs[i] == null)
+                        {
+                            Idx = i;
+                            jsEnvs[Idx] = this;
+                            break;
+                        }
+                    }
+                    if (Idx == -1)
+                    {
+                        Idx = jsEnvs.Count;
+                        jsEnvs.Add(this);
                     }
                 }
-                if (Idx == -1)
-                {
-                    Idx = jsEnvs.Count;
-                    jsEnvs.Add(this);
-                }
-            }
 
-            objectPool = new ObjectPool();
-            TypeRegister = new TypeRegister(this);
-            genericDelegateFactory = new GenericDelegateFactory(this);
-            jsObjectFactory = new JSObjectFactory();
+                objectPool = new ObjectPool();
+                TypeRegister = new TypeRegister(this);
+                genericDelegateFactory = new GenericDelegateFactory(this);
+                jsObjectFactory = new JSObjectFactory();
 
-            GeneralGetterManager = new GeneralGetterManager(this);
-            GeneralSetterManager = new GeneralSetterManager(this);
+                GeneralGetterManager = new GeneralGetterManager(this);
+                GeneralSetterManager = new GeneralSetterManager(this);
 
-            // 注册JS对象通用GC回调
-            PuertsDLL.SetGeneralDestructor(isolate, StaticCallbacks.GeneralDestructor);
+                // 注册JS对象通用GC回调
+                PuertsDLL.SetGeneralDestructor(isolate, StaticCallbacks.GeneralDestructor);
 
-            TypeRegister.InitArrayTypeId(isolate);
+                TypeRegister.InitArrayTypeId(isolate);
 
-            // 把JSEnv的id和Callback的id拼成一个long存起来，并将StaticCallbacks.JsEnvCallbackWrap注册给V8。而后通过StaticCallbacks.JsEnvCallbackWrap从long中取出函数和envid并调用。
-            PuertsDLL.SetGlobalFunction(isolate, "__tgjsRegisterTickHandler", StaticCallbacks.JsEnvCallbackWrap, AddCallback(RegisterTickHandler));
-            PuertsDLL.SetGlobalFunction(isolate, "__tgjsLoadType", StaticCallbacks.JsEnvCallbackWrap, AddCallback(LoadType));
-            PuertsDLL.SetGlobalFunction(isolate, "__tgjsGetNestedTypes", StaticCallbacks.JsEnvCallbackWrap, AddCallback(GetNestedTypes));
-            PuertsDLL.SetGlobalFunction(isolate, "__tgjsGetLoader", StaticCallbacks.JsEnvCallbackWrap, AddCallback(GetLoader));
+                // 把JSEnv的id和Callback的id拼成一个long存起来，并将StaticCallbacks.JsEnvCallbackWrap注册给V8。而后通过StaticCallbacks.JsEnvCallbackWrap从long中取出函数和envid并调用。
+                PuertsDLL.SetGlobalFunction(isolate, "__tgjsRegisterTickHandler", StaticCallbacks.JsEnvCallbackWrap, AddCallback(RegisterTickHandler));
+                PuertsDLL.SetGlobalFunction(isolate, "__tgjsLoadType", StaticCallbacks.JsEnvCallbackWrap, AddCallback(LoadType));
+                PuertsDLL.SetGlobalFunction(isolate, "__tgjsGetNestedTypes", StaticCallbacks.JsEnvCallbackWrap, AddCallback(GetNestedTypes));
+                PuertsDLL.SetGlobalFunction(isolate, "__tgjsGetLoader", StaticCallbacks.JsEnvCallbackWrap, AddCallback(GetLoader));
 
-            PuertsDLL.SetModuleResolver(isolate, StaticCallbacks.ModuleResolverCallback, Idx);
-            PuertsDLL.SetPushJSFunctionArgumentsCallback(isolate, StaticCallbacks.PushJSFunctionArgumentsCallback, Idx);
-            //可以DISABLE掉自动注册，通过手动调用PuertsStaticWrap.AutoStaticCodeRegister.Register(jsEnv)来注册
+                PuertsDLL.SetModuleResolver(isolate, StaticCallbacks.ModuleResolverCallback, Idx);
+                PuertsDLL.SetPushJSFunctionArgumentsCallback(isolate, StaticCallbacks.PushJSFunctionArgumentsCallback, Idx);
+                //可以DISABLE掉自动注册，通过手动调用PuertsStaticWrap.AutoStaticCodeRegister.Register(jsEnv)来注册
 #if !DISABLE_AUTO_REGISTER
-            const string AutoStaticCodeRegisterClassName = "PuertsStaticWrap.AutoStaticCodeRegister";
-            var autoRegister = Type.GetType(AutoStaticCodeRegisterClassName, false);
-            if (autoRegister == null)
-            {
-                foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+                const string AutoStaticCodeRegisterClassName = "PuertsStaticWrap.AutoStaticCodeRegister";
+                var autoRegister = Type.GetType(AutoStaticCodeRegisterClassName, false);
+                if (autoRegister == null)
                 {
-                    autoRegister = assembly.GetType(AutoStaticCodeRegisterClassName, false);
-                    if (autoRegister != null) break;
+                    foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+                    {
+                        autoRegister = assembly.GetType(AutoStaticCodeRegisterClassName, false);
+                        if (autoRegister != null) break;
+                    }
                 }
-            }
-            if (autoRegister != null)
-            {
-                var methodInfoOfRegister = autoRegister.GetMethod("Register");
-                methodInfoOfRegister.Invoke(null, new object[] { this });
-            }
+                if (autoRegister != null)
+                {
+                    var methodInfoOfRegister = autoRegister.GetMethod("Register");
+                    methodInfoOfRegister.Invoke(null, new object[] { this });
+                }
 #endif
 
-            if (debugPort != -1)
-            {
-                PuertsDLL.CreateInspector(isolate, debugPort);
-            }
+                if (debugPort != -1)
+                {
+                    PuertsDLL.CreateInspector(isolate, debugPort);
+                }
 
-            bool isNode = PuertsDLL.GetLibBackend() == 1;
+                bool isNode = PuertsDLL.GetLibBackend() == 1;
 
-            ExecuteModule("puerts/init" + builtinJSExt);
-            ExecuteModule("puerts/log" + builtinJSExt);
-            ExecuteModule("puerts/cjsload" + builtinJSExt);
-            ExecuteModule("puerts/modular" + builtinJSExt);
-            ExecuteModule("puerts/csharp" + builtinJSExt);
-            ExecuteModule("puerts/timer" + builtinJSExt);
-            
-            ExecuteModule("puerts/events" + builtinJSExt);
-            ExecuteModule("puerts/promises" + builtinJSExt);
+                ExecuteModule("puerts/init" + builtinJSExt);
+                ExecuteModule("puerts/log" + builtinJSExt);
+                ExecuteModule("puerts/cjsload" + builtinJSExt);
+                ExecuteModule("puerts/modular" + builtinJSExt);
+                ExecuteModule("puerts/csharp" + builtinJSExt);
+                ExecuteModule("puerts/timer" + builtinJSExt);
+                
+                ExecuteModule("puerts/events" + builtinJSExt);
+                ExecuteModule("puerts/promises" + builtinJSExt);
 #if !PUERTS_GENERAL
-            if (!isNode) 
-            {
+                if (!isNode) 
+                {
 #endif
-                ExecuteModule("puerts/polyfill" + builtinJSExt);
+                    ExecuteModule("puerts/polyfill" + builtinJSExt);
 #if !PUERTS_GENERAL
-            }
-            else
-            {
-                ExecuteModule("puerts/nodepatch" + builtinJSExt);
-            }
+                }
+                else
+                {
+                    ExecuteModule("puerts/nodepatch" + builtinJSExt);
+                }
 #endif
 
 #if UNITY_EDITOR
-            if (OnJsEnvCreate != null) 
-            {
-                OnJsEnvCreate(this, loader, debugPort);
-            }
-            this.debugPort = debugPort;
+                this.debugPort = debugPort;
+                try
+                {
+                    if (OnJsEnvCreate != null) 
+                    {
+                        OnJsEnvCreate(this, loader, debugPort);
+                    }
+                }
+                catch(Exception e)
+                {
+                    UnityEngine.Debug.LogError(e);
+                }
 #endif
+            }
+            catch(Exception e)
+            {
+                Dispose();
+                throw e;
+            }
         }
 
         internal byte[] ResolveModuleContent(string identifer) 
