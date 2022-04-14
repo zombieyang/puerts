@@ -6,7 +6,7 @@ if ( WIN32 )
     )
 elseif ( ANDROID )
     set(LIB_FILE_NAMES 
-        libPixUI_Unity.so
+        libPxKit.so
         libv8qjs.a
     )
 elseif (APPLE)
@@ -18,7 +18,7 @@ elseif (APPLE)
         message(SEND_ERROR "not supported")
     else ()
         set(LIB_FILE_NAMES 
-            libquickjs.dylib
+            libPxKit.dylib
             libv8qjs.a
         )
     endif ()
