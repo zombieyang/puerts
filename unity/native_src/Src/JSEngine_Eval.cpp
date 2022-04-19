@@ -7,7 +7,7 @@
 #include "JSEngine.h"
 #include "Log.h"
 #if WITH_QUICKJS
-#include "quickjs.h"
+#include "quickjs/quickjs.h"
 #endif
 namespace puerts {
     std::string CjsModulePrepend("export default globalThis.require('");
