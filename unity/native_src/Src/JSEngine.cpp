@@ -51,6 +51,18 @@ namespace puerts
         Info.GetReturnValue().Set(Result.ToLocalChecked());
     }
 
+    static void GetLastException(const v8::FunctionCallbackInfo<v8::Value>& Info)
+    {
+        v8::Isolate* Isolate = Info.GetIsolate();
+        v8::Isolate::Scope IsolateScope(Isolate);
+        v8::HandleScope HandleScope(Isolate);
+        v8::Local<v8::Context> Context = Isolate->GetCurrentContext();
+        v8::Context::Scope ContextScope(Context);
+
+        auto JsEngine = FV8Utils::IsolateData<JSEngine>(Isolate);
+        Info.GetReturnValue().Set(JsEngine->LastException.Get(Isolate));
+    }
+
 #if WITH_NODEJS
     void JSEngine::JSEngineWithNode()
     {
@@ -186,6 +198,8 @@ namespace puerts
 
         Isolate->SetPromiseRejectCallback(&PromiseRejectCallback<JSEngine>);
         Global->Set(Context, FV8Utils::V8String(Isolate, "__tgjsSetPromiseRejectCallback"), v8::FunctionTemplate::New(Isolate, &SetPromiseRejectCallback<JSEngine>)->GetFunction(Context).ToLocalChecked()).Check();
+
+        Global->Set(Context, FV8Utils::V8String(Isolate, "__puertsGetLastException"), v8::FunctionTemplate::New(Isolate, &GetLastException)->GetFunction(Context).ToLocalChecked()).Check();
 
         JSObjectIdMap.Reset(Isolate, v8::Map::New(Isolate));
     }

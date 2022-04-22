@@ -84,6 +84,7 @@ public:
     v8::UniquePersistent<v8::Function> GFunction;
 
     std::string LastExceptionInfo;
+    v8::UniquePersistent<v8::Value> LastException;
 
     FResultInfo ResultInfo;
 
