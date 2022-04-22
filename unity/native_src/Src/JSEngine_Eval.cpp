@@ -66,7 +66,9 @@ namespace puerts {
         if (!v8::ScriptCompiler::CompileModule(Isolate, &Source, v8::ScriptCompiler::kNoCompileOptions)
                 .ToLocal(&Module)) 
         {
-            JsEngine->LastExceptionInfo = FV8Utils::ExceptionToString(Isolate, TryCatch);
+            v8::Local<v8::Value> Exception = TryCatch.Exception();
+            JsEngine->LastException.Reset(Isolate, Exception);
+            JsEngine->LastExceptionInfo = FV8Utils::ExceptionToString(Isolate, Exception);
             return v8::MaybeLocal<v8::Module>();
         }
 
@@ -156,13 +158,17 @@ namespace puerts {
         v8::Maybe<bool> ret = ModuleChecked->InstantiateModule(Context, ResolveModule);
         if (ret.IsNothing() || !ret.ToChecked()) 
         {
-            LastExceptionInfo = FV8Utils::ExceptionToString(Isolate, TryCatch);
+            v8::Local<v8::Value> Exception = TryCatch.Exception();
+            LastException.Reset(Isolate, Exception);
+            LastExceptionInfo = FV8Utils::ExceptionToString(Isolate, Exception);
             return false;
         }
         v8::MaybeLocal<v8::Value> evalRet = ModuleChecked->Evaluate(Context);
         if (evalRet.IsEmpty()) 
         {
-            LastExceptionInfo = FV8Utils::ExceptionToString(Isolate, TryCatch);
+            v8::Local<v8::Value> Exception = TryCatch.Exception();
+            LastException.Reset(Isolate, Exception);
+            LastExceptionInfo = FV8Utils::ExceptionToString(Isolate, Exception);
             return false;
         }
         else
@@ -191,7 +197,7 @@ namespace puerts {
         JSModuleDef* EntryModule = js_module_loader(ctx , Path, nullptr);
         if (EntryModule == nullptr) {
             Isolate->handleException();
-            LastExceptionInfo = FV8Utils::ExceptionToString(Isolate, TryCatch);
+            // LastExceptionInfo = FV8Utils::ExceptionToString(Isolate, TryCatch);
             return false;
         }
 
@@ -202,7 +208,7 @@ namespace puerts {
         if (JS_IsException(evalRet)) {
             JS_FreeValue(ctx, evalRet);
             MainIsolate->handleException();
-            LastExceptionInfo = FV8Utils::ExceptionToString(Isolate, TryCatch);
+            // LastExceptionInfo = FV8Utils::ExceptionToString(Isolate, TryCatch);
             return false;
 
         } else {
@@ -247,13 +253,17 @@ namespace puerts {
         auto CompiledScript = v8::Script::Compile(Context, Source, &Origin);
         if (CompiledScript.IsEmpty())
         {
-            LastExceptionInfo = FV8Utils::ExceptionToString(Isolate, TryCatch);
+            v8::Local<v8::Value> Exception = TryCatch.Exception();
+            LastException.Reset(Isolate, Exception);
+            LastExceptionInfo = FV8Utils::ExceptionToString(Isolate, Exception);
             return false;
         }
         auto maybeValue = CompiledScript.ToLocalChecked()->Run(Context);//error info output
         if (TryCatch.HasCaught())
         {
-            LastExceptionInfo = FV8Utils::ExceptionToString(Isolate, TryCatch);
+            v8::Local<v8::Value> Exception = TryCatch.Exception();
+            LastException.Reset(Isolate, Exception);
+            LastExceptionInfo = FV8Utils::ExceptionToString(Isolate, Exception);
             return false;
         }
 

@@ -6,15 +6,26 @@
 */
 
 using Puerts;
+using System;
 
 public class PuertsTest
 {
     public static void Main()
     {
         var jsEnv = new JsEnv(new TxtLoader());
+        try
+        {
+            jsEnv.Eval(@"
+                throw new Error('hello error');
+            ");
+        }
+        catch (Exception e)
+        {
+            System.Console.WriteLine(e.Message);
+        }
         jsEnv.Eval(@"
-            const CS = require('csharp');
-            CS.System.Console.WriteLine('hello world');
+            const csharp = require('csharp');
+            csharp.System.Console.WriteLine(puerts.getLastException().stack);
         ");
         jsEnv.Dispose();
     }

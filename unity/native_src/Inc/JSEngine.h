@@ -141,6 +141,7 @@ public:
     PUERTS_EXPORT_FOR_UT void UnBindObject(FLifeCycleInfo* LifeCycleInfo, void* Ptr);
 
     std::string LastExceptionInfo;
+    v8::UniquePersistent<v8::Value> LastException;
 
     CSharpDestructorCallback GeneralDestructor;
 

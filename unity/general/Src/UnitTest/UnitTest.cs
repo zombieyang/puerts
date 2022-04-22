@@ -1205,6 +1205,26 @@ namespace Puerts.UnitTest
 
             jsEnv.Dispose();
         }
+        [Test]
+        public void JSGetLastException()
+        {
+            var loader = new TxtLoader();
+            var jsEnv = new JsEnv(loader);
+            try
+            {
+                jsEnv.Eval(@"
+                    throw new Error('hello error');
+                ");
+            }
+            catch (Exception e) { }
+
+            string jsErrorMessage = jsEnv.Eval<string>(@"
+                const csharp = require('csharp');
+                puerts.getLastException().message
+            ");
+            Assert.True(jsErrorMessage == "hello error");
+            jsEnv.Dispose();
+        }
     }
 }
 
