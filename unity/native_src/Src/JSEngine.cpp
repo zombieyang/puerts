@@ -226,6 +226,7 @@ namespace puerts
 
         JSObjectIdMap.Reset();
         JsPromiseRejectCallback.Reset();
+        LastException.Reset();
 
         for (int i = 0; i < Templates.size(); ++i)
         {
