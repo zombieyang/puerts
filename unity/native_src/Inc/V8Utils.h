@@ -93,7 +93,7 @@ public:
             v8::MaybeLocal<v8::Value> MaybeStackTrace = v8::TryCatch::StackTrace(Context, ExceptionValue);
             if (!MaybeStackTrace.IsEmpty())
             {
-                v8::String::Utf8Value StackTraceVal(Isolate, StackTrace);
+                v8::String::Utf8Value StackTraceVal(Isolate, MaybeStackTrace.ToLocalChecked());
                 stm << std::endl << *StackTraceVal;
             }
             return stm.str();
