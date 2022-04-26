@@ -564,6 +564,18 @@ namespace puerts
         if (DontDelete)
         {
             Attr = (v8::PropertyAttribute)(Attr | v8::DontDelete);
+
+            v8::Local<v8::Function> constructor = Templates[ClassID].Get(Isolate)->GetFunction(Context).ToLocalChecked();
+            v8::Local<v8::String> staticConstSetKey = FV8Utils::V8String(Isolate, "__puertsStaticConstMembers");
+            v8::MaybeLocal<v8::Value> MaybeStaticConstSet = constructor->Get(Context, staticConstSetKey);
+            v8::Local<v8::Set> StaticConstSet;
+
+            if (StaticConstSet.IsEmpty() || (StaticConstSet = MaybeStaticConstSet.ToLocalChecked().As<v8::Set>())->IsUndefined())
+            {
+                StaticConstSet = v8::Set::New(Isolate);
+                constructor->Set(Context, staticConstSetKey, StaticConstSet);
+            }
+            StaticConstSet->Add(Context, FV8Utils::V8String(Isolate, Name));
         }
 
         if (IsStatic)
