@@ -874,8 +874,9 @@ V8_EXPORT void ResetResult(FResultInfo *ResultInfo)
 
 V8_EXPORT const char* GetFunctionLastExceptionInfo(JSFunction *Function, int *Length)
 {
-    auto JsEngine = FV8Utils::IsolateData<JSEngine>(Function->FResultInfo.Isolate);
-    const char* LastExceptionStr = FV8Utils::ExceptionToString(Isolate, Function->FResultInfo.Isolate).c_str();
+    v8::Isolate* Isolate = Function->FResultInfo.Isolate;
+    auto JsEngine = FV8Utils::IsolateData<JSEngine>(Isolate);
+    const char* LastExceptionStr = FV8Utils::ExceptionToString(Isolate, JsEngine.LastException.Get(Isolate)).c_str();
 
     *Length = static_cast<int>(strlen(LastExceptionStr));
     return LastExceptionStr;
