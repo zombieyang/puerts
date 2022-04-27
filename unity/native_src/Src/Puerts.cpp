@@ -137,7 +137,7 @@ V8_EXPORT int RegisterProperty(v8::Isolate *Isolate, int ClassID, const char *Na
 V8_EXPORT const char* GetLastExceptionInfo(v8::Isolate *Isolate, int *Length)
 {
     auto JsEngine = FV8Utils::IsolateData<JSEngine>(Isolate);
-    const char* LastExceptionStr = FV8Utils::ExceptionToString(Isolate, JsEngine.LastException.Get(Isolate)).c_str();
+    const char* LastExceptionStr = FV8Utils::ExceptionToString(Isolate, JsEngine->LastException.Get(Isolate)).c_str();
 
     *Length = static_cast<int>(strlen(LastExceptionStr));
     return LastExceptionStr;
@@ -874,9 +874,9 @@ V8_EXPORT void ResetResult(FResultInfo *ResultInfo)
 
 V8_EXPORT const char* GetFunctionLastExceptionInfo(JSFunction *Function, int *Length)
 {
-    v8::Isolate* Isolate = Function->FResultInfo.Isolate;
+    v8::Isolate* Isolate = Function->ResultInfo.Isolate;
     auto JsEngine = FV8Utils::IsolateData<JSEngine>(Isolate);
-    const char* LastExceptionStr = FV8Utils::ExceptionToString(Isolate, JsEngine.LastException.Get(Isolate)).c_str();
+    const char* LastExceptionStr = FV8Utils::ExceptionToString(Isolate, JsEngine->LastException.Get(Isolate)).c_str();
 
     *Length = static_cast<int>(strlen(LastExceptionStr));
     return LastExceptionStr;
