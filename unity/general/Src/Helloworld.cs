@@ -14,7 +14,9 @@ public class PuertsTest
         var jsEnv = new JsEnv(new TxtLoader());
         jsEnv.Eval(@"
             const CS = require('csharp');
-            CS.System.Console.WriteLine('hello world');
+            const PUERTS = require('puerts');
+            let List = PUERTS.$generic(CS.System.Collections.Generic.List$1, CS.System.Int32);
+            CS.System.Console.WriteLine(!!List);
         ");
         jsEnv.Dispose();
     }
