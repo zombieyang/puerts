@@ -66,8 +66,7 @@ namespace puerts {
         if (!v8::ScriptCompiler::CompileModule(Isolate, &Source, v8::ScriptCompiler::kNoCompileOptions)
                 .ToLocal(&Module)) 
         {
-            v8::Local<v8::Value> Exception = TryCatch.Exception();
-            JsEngine->LastException.Reset(Isolate, Exception);
+            JsEngine->SetLastException(TryCatch.Exception());
             return v8::MaybeLocal<v8::Module>();
         }
 
@@ -156,15 +155,13 @@ namespace puerts {
         v8::Maybe<bool> ret = ModuleChecked->InstantiateModule(Context, ResolveModule);
         if (ret.IsNothing() || !ret.ToChecked()) 
         {
-            v8::Local<v8::Value> Exception = TryCatch.Exception();
-            LastException.Reset(Isolate, Exception);
+            SetLastException(TryCatch.Exception());
             return false;
         }
         v8::MaybeLocal<v8::Value> evalRet = ModuleChecked->Evaluate(Context);
         if (evalRet.IsEmpty()) 
         {
-            v8::Local<v8::Value> Exception = TryCatch.Exception();
-            LastException.Reset(Isolate, Exception);
+            SetLastException(TryCatch.Exception());
             return false;
         }
         else
@@ -193,8 +190,7 @@ namespace puerts {
         JSModuleDef* EntryModule = js_module_loader(ctx , Path, nullptr);
         if (EntryModule == nullptr) {
             Isolate->handleException();
-            v8::Local<v8::Value> Exception = TryCatch.Exception();
-            LastException.Reset(Isolate, Exception);
+            SetLastException(TryCatch.Exception());
             return false;
         }
 
@@ -205,8 +201,7 @@ namespace puerts {
         if (JS_IsException(evalRet)) {
             JS_FreeValue(ctx, evalRet);
             MainIsolate->handleException();
-            v8::Local<v8::Value> Exception = TryCatch.Exception();
-            LastException.Reset(Isolate, Exception);
+            SetLastException(TryCatch.Exception());
             return false;
 
         } else {
@@ -251,15 +246,13 @@ namespace puerts {
         auto CompiledScript = v8::Script::Compile(Context, Source, &Origin);
         if (CompiledScript.IsEmpty())
         {
-            v8::Local<v8::Value> Exception = TryCatch.Exception();
-            LastException.Reset(Isolate, Exception);
+            SetLastException(TryCatch.Exception());
             return false;
         }
         auto maybeValue = CompiledScript.ToLocalChecked()->Run(Context);//error info output
         if (TryCatch.HasCaught())
         {
-            v8::Local<v8::Value> Exception = TryCatch.Exception();
-            LastException.Reset(Isolate, Exception);
+            SetLastException(TryCatch.Exception());
             return false;
         }
 
