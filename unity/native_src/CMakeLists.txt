@@ -16,6 +16,9 @@ if ( IOS )
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fembed-bitcode")
 endif ()
 
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-exceptions -fno-rtti")
+
+
 find_path(PUERTS_PROJECT_DIR NAMES SConstruct
     PATHS 
     ${PROJECT_SOURCE_DIR}
