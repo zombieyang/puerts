@@ -80,7 +80,7 @@ namespace Puerts
                 {
                     if (obj == null)
                     {
-                        obj = JsEnv.jsEnvs[jsEnvIdx].GeneralGetterManager.AnyTranslator(isolate, NativeValueApi.GetValueFromArgument, value, isByRef);
+                        obj = JsEnv.GeneralGetterManager.AnyTranslator(jsEnvIdx, isolate, NativeValueApi.GetValueFromArgument, value, isByRef);
                     }
 
                     return expectCsType != null && expectCsType.IsAssignableFrom(obj.GetType());

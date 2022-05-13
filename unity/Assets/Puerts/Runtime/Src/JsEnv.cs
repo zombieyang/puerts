@@ -32,9 +32,9 @@ namespace Puerts
 
         internal readonly int Idx;
 
-        internal readonly GeneralGetterManager GeneralGetterManager;
+        internal static GeneralGetterManager GeneralGetterManager;
 
-        internal readonly GeneralSetterManager GeneralSetterManager;
+        internal static GeneralSetterManager GeneralSetterManager;
 
         internal readonly TypeRegister TypeRegister = null;
 
@@ -122,8 +122,11 @@ namespace Puerts
             genericDelegateFactory = new GenericDelegateFactory(this);
             jsObjectFactory = new JSObjectFactory();
 
-            GeneralGetterManager = new GeneralGetterManager(this);
-            GeneralSetterManager = new GeneralSetterManager(this);
+            if (GeneralGetterManager == null || GeneralSetterManager == null) 
+            {
+                GeneralGetterManager = new GeneralGetterManager();
+                GeneralSetterManager = new GeneralSetterManager();
+            }
 
             // 注册JS对象通用GC回调
             PuertsDLL.SetGeneralDestructor(isolate, StaticCallbacks.GeneralDestructor);
@@ -376,7 +379,7 @@ namespace Puerts
 
         void GetLoader(IntPtr isolate, IntPtr info, IntPtr self, int paramLen)
         {
-            GeneralSetterManager.AnyTranslator(isolate, NativeValueApi.SetValueToResult, info, loader);
+            GeneralSetterManager.AnyTranslator(Idx, isolate, NativeValueApi.SetValueToResult, info, loader);
         }
 
         public void RegisterGeneralGetSet(Type type, GeneralGetter getter, GeneralSetter setter)

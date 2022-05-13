@@ -67,27 +67,27 @@ namespace Puerts
 
         private JSFunctionCallback GenFieldGetter(Type type, FieldInfo field)
         {
-            var translateFunc = env.GeneralSetterManager.GetTranslateFunc(field.FieldType);
+            var translateFunc = JsEnv.GeneralSetterManager.GetTranslateFunc(field.FieldType);
             if (field.IsStatic)
             {
                 return (IntPtr isolate, IntPtr info, IntPtr self, int argumentsLen) =>
                 {
-                    translateFunc(isolate, NativeValueApi.SetValueToResult, info, field.GetValue(null));
+                    translateFunc(env.Idx, isolate, NativeValueApi.SetValueToResult, info, field.GetValue(null));
                 };
             }
             else
             {
                 return (IntPtr isolate, IntPtr info, IntPtr self, int argumentsLen) =>
                 {
-                    var me = env.GeneralGetterManager.GetSelf(self);
-                    translateFunc(isolate, NativeValueApi.SetValueToResult, info, field.GetValue(me));
+                    var me = JsEnv.GeneralGetterManager.GetSelf(env, self);
+                    translateFunc(env.Idx, isolate, NativeValueApi.SetValueToResult, info, field.GetValue(me));
                 };
             }
         }
 
         private JSFunctionCallback GenFieldSetter(Type type, FieldInfo field)
         {
-            var translateFunc = env.GeneralGetterManager.GetTranslateFunc(field.FieldType);
+            var translateFunc = JsEnv.GeneralGetterManager.GetTranslateFunc(field.FieldType);
             var typeMask = GeneralGetterManager.GetJsTypeMask(field.FieldType);
             if (field.IsStatic)
             {
@@ -101,7 +101,7 @@ namespace Puerts
                     }
                     else
                     {
-                        field.SetValue(null, translateFunc(isolate, NativeValueApi.GetValueFromArgument, valuePtr, false));
+                        field.SetValue(null, translateFunc(env.Idx, isolate, NativeValueApi.GetValueFromArgument, valuePtr, false));
                     }
                 };
             }
@@ -117,8 +117,8 @@ namespace Puerts
                     }
                     else
                     {
-                        var me = env.GeneralGetterManager.GetSelf(self);
-                        field.SetValue(me, translateFunc(isolate, NativeValueApi.GetValueFromArgument, valuePtr, false));
+                        var me = JsEnv.GeneralGetterManager.GetSelf(env, self);
+                        field.SetValue(me, translateFunc(env.Idx, isolate, NativeValueApi.GetValueFromArgument, valuePtr, false));
                     }
                 };
             }
@@ -139,7 +139,7 @@ namespace Puerts
                     MethodInfo xetMethodInfo = definitionType.GetMethod(memberName, flag);
 
                     reflectionWrap = new MethodReflectionWrap(memberName, new List<OverloadReflectionWrap>() {
-                        new OverloadReflectionWrap(xetMethodInfo, env.GeneralGetterManager, env.GeneralSetterManager)
+                        new OverloadReflectionWrap(xetMethodInfo, env)
                     });
                 }
 
@@ -165,7 +165,7 @@ namespace Puerts
                 {
                     MethodInfo[] overload = Utils.GetMethodAndOverrideMethodByName(definitionType, memberName);
                     reflectionWrap = new MethodReflectionWrap(memberName,
-                        overload.Select(m => new OverloadReflectionWrap(m, env.GeneralGetterManager, env.GeneralSetterManager, false)).ToList()
+                        overload.Select(m => new OverloadReflectionWrap(m, env, false)).ToList()
                     );
 
                 }

@@ -45,14 +45,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\Assets\Puerts\Runtime\Src\ArgumentHelper.cs">
-      <Link>Assets\Puerts\Runtime\Src\ArgumentHelper.cs</Link>
-    </Compile>
     <Compile Include="..\..\Assets\Puerts\Runtime\Src\DataTranslate.cs">
       <Link>Assets\Puerts\Runtime\Src\DataTranslate.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Assets\Puerts\Runtime\Src\GenericDelegate.cs">
-      <Link>Assets\Puerts\Runtime\Src\GenericDelegate.cs</Link>
     </Compile>
     <Compile Include="..\..\Assets\Puerts\Runtime\Src\JsEnv.cs">
       <Link>Assets\Puerts\Runtime\Src\JsEnv.cs</Link>
@@ -75,9 +69,6 @@
     <Compile Include="..\..\Assets\Puerts\Runtime\Src\StaticTranslate.cs">
       <Link>Assets\Puerts\Runtime\Src\StaticTranslate.cs</Link>
     </Compile>
-    <Compile Include="..\..\Assets\Puerts\Runtime\Src\StaticWrapRegister.cs">
-      <Link>Assets\Puerts\Runtime\Src\StaticWrapRegister.cs</Link>
-    </Compile>
     <Compile Include="..\..\Assets\Puerts\Runtime\Src\TypeExtensions.cs">
       <Link>Assets\Puerts\Runtime\Src\TypeExtensions.cs</Link>
     </Compile>
@@ -87,14 +78,32 @@
     <Compile Include="..\..\Assets\Puerts\Runtime\Src\Utils.cs">
       <Link>Assets\Puerts\Runtime\Src\Utils.cs</Link>
     </Compile>
-    <Compile Include="..\..\Assets\Puerts\Runtime\Src\TypedValue.cs">
-      <Link>Assets\Puerts\Runtime\Src\TypedValue.cs</Link>
+    <Compile Include="..\..\Assets\Puerts\Runtime\Src\DataType\TypedValue.cs">
+      <Link>Assets\Puerts\Runtime\Src\DataType\TypedValue.cs</Link>
     </Compile>
-    <Compile Include="..\..\Assets\Puerts\Runtime\Src\ReflectionWrap.cs">
-      <Link>Assets\Puerts\Runtime\Src\ReflectionWrap.cs</Link>
+    <Compile Include="..\..\Assets\Puerts\Runtime\Src\DataType\ArrayBuffer.cs">
+      <Link>Assets\Puerts\Runtime\Src\DataType\ArrayBuffer.cs</Link>
     </Compile>
-    <Compile Include="..\..\Assets\Puerts\Runtime\Src\LazyWrap.cs">
-      <Link>Assets\Puerts\Runtime\Src\LazyWrap.cs</Link>
+    <Compile Include="..\..\Assets\Puerts\Runtime\Src\DataType\JSObject.cs">
+      <Link>Assets\Puerts\Runtime\Src\DataType\JSObject.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Assets\Puerts\Runtime\Src\DataType\TypedValue.cs">
+      <Link>Assets\Puerts\Runtime\Src\DataType\TypedValue.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Assets\Puerts\Runtime\Src\DataType\GenericDelegate.cs">
+      <Link>Assets\Puerts\Runtime\Src\DataType\GenericDelegate.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Assets\Puerts\Runtime\Src\Wraps\ArgumentHelper.cs">
+      <Link>Assets\Puerts\Runtime\Src\Wraps\ArgumentHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Assets\Puerts\Runtime\Src\Wraps\LazyWrap.cs">
+      <Link>Assets\Puerts\Runtime\Src\Wraps\LazyWrap.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Assets\Puerts\Runtime\Src\Wraps\ReflectionWrap.cs">
+      <Link>Assets\Puerts\Runtime\Src\Wraps\ReflectionWrap.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Assets\Puerts\Runtime\Src\Wraps\StaticWrapRegister.cs">
+      <Link>Assets\Puerts\Runtime\Src\Wraps\StaticWrapRegister.cs</Link>
     </Compile>
     <Compile Include="..\..\Assets\Puerts\Editor\Src\CJSImporter.cs">
       <Link>Assets\Puerts\Editor\Src\CJSImporter.cs</Link>
