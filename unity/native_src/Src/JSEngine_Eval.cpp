@@ -110,6 +110,7 @@ namespace puerts {
             return false;
         }
         v8::Isolate* Isolate = MainIsolate;
+        v8::Locker locker(MainIsolate);
         v8::Isolate::Scope IsolateScope(Isolate);
         v8::HandleScope HandleScope(Isolate);
         v8::Local<v8::Context> Context = ResultInfo.Context.Get(Isolate);
@@ -226,6 +227,7 @@ namespace puerts {
     
     bool JSEngine::Eval(const char *Code, const char* Path)
     {
+        v8::Locker locker(MainIsolate);
         v8::Isolate* Isolate = MainIsolate;
         v8::Isolate::Scope IsolateScope(Isolate);
         v8::HandleScope HandleScope(Isolate);
