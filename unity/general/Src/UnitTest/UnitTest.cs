@@ -1010,6 +1010,34 @@ namespace Puerts.UnitTest
             jsEnv.Tick();
             jsEnv.Dispose();
         }
+        [Test]
+        public void MultiThread()
+        {
+            var jsEnv = new JsEnv(new TxtLoader());
+            double now1 = 0, now2 = 0;
+            var task = new System.Threading.Tasks.Task(() =>
+            {
+                now1 = jsEnv.Eval<double>(@"
+                    var start = Date.now();
+                    while (Date.now() - start < 200) {  }
+                    Date.now();
+                ");
+            });
+            task.Start();
+
+            now2 = jsEnv.Eval<double>(@"
+                var csharp = require('csharp');
+                var start = Date.now();
+                while (Date.now() - start < 200) {  }
+                Date.now();
+            ");
+
+            while (!task.IsCompleted) { }
+
+            Assert.True(Math.Abs(now1 - now2) > 199);
+            Assert.True(Math.Abs(now1 - now2) < 1000);
+            jsEnv.Dispose();
+        }
     }
 }
 
