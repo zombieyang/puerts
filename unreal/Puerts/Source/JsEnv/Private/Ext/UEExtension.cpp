@@ -12,6 +12,7 @@
 
 UsingUClass(UObject);
 UsingUClass(UClass);
+UsingUClass(UStruct);
 #if !defined(ENGINE_INDEPENDENT_JSENV)
 UsingUClass(UWorld);    // for return type
 UsingUClass(USceneComponent);
@@ -23,7 +24,7 @@ struct AutoRegisterForUE
     AutoRegisterForUE()
     {
         puerts::DefineClass<UObject>()
-#if ENGINE_MAJOR_VERSION >= 4 && ENGINE_MINOR_VERSION >= 23
+#if ENGINE_MAJOR_VERSION > 4 || ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION >= 23
             .Method("CreateDefaultSubobject",
                 SelectFunction(UObject * (UObject::*) (FName, UClass*, UClass*, bool, bool), &UObject::CreateDefaultSubobject))
 #else
@@ -36,6 +37,10 @@ struct AutoRegisterForUE
 #if !defined(ENGINE_INDEPENDENT_JSENV)
             .Method("GetWorld", MakeFunction(&UObject::GetWorld))
 #endif
+            .Register();
+
+        puerts::DefineClass<UStruct>()
+            .Method("IsChildOf", SelectFunction(bool (UStruct::*)(const UStruct*) const, &UStruct::IsChildOf))
             .Register();
 
 #if !defined(ENGINE_INDEPENDENT_JSENV)
