@@ -210,6 +210,9 @@ elseif ( APPLE )
         endforeach()
     
         #definition
+        if ( DEFINED FOR_SILICON )
+            target_compile_definitions (puerts PRIVATE PLATFORM_MAC_ARM64)
+        endif()
         target_compile_definitions (puerts PRIVATE PLATFORM_MAC)
     endif ()
 
