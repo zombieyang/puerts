@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Tencent is pleased to support the open source community by making Puerts available.
  * Copyright (C) 2020 THL A29 Limited, a Tencent company.  All rights reserved.
  * Puerts is licensed under the BSD 3-Clause License, except for the third-party components listed in the file 'LICENSE' which may
@@ -865,7 +865,7 @@ void FTypeScriptDeclarationGenerator::GenClass(UClass* Class)
     StringBuffer << "    static StaticClass(): Class;\n";
     StringBuffer << "    static Find(OrigInName: string, Outer?: Object): " << SafeName(Class->GetName()) << ";\n";
     StringBuffer << "    static Load(InName: string): " << SafeName(Class->GetName()) << ";\n\n";
-    StringBuffer << "    private __tid_" << SafeName(Class->GetName()) << "__: boolean;\n";
+    StringBuffer << "    __tid_" << SafeName(Class->GetName()) << "__: boolean;\n";
 
     StringBuffer << "}\n\n";
 
@@ -893,6 +893,7 @@ void FTypeScriptDeclarationGenerator::GenEnum(UEnum* Enum)
         // auto Value = Enum->GetValueByIndex(i);
         EnumListerrals.Add(SafeFieldName(Name, false));
     }
+    EnumListerrals.Add(TEXT("__typeKeyDoNoAccess"));
 
     StringBuffer << "enum " << SafeName(Enum->GetName()) << " { " << FString::Join(EnumListerrals, TEXT(", "));
 
@@ -1098,7 +1099,7 @@ private:
 
     bool GenStruct = false;
 
-    bool GenEnum = false;
+    bool GenEnum = true;
 
     FName SearchPath = NAME_None;
 
@@ -1193,7 +1194,7 @@ public:
                     this->GenUeDts();
 
                     GenStruct = false;
-                    GenEnum = false;
+                    GenEnum = true;
                     SearchPath = NAME_None;
                 }));
     }
@@ -1223,6 +1224,7 @@ public:
         BPFilter.bRecursivePaths = true;
         BPFilter.bRecursiveClasses = true;
         BPFilter.ClassNames.Add(FName(TEXT("Blueprint")));
+        BPFilter.ClassNames.Add(FName(TEXT("UserDefinedEnum")));
 
         AssetRegistry.GetAssets(BPFilter, AssetList);
         for (FAssetData const& Asset : AssetList)

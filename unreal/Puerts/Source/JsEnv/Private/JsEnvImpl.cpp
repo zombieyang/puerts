@@ -443,6 +443,20 @@ FJsEnvImpl::FJsEnvImpl(std::shared_ptr<IJSModuleLoader> InModuleLoader, std::sha
         .Check();
 
     Global
+        ->Set(Context, FV8Utils::ToV8String(Isolate, "__tgjsSearchModule"),
+            v8::FunctionTemplate::New(
+                Isolate,
+                [](const v8::FunctionCallbackInfo<v8::Value>& Info)
+                {
+                    auto Self = static_cast<FJsEnvImpl*>((v8::Local<v8::External>::Cast(Info.Data()))->Value());
+                    Self->SearchModule(Info);
+                },
+                This)
+                ->GetFunction(Context)
+                .ToLocalChecked())
+        .Check();
+
+    Global
         ->Set(Context, FV8Utils::ToV8String(Isolate, "__tgjsLoadModule"),
             v8::FunctionTemplate::New(
                 Isolate,
@@ -1895,6 +1909,7 @@ void FJsEnvImpl::NotifyUObjectDeleted(const class UObjectBase* ObjectBase, int32
     }
 
     TsFunctionMap.erase((UFunction*) ObjectBase);
+    ContainerMeta.NotifyElementTypeDeleted((UField*) ObjectBase);
 }
 
 void FJsEnvImpl::TryReleaseType(UStruct* Struct)
@@ -2740,6 +2755,8 @@ v8::Local<v8::Value> FJsEnvImpl::UETypeToJsClass(v8::Isolate* Isolate, v8::Local
             auto Value = Enum->GetValueByIndex(i);
             __USE(Result->Set(Context, FV8Utils::ToV8String(Isolate, Name), v8::Number::New(Isolate, Value)));
         }
+        __USE(Result->Set(
+            Context, FV8Utils::ToV8String(Isolate, "__puerts_ufield"), FindOrAdd(Isolate, Context, Enum->GetClass(), Enum)));
 #if !defined(ENGINE_INDEPENDENT_JSENV)
         if (Enum == StaticEnum<EObjectTypeQuery>())
         {
@@ -2799,11 +2816,31 @@ void FJsEnvImpl::LoadUEType(const v8::FunctionCallbackInfo<v8::Value>& Info)
     const FString TypeName = FV8Utils::ToFString(Isolate, Info[0]);
 
     UObject* ClassPackage = ANY_PACKAGE;
-    UField* Type = FindObject<UField>(ClassPackage, *TypeName);
+    UField* Type = FindObject<UClass>(ClassPackage, *TypeName);
 
     if (!Type)
     {
-        Type = LoadObject<UField>(nullptr, *TypeName);
+        Type = FindObject<UScriptStruct>(ClassPackage, *TypeName);
+    }
+
+    if (!Type)
+    {
+        Type = FindObject<UEnum>(ClassPackage, *TypeName);
+    }
+
+    if (!Type)
+    {
+        Type = LoadObject<UClass>(nullptr, *TypeName);
+    }
+
+    if (!Type)
+    {
+        Type = LoadObject<UScriptStruct>(nullptr, *TypeName);
+    }
+
+    if (!Type)
+    {
+        Type = LoadObject<UEnum>(nullptr, *TypeName);
     }
 
     if (Type && !Type->IsNative())
@@ -2860,9 +2897,9 @@ bool FJsEnvImpl::GetContainerTypeProperty(v8::Local<v8::Context> Context, v8::Lo
         *PropertyPtr = ContainerMeta.GetBuiltinProperty((BuiltinType) Type);
         return true;
     }
-    else if (auto Struct = Cast<UStruct>(FV8Utils::GetUObject(Context, Value)))
+    else if (auto Field = Cast<UField>(FV8Utils::GetUObject(Context, Value)))
     {
-        *PropertyPtr = ContainerMeta.GetObjectProperty(Struct);
+        *PropertyPtr = ContainerMeta.GetObjectProperty(Field);
         return *PropertyPtr != nullptr;
     }
     else
@@ -3306,6 +3343,27 @@ void FJsEnvImpl::Log(const v8::FunctionCallbackInfo<v8::Value>& Info)
     }
 }
 
+void FJsEnvImpl::SearchModule(const v8::FunctionCallbackInfo<v8::Value>& Info)
+{
+    v8::Isolate* Isolate = Info.GetIsolate();
+    v8::Local<v8::Context> Context = Isolate->GetCurrentContext();
+
+    CHECK_V8_ARGS(EArgString, EArgString);
+
+    FString ModuleName = FV8Utils::ToFString(Isolate, Info[0]);
+    FString RequiringDir = FV8Utils::ToFString(Isolate, Info[1]);
+    FString OutPath;
+    FString OutDebugPath;
+
+    if (ModuleLoader->Search(RequiringDir, ModuleName, OutPath, OutDebugPath))
+    {
+        auto Result = v8::Array::New(Isolate);
+        Result->Set(Context, 0, FV8Utils::ToV8String(Isolate, OutPath)).Check();
+        Result->Set(Context, 1, FV8Utils::ToV8String(Isolate, OutDebugPath)).Check();
+        Info.GetReturnValue().Set(Result);
+    }
+}
+
 void FJsEnvImpl::LoadModule(const v8::FunctionCallbackInfo<v8::Value>& Info)
 {
     v8::Isolate* Isolate = Info.GetIsolate();
@@ -3314,25 +3372,19 @@ void FJsEnvImpl::LoadModule(const v8::FunctionCallbackInfo<v8::Value>& Info)
     v8::Local<v8::Context> Context = Isolate->GetCurrentContext();
     v8::Context::Scope ContextScope(Context);
 
-    CHECK_V8_ARGS(EArgString, EArgString);
+    CHECK_V8_ARGS(EArgString);
 
-    FString ModuleName = FV8Utils::ToFString(Isolate, Info[0]);
-    FString RequiringDir = FV8Utils::ToFString(Isolate, Info[1]);
-
-    FString OutPath;
-    FString OutDebugPath;
+    FString Path = FV8Utils::ToFString(Isolate, Info[0]);
     TArray<uint8> Data;
-    FString ErrInfo;
-    if (!LoadFile(RequiringDir, ModuleName, OutPath, OutDebugPath, Data, ErrInfo))
+    if (!ModuleLoader->Load(Path, Data))
     {
-        FV8Utils::ThrowException(Isolate, TCHAR_TO_UTF8(*ErrInfo));
+        FV8Utils::ThrowException(Isolate, "can not load module");
         return;
     }
     FString Script;
     FFileHelper::BufferToString(Script, Data.GetData(), Data.Num());
 
-    FString Result = FString::Printf(TEXT("%s\n%s\n%s"), *OutPath, *OutDebugPath, *Script);
-    Info.GetReturnValue().Set(FV8Utils::ToV8String(Isolate, TCHAR_TO_UTF8(*Result)));
+    Info.GetReturnValue().Set(FV8Utils::ToV8String(Isolate, Script));
 }
 
 void FJsEnvImpl::SetTimeout(const v8::FunctionCallbackInfo<v8::Value>& Info)
