@@ -336,43 +336,20 @@ struct Converter<bool>
 };
 
 template <typename T>
-struct Converter<std::reference_wrapper<T>, typename std::enable_if<!is_objecttype<T>::value>::type>
+struct Converter<std::reference_wrapper<T>>
 {
     static pesapi_value toScript(pesapi_env env, const T& value)
     {
         return pesapi_create_ref(env, Converter<T>::toScript(env, value));
     }
 
-    static T toCpp(pesapi_env env, pesapi_value value)
+    static T* toCpp(pesapi_env env, pesapi_value value)
     {
-        return Converter<T>::toCpp(env, pesapi_get_value_ref(env, value));
-    }
-
-    static bool accept(pesapi_env env, pesapi_value value)
-    {
-        return pesapi_is_ref(env, value);    // do not checked inner
-    }
-};
-
-template <typename T>
-struct Converter<std::reference_wrapper<T>, typename std::enable_if<is_objecttype<T>::value>::type>
-{
-    static pesapi_value toScript(pesapi_env env, const T& value)
-    {
-        return pesapi_create_ref(env, Converter<T>::toScript(env, value));
-    }
-
-    static std::reference_wrapper<T> toCpp(pesapi_env env, pesapi_value value)
-    {
-        static T _result;
         if (pesapi_is_object(env, value))
         {
             return Converter<T>::toCpp(env, pesapi_get_value_ref(env, value));
         }
-        else
-        {
-            return _result;
-        }
+        return nullptr;
     }
 
     static bool accept(pesapi_env env, pesapi_value value)

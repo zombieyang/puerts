@@ -101,14 +101,31 @@ struct FGenImp
             ++PropertyInfo;
         }
 
+        puerts::NamedPropertyInfo* VariableInfo = ClassDefinition->VariableInfos;
+        while (VariableInfo && VariableInfo->Name && VariableInfo->Type)
+        {
+            int Pos = VariableInfo - ClassDefinition->VariableInfos;
+            Output << "        static " << (ClassDefinition->Variables[Pos].Setter ? "" : "readonly ") << VariableInfo->Name << ": "
+                   << VariableInfo->Type << ";\n";
+            ++VariableInfo;
+        }
+
         puerts::NamedFunctionInfo* FunctionInfo = ClassDefinition->FunctionInfos;
         while (FunctionInfo && FunctionInfo->Name && FunctionInfo->Type)
         {
             FStringBuffer Tmp;
-            Tmp << "        static " << FunctionInfo->Name << "(";
-            GenArguments(FunctionInfo->Type, Tmp);
-            const puerts::CTypeInfo* ReturnType = FunctionInfo->Type->Return();
-            Tmp << ") :" << GetNamePrefix(ReturnType) << GetName(ReturnType) << ";\n";
+            Tmp << "        static " << FunctionInfo->Name;
+            if (FunctionInfo->Type->Return())
+            {
+                Tmp << "(";
+                GenArguments(FunctionInfo->Type, Tmp);
+                const puerts::CTypeInfo* ReturnType = FunctionInfo->Type->Return();
+                Tmp << ") :" << GetNamePrefix(ReturnType) << GetName(ReturnType) << ";\n";
+            }
+            else
+            {
+                Tmp << FunctionInfo->Type->CustomSignature() << ";\n";
+            }
             if (!AddedFunctions.Contains(Tmp.Buffer))
             {
                 AddedFunctions.Add(Tmp.Buffer);
@@ -121,10 +138,18 @@ struct FGenImp
         while (MethodInfo && MethodInfo->Name && MethodInfo->Type)
         {
             FStringBuffer Tmp;
-            Tmp << "        " << MethodInfo->Name << "(";
-            GenArguments(MethodInfo->Type, Tmp);
-            const puerts::CTypeInfo* ReturnType = MethodInfo->Type->Return();
-            Tmp << ") :" << GetNamePrefix(ReturnType) << GetName(ReturnType) << ";\n";
+            Tmp << "        " << MethodInfo->Name;
+            if (MethodInfo->Type->Return())
+            {
+                Tmp << "(";
+                GenArguments(MethodInfo->Type, Tmp);
+                const puerts::CTypeInfo* ReturnType = MethodInfo->Type->Return();
+                Tmp << ") :" << GetNamePrefix(ReturnType) << GetName(ReturnType) << ";\n";
+            }
+            else
+            {
+                Tmp << MethodInfo->Type->CustomSignature() << ";\n";
+            }
             if (!AddedFunctions.Contains(Tmp.Buffer))
             {
                 AddedFunctions.Add(Tmp.Buffer);

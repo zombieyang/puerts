@@ -84,6 +84,9 @@ public:
 
     virtual void WaitDebugger(double timeout) override
     {
+#ifdef THREAD_SAFE
+        v8::Locker Locker(MainIsolate);
+#endif
         const auto startTime = FDateTime::Now();
         while (Inspector && !Inspector->Tick())
         {
@@ -236,7 +239,11 @@ private:
 
     void Log(const v8::FunctionCallbackInfo<v8::Value>& Info);
 
+    void SearchModule(const v8::FunctionCallbackInfo<v8::Value>& Info);
+
     void LoadModule(const v8::FunctionCallbackInfo<v8::Value>& Info);
+
+    v8::Local<v8::Value> UETypeToJsClass(v8::Isolate* Isolate, v8::Local<v8::Context> Context, UField* Type);
 
     void LoadUEType(const v8::FunctionCallbackInfo<v8::Value>& Info);
 
@@ -287,12 +294,6 @@ private:
     void SetInspectorCallback(const v8::FunctionCallbackInfo<v8::Value>& Info);
 
     void DispatchProtocolMessage(const v8::FunctionCallbackInfo<v8::Value>& Info);
-
-#if !defined(ENGINE_INDEPENDENT_JSENV)
-    void OnAsyncLoadingFlushUpdate();
-
-    void ConstructPendingObject(UObject* PendingObject);
-#endif
 
 #ifndef WITH_QUICKJS
     v8::MaybeLocal<v8::Module> FetchESModuleTree(v8::Local<v8::Context> Context, const FString& FileName);
@@ -609,7 +610,9 @@ private:
 
     std::map<void*, DelegateObjectInfo> DelegateMap;
 
-    std::map<UFunction*, TsFunctionInfo> TsFunctionMap;
+    TMap<UFunction*, TsFunctionInfo> TsFunctionMap;
+
+    TMap<UFunction*, v8::UniquePersistent<v8::Function>> MixinFunctionMap;
 
     std::map<UStruct*, std::vector<UFunction*>> ExtensionMethodsMap;
 
@@ -630,12 +633,6 @@ private:
     v8::Global<v8::Map> ManualReleaseCallbackMap;
 
     std::vector<TWeakObjectPtr<UDynamicDelegateProxy>> ManualReleaseCallbackList;
-
-    FCriticalSection PendingConstructLock;
-
-    TArray<TWeakObjectPtr<UObject>> PendingConstructObjects;
-
-    FDelegateHandle AsyncLoadingFlushUpdateHandle;
 
 #ifndef WITH_QUICKJS
     TMap<FString, v8::Global<v8::Module>> PathToModule;
