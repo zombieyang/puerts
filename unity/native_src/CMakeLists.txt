@@ -175,10 +175,10 @@ elseif ( ANDROID )
     #set_target_properties( puerts PROPERTIES LINK_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/android_version.script)
     #set (CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--gc-sections -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/android_version.script")
     #set (CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--gc-sections")
-    add_custom_command(TARGET puerts POST_BUILD
-            COMMAND "${ANDROID_TOOLCHAIN_PREFIX}strip" -g -S -d --strip-debug --verbose
-            "${CMAKE_BINARY_DIR}/libpuerts.so"
-            COMMENT "Strip debug symbols done on final binary.")
+    # add_custom_command(TARGET puerts POST_BUILD
+    #         COMMAND "${ANDROID_TOOLCHAIN_PREFIX}strip" -g -S -d --strip-debug --verbose
+    #         "${CMAKE_BINARY_DIR}/libpuerts.so"
+    #         COMMENT "Strip debug symbols done on final binary.")
 
 elseif ( APPLE )
 

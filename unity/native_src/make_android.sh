@@ -23,7 +23,7 @@ function build() {
     TOOLCHAIN_ANME=$3
     BUILD_PATH=build.$ENGINE.Android.${ABI}
     cmake -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DJS_ENGINE=$ENGINE -DANDROID_ABI=${ABI} -H. -B${BUILD_PATH} -DCMAKE_TOOLCHAIN_FILE=${NDK}/build/cmake/android.toolchain.cmake -DANDROID_NATIVE_API_LEVEL=${API} -DANDROID_TOOLCHAIN=clang -DANDROID_TOOLCHAIN_NAME=${TOOLCHAIN_ANME}
-    cmake --build ${BUILD_PATH} --config Release
+    cmake --build ${BUILD_PATH} --config Debug
     mkdir -p ../Assets/Plugins/Android/libs/${ABI}/
     cp ${BUILD_PATH}/libpuerts.so ../Assets/Plugins/Android/libs/${ABI}/libpuerts.so
 }
