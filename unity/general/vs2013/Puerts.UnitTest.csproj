@@ -57,6 +57,8 @@
     </Compile>
     <Compile Include="..\Src\UnitTest\EvalAndModuleTest.cs">
       <Link>Src\UnitTest\EvalAndModuleTest.cs</Link>
+    <Compile Include="..\Src\UnitTest\EvalTest.cs">
+      <Link>Src\UnitTest\EvalTest.cs</Link>
     </Compile>
     <Compile Include="..\Src\UnitTest\OptionalParametersTest.cs">
       <Link>Src\UnitTest\OptionalParametersTest.cs</Link>
