@@ -20,10 +20,17 @@ namespace Puerts
             byte[] content;
             try
             {
-                content = env.ResolveModuleContent(identifer);
-                if (content == null)
+                if (identifer.Length > 4 && !identifer.EndsWith(".mjs")) 
                 {
-                    return IntPtr.Zero;
+                    content = Encoding.UTF8.GetBytes("export default require('" + identifer + "')");
+                } 
+                else 
+                {
+                    content = env.ResolveModuleContent(identifer);
+                    if (content == null)
+                    {
+                        return IntPtr.Zero;
+                    };
                 }
             }
             catch (Exception e)

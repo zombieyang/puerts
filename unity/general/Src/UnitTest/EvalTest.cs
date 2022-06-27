@@ -35,6 +35,18 @@ namespace Puerts.UnitTest
             Assert.True(false);
         }
         [Test]
+        public void ESModuleLoadFailed()
+        {
+            var loader = new TxtLoader();
+            loader.AddMockFileContent("whatever.mjs", null);
+            var jsEnv = new JsEnv(loader);
+            Assert.Catch(() =>
+            {
+                jsEnv.ExecuteModule("whatever.mjs");
+            });
+            jsEnv.Dispose();
+        }
+        [Test]
         public void ESModuleCompileError()
         {
             var loader = new TxtLoader();
@@ -137,6 +149,30 @@ namespace Puerts.UnitTest
             string str = jsEnv.ExecuteModule<string>("whatever.cjs", "default");
 
             Assert.True(str == "hello world");
+
+            jsEnv.Dispose();
+        }
+        [Test]
+        public void ESModuleEvaluateRelativeFile()
+        {
+            var loader = new TxtLoader();
+            loader.AddMockFileContent("business/whatever.mjs", @"
+                import lib from '../library/lib.mjs';
+
+                const add3Num = function(a, b, c) {
+                    return lib.add(lib.add(a, b), c);
+                }
+
+                export { add3Num };
+            ");
+            loader.AddMockFileContent("library/lib.mjs", @"
+                export default { add(a, b) { return a + b } }
+            ");
+            var jsEnv = new JsEnv(loader);
+            jsEnv.UsingFunc<int, int, int, int>();
+            Func<int, int, int, int> func = jsEnv.ExecuteModule<Func<int, int, int, int>>("business/whatever.mjs", "add3Num");
+
+            Assert.True(func(1, 2, 3) == 6);
 
             jsEnv.Dispose();
         }

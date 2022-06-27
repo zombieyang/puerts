@@ -555,10 +555,10 @@ namespace puerts
 
         auto Attr = (Setter == nullptr) ? v8::ReadOnly : v8::None;
 
-        // if (DontDelete)
-        // {
-        //     Attr = (v8::PropertyAttribute)(Attr | v8::DontDelete);
-        // }
+        if (DontDelete)
+        {
+            Attr = (v8::PropertyAttribute)(Attr | v8::DontDelete);
+        }
 
         if (IsStatic)
         {
