@@ -124,6 +124,24 @@ namespace Puerts.UnitTest
             ");
             Assert.AreEqual(8, result);
         }
+        [Test]
+        public void JSFunctionInvokeWithArrayBuffer()
+        {
+            var jsEnv = new JsEnv(new TxtLoader());
+            jsEnv.UsingFunc<Puerts.ArrayBuffer, int, Puerts.ArrayBuffer>();
+
+            Func<Puerts.ArrayBuffer, int, Puerts.ArrayBuffer> callback = jsEnv.Eval<Func<Puerts.ArrayBuffer, int, Puerts.ArrayBuffer>>(@"
+                (function() {
+                    const CS = require('csharp');
+                
+                    return function(data, length) {
+                        return data.slice(0, length - 1)
+                    };
+                })()
+            ");
+            Puerts.ArrayBuffer ab = callback(new Puerts.ArrayBuffer(new byte[] { 1, 2, 3 }), 3);
+            Assert.True(ab.Count == 2);
+        }
 
         [Test]
         public void GenericDelegate()
@@ -435,41 +453,6 @@ namespace Puerts.UnitTest
         }
 
         [Test]
-        public void ListGenericTest()
-        {
-            var jsEnv = new JsEnv(new TxtLoader());
-            var res = jsEnv.Eval<int>(@"
-                const CS = require('csharp');
-                const PUERTS = require('puerts');
-                let obj = new CS.Puerts.UnitTest.DerivedClass();
-                let List = PUERTS.$generic(CS.System.Collections.Generic.List$1,CS.System.Int32);
-                let ls = new List();
-                ls.Add(1);
-                ls.Add(2);
-                ls.Add(3);
-                let res = obj.TestList(ls);
-                res;
-            ");
-            jsEnv.Dispose();
-            Assert.AreEqual(res, 6);
-        }
-
-        [Test]
-        public void ExceptionTest()
-        {
-            var jsEnv = new JsEnv(new TxtLoader());
-            var res = jsEnv.Eval<int>(@"
-                const CS = require('csharp');
-                let obj = new CS.Puerts.UnitTest.DerivedClass();
-                let res;
-                try{obj.adds(i,j);}catch(e){res = -1;}
-                res;
-            ");
-            jsEnv.Dispose();
-            Assert.AreEqual(res, -1);
-        }
-
-        [Test]
         public void TryCatchFinallyTest()
         {
             var jsEnv = new JsEnv(new TxtLoader());
@@ -505,26 +488,7 @@ namespace Puerts.UnitTest
             jsEnv.Dispose();
             Assert.AreEqual(res, "try-try-finally-catch-finally");
         }
-
-        [Test]
-        public void ListRangeTest()
-        {
-            Assert.Catch(() =>
-            {
-                var jsEnv = new JsEnv(new TxtLoader());
-                jsEnv.Eval(@"
-                    const CS = require('csharp');
-                    const PUERTS = require('puerts');
-                    let obj = new CS.Puerts.UnitTest.DerivedClass();
-                    let List = PUERTS.$generic(CS.System.Collections.Generic.List$1, CS.System.Int32);
-                    let ls = new List();
-                    ls.Add(1);
-                    ls.Add(2);
-                    let res = obj.testListRange(ls,2);"
-                );
-                jsEnv.Dispose();
-            });
-        }
+        
         [Test]
         public void DefaultParamTest()
         {
@@ -539,70 +503,6 @@ namespace Puerts.UnitTest
             Assert.AreEqual(res, "1str");
         }
 
-
-        [Test]
-        public void ErrorParamTest()
-        {
-            var jsEnv = new JsEnv(new TxtLoader());
-            int res = jsEnv.Eval<int>(@"
-                const CS = require('csharp');
-                let obj = new CS.Puerts.UnitTest.DerivedClass();
-                let res;
-                try { res = obj.TestErrorParam('1');} catch(e){res = -1};
-                res;
-            ");
-            jsEnv.Dispose();
-            Assert.AreEqual(res, -1);
-        }
-
-        [Test]
-        public void ErrorParamStructTest()
-        {
-            var jsEnv = new JsEnv(new TxtLoader());
-            int res = jsEnv.Eval<int>(@"
-                const CS = require('csharp');
-                let obj = new CS.Puerts.UnitTest.DerivedClass();
-                let s = new CS.Puerts.UnitTest.S(1,'anna');
-                let res;
-                try { res = obj.TestErrorParamStruct(1);} catch(e){res = -1};
-                res;
-            ");
-            jsEnv.Dispose();
-            Assert.AreEqual(res, -1);
-        }
-
-        [Test]
-        public void ErrorParamClassTest()
-        {
-            Assert.Catch(() =>
-            {
-                var jsEnv = new JsEnv(new TxtLoader());
-                jsEnv.Eval(@"
-                    const CS = require('csharp');
-                    let obj = new CS.Puerts.UnitTest.DerivedClass();
-                    let iobj = new CS.Puerts.UnitTest.ISubA();
-                    obj.TestErrorParamClass(undefined);"
-                );
-                jsEnv.Dispose();
-            });
-        }
-
-        [Test]
-        public void ErrorParamDerivedClassTest()
-        {
-
-            var jsEnv = new JsEnv(new TxtLoader());
-            var res = jsEnv.Eval<int>(@"
-                const CS = require('csharp');
-                let obj = new CS.Puerts.UnitTest.BaseClass();
-                let iobj = new CS.Puerts.UnitTest.ISubA();
-                let res;
-                try {res = iobj.TestDerivedObj(obj,1,'gyx');} catch(e){res = -1;}
-                res;
-            ");
-            jsEnv.Dispose();
-            Assert.AreEqual(res, -1);
-        }
 
         [Test]
         public void ParamBaseClassTest()
@@ -622,23 +522,6 @@ namespace Puerts.UnitTest
         }
 
         [Test]
-        public void ErrorParamRefStructTest()
-        {
-            Assert.Catch(() =>
-            {
-                var jsEnv = new JsEnv(new TxtLoader());
-                jsEnv.Eval(@"
-                    const CS = require('csharp');
-                    const PUERTS = require('puerts');
-                    let obj = new CS.Puerts.UnitTest.DerivedClass();
-                    let s = new CS.Puerts.UnitTest.S(1,'gyx');
-                    obj.PrintStructRef(s);"
-                );
-                jsEnv.Dispose();
-            });
-        }
-
-        [Test]
         public void ParamIntArrayTest()
         {
             var jsEnv = new JsEnv(new TxtLoader());
@@ -655,26 +538,6 @@ namespace Puerts.UnitTest
             ");
             jsEnv.Dispose();
             Assert.AreEqual(res, 666);
-        }
-
-        [Test]
-        public void ErrorParamStringArrayTest()
-        {
-            var jsEnv = new JsEnv(new TxtLoader());
-            int res = jsEnv.Eval<int>(@"
-                const CS = require('csharp');
-                const PUERTS = require('puerts');
-                let obj = new CS.Puerts.UnitTest.ISubA();
-                let arrayString = CS.System.Array.CreateInstance(PUERTS.$typeof(CS.System.String), 3);
-                arrayString.set_Item(0, '111');
-                arrayString.set_Item(1, '222');
-                arrayString.set_Item(2, '333');
-                let res;
-                try {res = obj.TestArrInt(arrayString); } catch(e){res = -1;}
-                res;
-            ");
-            jsEnv.Dispose();
-            Assert.AreEqual(res, -1);
         }
 
         [Test]

@@ -22,11 +22,11 @@ namespace Puerts.UnitTest
         public void ESModuleNotFound()
         {
             var jsEnv = new JsEnv(new TxtLoader());
-            try
+            try 
             {
                 jsEnv.ExecuteModule("whatever.mjs");
-            }
-            catch (Exception e)
+            } 
+            catch(Exception e) 
             {
                 Assert.True(e.Message.Contains("whatever.mjs"));
                 jsEnv.Dispose();
@@ -40,11 +40,11 @@ namespace Puerts.UnitTest
             var loader = new TxtLoader();
             loader.AddMockFileContent("whatever.mjs", @"export delete;");
             var jsEnv = new JsEnv(loader);
-            try
+            try 
             {
                 jsEnv.ExecuteModule("whatever.mjs");
-            }
-            catch (Exception e)
+            } 
+            catch(Exception e) 
             {
                 Assert.True(e.Message.Contains("export"));
                 jsEnv.Dispose();
@@ -58,11 +58,11 @@ namespace Puerts.UnitTest
             var loader = new TxtLoader();
             loader.AddMockFileContent("whatever.mjs", @"var obj = {}; obj.func();");
             var jsEnv = new JsEnv(loader);
-            try
+            try 
             {
                 jsEnv.ExecuteModule("whatever.mjs");
-            }
-            catch (Exception e)
+            } 
+            catch(Exception e) 
             {
                 Assert.True(e.Message.Contains("not a function"));
                 jsEnv.Dispose();
@@ -76,11 +76,11 @@ namespace Puerts.UnitTest
             var loader = new TxtLoader();
             loader.AddMockFileContent("entry.mjs", @"import 'whatever.mjs'");
             var jsEnv = new JsEnv(loader);
-            try
+            try 
             {
                 jsEnv.ExecuteModule("entry.mjs");
-            }
-            catch (Exception e)
+            } 
+            catch(Exception e) 
             {
                 Assert.True(e.Message.Contains("whatever.mjs"));
                 jsEnv.Dispose();
@@ -95,11 +95,11 @@ namespace Puerts.UnitTest
             loader.AddMockFileContent("whatever.mjs", @"export delete;");
             loader.AddMockFileContent("entry.mjs", @"import 'whatever.mjs'");
             var jsEnv = new JsEnv(loader);
-            try
+            try 
             {
                 jsEnv.ExecuteModule("entry.mjs");
-            }
-            catch (Exception e)
+            } 
+            catch(Exception e) 
             {
                 Assert.True(e.Message.Contains("export"));
                 jsEnv.Dispose();
@@ -114,11 +114,11 @@ namespace Puerts.UnitTest
             loader.AddMockFileContent("whatever.mjs", @"var obj = {}; obj.func();");
             loader.AddMockFileContent("entry.mjs", @"import 'whatever.mjs'");
             var jsEnv = new JsEnv(loader);
-            try
+            try 
             {
                 jsEnv.ExecuteModule("entry.mjs");
-            }
-            catch (Exception e)
+            } 
+            catch(Exception e) 
             {
                 Assert.True(e.Message.Contains("not a function"));
                 jsEnv.Dispose();

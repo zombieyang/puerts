@@ -10,7 +10,11 @@
 #include "Misc/Paths.h"
 #include "Misc/FileHelper.h"
 #include "Algo/Reverse.h"
+#if (ENGINE_MAJOR_VERSION >= 5)
+#include "HAL/PlatformFileManager.h"
+#else
 #include "HAL/PlatformFilemanager.h"
+#endif
 
 namespace puerts
 {
@@ -124,10 +128,10 @@ bool DefaultJSModuleLoader::Load(const FString& Path, TArray<uint8>& Content)
         int len = FileHandle->Size();
         Content.Reset(len + 2);
         Content.AddUninitialized(len);
-        FileHandle->Read(Content.GetData(), len);
+        const bool Success = FileHandle->Read(Content.GetData(), len);
         delete FileHandle;
 
-        return true;
+        return Success;
     }
     return false;
 }

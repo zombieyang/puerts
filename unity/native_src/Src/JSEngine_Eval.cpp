@@ -33,20 +33,12 @@ namespace puerts {
             return v8::Local<v8::Module>::New(Isolate, Iter->second);
         }
         v8::Local<v8::Module> Module;
-        const char* Code;
-
-        if (Specifier_std.substr(Specifier_length - 4, Specifier_length).compare(".mjs") == 0) 
+        const char* Code = JsEngine->ModuleResolver(Specifier_std.c_str(), JsEngine->Idx);
+        if (Code == nullptr) 
         {
-
-            Code = JsEngine->ModuleResolver(Specifier_std.c_str(), JsEngine->Idx);
-            if (Code == nullptr) 
-            {
-                return v8::MaybeLocal<v8::Module>();
-            }
-        } 
-        else 
-        {
-            Code = (CjsModulePrepend + Specifier_std + CjsModuleAppend).c_str();
+            std::string ErrorMessage = std::string("module not found") + Specifier_std;
+            Isolate->ThrowException(v8::Exception::Error(FV8Utils::V8String(Isolate, ErrorMessage.c_str())));
+            return v8::MaybeLocal<v8::Module>();
         }
         v8::ScriptOrigin Origin(Specifier,
                             v8::Integer::New(Isolate, 0),                      // line offset
@@ -236,15 +228,21 @@ namespace puerts {
 
         v8::Local<v8::Module> ModuleChecked = Module.ToLocalChecked();
         v8::Maybe<bool> ret = ModuleChecked->InstantiateModule(Context, ResolveModule);
-        if (ret.IsNothing() || !ret.ToChecked()) 
+        if (ret.IsNothing() || !ret.ToChecked())
         {
-            LastExceptionInfo = FV8Utils::ExceptionToString(Isolate, TryCatch);
+            if (TryCatch.HasCaught())
+            {
+                LastExceptionInfo = FV8Utils::ExceptionToString(Isolate, TryCatch);
+            }
             return false;
         }
         v8::MaybeLocal<v8::Value> evalRet = ModuleChecked->Evaluate(Context);
-        if (evalRet.IsEmpty()) 
-        {
-            LastExceptionInfo = FV8Utils::ExceptionToString(Isolate, TryCatch);
+        if (evalRet.IsEmpty())
+        {   
+            if (TryCatch.HasCaught())
+            {
+                LastExceptionInfo = FV8Utils::ExceptionToString(Isolate, TryCatch);
+            }
             return false;
         }
         else

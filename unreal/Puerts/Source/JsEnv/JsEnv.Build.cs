@@ -23,11 +23,26 @@ public class JsEnv : ModuleRules
     private bool UseQuickjs = false;
 
     private bool WithFFI = false;
+    
+    private bool ForceStaticLibInEditor = false;
+
+    private bool ThreadSafe = false;
+
+    private bool FTextAsString = true;
 
     public JsEnv(ReadOnlyTargetRules Target) : base(Target)
     {
         //PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
         PublicDefinitions.Add("USING_IN_UNREAL_ENGINE");
+        
+        PublicDefinitions.Add("TS_BLUEPRINT_PATH=\"/Blueprints/TypeScript/\"");
+        
+        PublicDefinitions.Add(ThreadSafe ? "THREAD_SAFE" : "NOT_THREAD_SAFE");
+
+        if (!FTextAsString)
+        {
+            PublicDefinitions.Add("PUERTS_FTEXT_AS_OBJECT");
+        }
 
         PublicDependencyModuleNames.AddRange(new string[]
         {
@@ -52,13 +67,13 @@ public class JsEnv : ModuleRules
         {
             ThirdPartyNodejs(Target);
         }
-        else if (UseNewV8)
-        {
-            ThirdParty(Target);
-        }
         else if (UseQuickjs)
         {
             ThirdPartyQJS(Target);
+        }
+        else if (UseNewV8)
+        {
+            ThirdParty(Target);
         }
         else
         {
@@ -293,7 +308,7 @@ public class JsEnv : ModuleRules
         string LibraryPath = Path.GetFullPath(Path.Combine(ModuleDirectory, "..", "..", "ThirdParty", "v8", "Lib"));
         if (Target.Platform == UnrealTargetPlatform.Win64)
         {
-            if (!Target.bBuildEditor)
+            if (!Target.bBuildEditor || ForceStaticLibInEditor)
             {
                 string V8LibraryPath = Path.Combine(LibraryPath, "Win64MD");
                 PublicAdditionalLibraries.Add(Path.Combine(V8LibraryPath, "wee8.lib"));
@@ -314,7 +329,7 @@ public class JsEnv : ModuleRules
         {
             //PublicFrameworks.AddRange(new string[] { "WebKit",  "JavaScriptCore" });
             //PublicFrameworks.AddRange(new string[] { "WebKit" });
-            if (!Target.bBuildEditor)
+            if (!Target.bBuildEditor || ForceStaticLibInEditor)
             {
                 string V8LibraryPath = Path.Combine(LibraryPath, "macOS");
                 PublicAdditionalLibraries.Add(Path.Combine(V8LibraryPath, "libwee8.a"));
@@ -334,6 +349,11 @@ public class JsEnv : ModuleRules
         {
             string V8LibraryPath = Path.Combine(LibraryPath, "Linux");
             PublicAdditionalLibraries.Add(Path.Combine(V8LibraryPath, "libwee8.a"));
+        }
+
+        if (ForceStaticLibInEditor)
+        {
+            PrivateDefinitions.Add("FORCE_USE_STATIC_V8_LIB");
         }
     }
     

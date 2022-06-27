@@ -141,6 +141,7 @@ namespace Puerts.Editor
                         .Where(m => genTypeSet.Contains(m.DeclaringType) && methodNames.Contains(m.Name))
                         .Concat(declMethods)
                         .Where(m => !Utils.IsNotSupportedMember(m, true) && !Utils.IsGetterOrSetter(m) && (type.IsGenericTypeDefinition && !m.IsGenericMethodDefinition || Puerts.Utils.IsNotGenericOrValidGeneric(m)))
+                        .Where(m => Utils.getBindingMode(m) != BindingMode.DontBinding)
                         .Cast<MethodBase>()
                         .Distinct();
 
@@ -164,6 +165,7 @@ namespace Puerts.Editor
                         result.AddRange(info.ExtensionMethods.Select(m => new TsMethodGenInfo()
                         {
                             Name = m.Name,
+                            TypeName = m.TypeName,
                             Document = m.Document,
                             ParameterInfos = m.ParameterInfos,
                             IsConstructor = m.IsConstructor,
@@ -261,7 +263,9 @@ namespace Puerts.Editor
                         Name = type.Name.Replace('`', '$'),
                         Document = DocResolver.GetTsDocument(type),
                         Methods = genTypeSet.Contains(type) ? TsMethodGenInfo.FromType(type, genTypeSet) : new TsMethodGenInfo[] { },
-                        Properties = genTypeSet.Contains(type) ? type.GetFields(Utils.Flags).Where(m => !Utils.IsNotSupportedMember(m, true))
+                        Properties = genTypeSet.Contains(type) ? type.GetFields(Utils.Flags)
+                            .Where(m => !Utils.IsNotSupportedMember(m, true))
+                            .Where(m => Utils.getBindingMode(m) != BindingMode.DontBinding)
                             .Select(f => new TsPropertyGenInfo()
                             {
                                 Name = f.Name,
@@ -270,7 +274,9 @@ namespace Puerts.Editor
                                 IsStatic = f.IsStatic
                             })
                             .Concat(
-                                type.GetProperties(Utils.Flags).Where(m => m.Name != "Item").Where(m => !Utils.IsNotSupportedMember(m, true))
+                                type.GetProperties(Utils.Flags).Where(m => m.Name != "Item")
+                                .Where(m => !Utils.IsNotSupportedMember(m, true))
+                                .Where(m => Utils.getBindingMode(m) != BindingMode.DontBinding)
                                 .Select(p => new TsPropertyGenInfo()
                                 {
                                     Name = p.Name,
@@ -286,7 +292,10 @@ namespace Puerts.Editor
                         IsDelegate = (Utils.IsDelegate(type) && type != typeof(Delegate)),
                         IsInterface = type.IsInterface,
                         Namespace = type.Namespace,
-                        ExtensionMethods = Utils.GetExtensionMethods(type, genTypeSet).Select(m => TsMethodGenInfo.FromMethodBase(m, type.IsGenericTypeDefinition, true)).ToArray()
+                        ExtensionMethods = Utils.GetExtensionMethods(type, genTypeSet)
+                            .Where(m => !Utils.IsNotSupportedMember(m, true))
+                            .Where(m => Utils.getBindingMode(m) != BindingMode.DontBinding)
+                            .Select(m => TsMethodGenInfo.FromMethodBase(m, type.IsGenericTypeDefinition, true)).ToArray()
                     };
 
                     if (result.IsGenericTypeDefinition)
@@ -300,11 +309,20 @@ namespace Puerts.Editor
                         {
                             result.DelegateDef = "(...args:any[]) => any";
                         }
+                        
                         else
                         {
                             var m = type.GetMethod("Invoke");
-                            var tsFuncDef = "(" + string.Join(", ", m.GetParameters().Select(p => p.Name + ": " + Utils.GetTsTypeName(p.ParameterType)).ToArray()) + ") => " + Utils.GetTsTypeName(m.ReturnType);
-                            result.DelegateDef = tsFuncDef;
+                            if (Utils.IsNotSupportedMember(m)) 
+                            {
+                                // 该情况下不支持调用，但为了dts里别的地方引用该delegate的时候不报错，生成一个空白class
+                                result.IsDelegate = false;
+                            } 
+                            else 
+                            {
+                                var tsFuncDef = "(" + string.Join(", ", m.GetParameters().Select(p => p.Name + ": " + Utils.GetTsTypeName(p.ParameterType)).ToArray()) + ") => " + Utils.GetTsTypeName(m.ReturnType);
+                                result.DelegateDef = tsFuncDef;
+                            }
                         }
                     }
 
@@ -460,7 +478,16 @@ namespace Puerts.Editor
                     foreach (var t in refTypes.Distinct())
                     {
                         var info = TsTypeGenInfo.FromType(t, genTypeSet);
-                        tsTypeGenInfos.Add(info.FullName, info);
+                        if (tsTypeGenInfos.ContainsKey(info.FullName)) 
+                        {
+#if UNITY_EDITOR
+                            UnityEngine.Debug.LogWarning("[Puer] Existed type: " + info.FullName + ". It may cause some unexpected behaviour.");
+#endif
+                        }
+                        else
+                        {
+                            tsTypeGenInfos.Add(info.FullName, info);
+                        }
                     }
                     foreach (var info in tsTypeGenInfos)
                     {

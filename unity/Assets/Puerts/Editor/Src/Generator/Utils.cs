@@ -17,9 +17,9 @@ namespace Puerts.Editor
         
         public enum BindingMode {
             FastBinding = 0, // generate static wrapper
-            SlowBinding = 1, // useless now. dont use
+            SlowBinding = 1, // not implemented now. dont use
             LazyBinding = 2, // reflect during first call
-            DontBinding = 3, // not able to called in runtime. Also will not generate d.ts
+            DontBinding = 4, // not able to called in runtime. Also will not generate d.ts
         }
 
         class Utils {
@@ -109,24 +109,27 @@ namespace Puerts.Editor
 
             internal static BindingMode getBindingMode(MemberInfo mbi) 
             {
+                BindingMode strictestMode = BindingMode.FastBinding;
                 if (filters != null && filters.Count > 0)
                 {
                     foreach (var filter in filters)
                     {
+                        BindingMode mode = BindingMode.FastBinding;
                         if (filter.ReturnType == typeof(bool))
                         {
-                            if ((bool)filter.Invoke(null, new object[] { mbi }))
+                            if ((bool)filter.Invoke(null, new object[] { mbi })) 
                             {
-                                return BindingMode.LazyBinding;
+                                mode = BindingMode.LazyBinding;
                             }
                         }
                         else if (filter.ReturnType == typeof(BindingMode))
                         {
-                            return (BindingMode)filter.Invoke(null, new object[] { mbi });
+                            mode = (BindingMode)filter.Invoke(null, new object[] { mbi });
                         }
+                        strictestMode = strictestMode < mode ? mode : strictestMode;
                     }
                 }
-                return BindingMode.FastBinding;
+                return strictestMode;
             }
 
             public static bool IsNotSupportedMember(MemberInfo mbi, bool notFiltEII = false)
@@ -141,7 +144,12 @@ namespace Puerts.Editor
                 if (mbi is FieldInfo)
                 {
                     FieldInfo fi = (mbi as FieldInfo);
-                    if (fi.FieldType.IsPointer)
+                    if (
+                        fi.FieldType.IsPointer
+#if UNITY_2021_1_OR_NEWER
+                        || fi.FieldType.IsByRefLike
+#endif
+                    )
                     {
                         return true;
                     }
@@ -157,7 +165,12 @@ namespace Puerts.Editor
                 if (mbi is PropertyInfo)
                 {
                     PropertyInfo pi = (mbi as PropertyInfo);
-                    if (pi.PropertyType.IsPointer)
+                    if (
+                        pi.PropertyType.IsPointer
+#if UNITY_2021_1_OR_NEWER
+                        || pi.PropertyType.IsByRefLike
+#endif
+                    )
                     {
                         return true;
                     }
@@ -176,7 +189,11 @@ namespace Puerts.Editor
                 if (mbi is MethodInfo)
                 {
                     MethodInfo mi = mbi as MethodInfo;
-                    if (mi.ReturnType.IsPointer)
+                    if (mi.ReturnType.IsPointer
+#if UNITY_2021_1_OR_NEWER
+                        || mi.ReturnType.IsByRefLike
+#endif
+                    )
                     {
                         return true;
                     }
@@ -193,7 +210,12 @@ namespace Puerts.Editor
                 if (mbi is MethodBase)
                 {
                     MethodBase mb = mbi as MethodBase;
-                    if (mb.GetParameters().Any(pInfo => pInfo.ParameterType.IsPointer))
+                    if (
+                        mb.GetParameters().Any(pInfo => pInfo.ParameterType.IsPointer
+#if UNITY_2021_1_OR_NEWER
+                        || pInfo.ParameterType.IsByRefLike
+#endif
+                    ))
                     {
                         return true;
                     }

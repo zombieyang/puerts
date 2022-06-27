@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Emit;
 
 namespace Puerts.Editor
 {
@@ -17,6 +18,28 @@ namespace Puerts.Editor
 
         namespace Wrapper
         {
+            internal class GenericTSRMananger
+            {
+                protected static Dictionary<int, Type> DynamicTypes = new Dictionary<int, Type>();
+
+                protected static ModuleBuilder MB;
+                protected static AssemblyBuilder AB;
+                public static Type GetDynamicGenericType(int index) {
+                    char startChar = 'T';
+                    if (DynamicTypes.ContainsKey(index)) 
+                    {
+                        return DynamicTypes[index];
+                    }
+                    if (AB == null) 
+                    {
+                        AB = AppDomain.CurrentDomain.DefineDynamicAssembly(new AssemblyName("PuertsEditor_Generic"), AssemblyBuilderAccess.Run);  
+                        MB = AB.DefineDynamicModule("MainModule"); 
+                    }
+                    var TB = MB.DefineType(new String((char)(startChar - index), 1));
+                    DynamicTypes[index] = TB.CreateType();
+                    return DynamicTypes[index];
+                }
+            }
 
             public class LazyMemberCollector
             {
@@ -90,10 +113,13 @@ namespace Puerts.Editor
                 }
             }
 
-            public class TypeGenInfo
+            public class StaticWrapperInfo
             {
                 public string Name;
                 public string WrapClassName;
+                public string CSharpTypeName;
+                public bool IsGenericWrapper;
+                public int GenericArgumentsCount;
                 public string[] Namespaces;
                 public MethodGenInfo[] Methods;
                 public bool IsValueType;
@@ -106,8 +132,35 @@ namespace Puerts.Editor
                 public LazyMemberRegisterInfo[] LazyMembers;
                 public bool BlittableCopy;
 
-                public static TypeGenInfo FromType(Type type, List<Type> genTypes)
+                public bool wroted;
+
+                public static StaticWrapperInfo FromType(Type type, List<Type> genTypes)
                 {
+                    bool IsGenericWrapper = false;
+                    int GenericArgumentsCount = 0;
+                    // 如果是泛型类，且泛型参数对于PuerTS来说是一个NativeObject类型，则Wrapper可以用泛型处理。
+                    // 这里要先识别出NativeObject的参数位置，并将其替换
+                    if (type.IsGenericType) {
+                        var genericArguments = type.GetGenericArguments();
+                        if (
+                            genericArguments
+                            .Where(t=> !t.IsPrimitive && t != typeof(System.String) && t != typeof(DateTime))
+                            .Count() > 0
+                        ) {
+                            IsGenericWrapper = true;
+                            type = type.GetGenericTypeDefinition().MakeGenericType(
+                                genericArguments.Select(t=> {
+                                    if (!t.IsPrimitive && t != typeof(System.String) && t != typeof(DateTime)) 
+                                    {
+                                        GenericArgumentsCount++;
+                                        return GenericTSRMananger.GetDynamicGenericType(GenericArgumentsCount - 1);
+                                    }
+                                    return t;
+                                }).ToArray()
+                            );
+                        }
+                    }
+                    
                     // 关于懒绑定的成员函数：先全部丢进lazy收集器中。尔后如果发现有同名方法是不lazy的，那么它也要变成不lazy
                     // 做这个事情的原因是目前还没法做到重载级别的lazy。
                     LazyMemberCollector lazyCollector = new LazyMemberCollector();
@@ -124,15 +177,15 @@ namespace Puerts.Editor
                         })
                         .ToArray();
 
-                    var extensionMethodsList = Puerts.Utils.GetExtensionMethodsOf(type);
+                    var extensionMethodsList = Puerts.Editor.Generator.Utils.GetExtensionMethods(type, new HashSet<Type>(genTypes));
                     if (extensionMethodsList != null)
                     {
-                        extensionMethodsList = extensionMethodsList
+                        extensionMethodsList = new List<MethodInfo>(extensionMethodsList)
                             .Where(m => !Utils.IsNotSupportedMember(m))
-                            .Where(m => !m.IsGenericMethodDefinition || Puerts.Utils.IsNotGenericOrValidGeneric(m));
+                            .Where(m => !m.IsGenericMethodDefinition || Puerts.Utils.IsNotGenericOrValidGeneric(m)).ToArray();
                         if (genTypes != null)
                         {
-                            extensionMethodsList = extensionMethodsList.Where(m => genTypes.Contains(m.DeclaringType));
+                            extensionMethodsList = extensionMethodsList.Where(m => genTypes.Contains(m.DeclaringType)).ToArray();
                         }
                         extensionMethodsList
                             .Where(m => 
@@ -178,9 +231,9 @@ namespace Puerts.Editor
                         .ToArray();
                     var operatorGroups = type.GetMethods(Utils.Flags)
                         .Where(m => !Utils.IsNotSupportedMember(m) && m.IsSpecialName && m.Name.StartsWith("op_") && m.IsStatic)
-                        .Where(m => m.Name != "op_Explicit" && m.Name != "op_Implicit")
                         .Where(m =>
                         { 
+                            if (m.Name == "op_Explicit" || m.Name == "op_Implicit")  { lazyCollector.Add(m); return false; }
                             BindingMode mode = Utils.getBindingMode(m);
                             if (mode == BindingMode.DontBinding) return false;
                             if (mode == BindingMode.LazyBinding) { lazyCollector.Add(m); return false; }
@@ -199,8 +252,8 @@ namespace Puerts.Editor
                         })
                         .Cast<MethodBase>()
                         .ToList();
-
-                    return new TypeGenInfo
+                    
+                    return new StaticWrapperInfo
                     {
                         WrapClassName = Utils.GetWrapTypeName(type),
                         Namespaces = (extensionMethodsList != null ? extensionMethodsList
@@ -211,6 +264,8 @@ namespace Puerts.Editor
                             .ToArray(),
                         Name = type.GetFriendlyName(),
                         IsValueType = type.IsValueType,
+                        IsGenericWrapper = IsGenericWrapper,
+                        GenericArgumentsCount = GenericArgumentsCount,
 
                         Methods = methodGroups
                             .Select(kv =>
@@ -287,6 +342,7 @@ namespace Puerts.Editor
             // represent a javascript function's parameter
             public class ParameterGenInfo : DataTypeInfo
             {
+                public bool IsIn;
                 public bool IsOut;
                 public bool IsByRef;
                 public string ExpectJsType;
@@ -302,6 +358,7 @@ namespace Puerts.Editor
                     var result = new ParameterGenInfo()
                     {
                         IsOut = !parameterInfo.IsIn && parameterInfo.IsOut && parameterInfo.ParameterType.IsByRef,
+                        IsIn = parameterInfo.IsIn,
                         IsByRef = parameterInfo.ParameterType.IsByRef,
                         TypeName = Utils.RemoveRefAndToConstraintType(parameterInfo.ParameterType).GetFriendlyName(),
                         ExpectJsType = Utils.ToCode(ExpectJsType),
@@ -311,7 +368,7 @@ namespace Puerts.Editor
                     {
                         result.TypeName = Utils.RemoveRefAndToConstraintType(parameterInfo.ParameterType.GetElementType()).GetFriendlyName();
                     }
-                    result.ExpectCsType = ((ExpectJsType & JsValueType.NativeObject) == JsValueType.NativeObject) ? string.Format("typeof({0})", result.TypeName) : "null";
+                    result.ExpectCsType = string.Format("typeof({0})", result.TypeName);//((ExpectJsType & JsValueType.NativeObject) == JsValueType.NativeObject) ? string.Format("typeof({0})", result.TypeName) : "null";
                     Utils.FillEnumInfo(result, parameterInfo.ParameterType);
                     return result;
                 }

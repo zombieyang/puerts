@@ -38,10 +38,12 @@ JSClassDefinition* JSClassDefinitionDuplicate(const JSClassDefinition* ClassDefi
     Ret->Methods = PropertyInfoDuplicate(ClassDefinition->Methods);
     Ret->Functions = PropertyInfoDuplicate(ClassDefinition->Functions);
     Ret->Properties = PropertyInfoDuplicate(ClassDefinition->Properties);
+    Ret->Variables = PropertyInfoDuplicate(ClassDefinition->Variables);
     Ret->ConstructorInfos = PropertyInfoDuplicate(ClassDefinition->ConstructorInfos);
     Ret->MethodInfos = PropertyInfoDuplicate(ClassDefinition->MethodInfos);
     Ret->FunctionInfos = PropertyInfoDuplicate(ClassDefinition->FunctionInfos);
     Ret->PropertyInfos = PropertyInfoDuplicate(ClassDefinition->PropertyInfos);
+    Ret->VariableInfos = PropertyInfoDuplicate(ClassDefinition->VariableInfos);
     return Ret;
 }
 
@@ -50,10 +52,12 @@ void JSClassDefinitionDelete(JSClassDefinition* ClassDefinition)
     delete[] ClassDefinition->Methods;
     delete[] ClassDefinition->Functions;
     delete[] ClassDefinition->Properties;
+    delete[] ClassDefinition->Variables;
     delete[] ClassDefinition->ConstructorInfos;
     delete[] ClassDefinition->MethodInfos;
     delete[] ClassDefinition->FunctionInfos;
     delete[] ClassDefinition->PropertyInfos;
+    delete[] ClassDefinition->VariableInfos;
     delete ClassDefinition;
 }
 
@@ -67,7 +71,7 @@ public:
 
     void ForeachRegisterClass(std::function<void(const JSClassDefinition* ClassDefinition)>);
 
-    const JSClassDefinition* FindClassByID(const char* Name);
+    const JSClassDefinition* FindClassByID(const void* TypeId);
 
     const JSClassDefinition* FindCppTypeClassByName(const std::string& Name);
 
@@ -110,16 +114,16 @@ JSClassRegister::~JSClassRegister()
 
 void JSClassRegister::RegisterClass(const JSClassDefinition& ClassDefinition)
 {
-    if (ClassDefinition.CPPTypeName)
+    if (ClassDefinition.TypeId && ClassDefinition.ScriptName)
     {
-        auto cd_iter = NameToClassDefinition.find(ClassDefinition.CPPTypeName);
+        auto cd_iter = NameToClassDefinition.find(ClassDefinition.TypeId);
         if (cd_iter != NameToClassDefinition.end())
         {
             JSClassDefinitionDelete(cd_iter->second);
         }
-        NameToClassDefinition[ClassDefinition.CPPTypeName] = JSClassDefinitionDuplicate(&ClassDefinition);
-        std::string SN = ClassDefinition.CPPTypeName;
-        CDataNameToClassDefinition[SN] = NameToClassDefinition[ClassDefinition.CPPTypeName];
+        NameToClassDefinition[ClassDefinition.TypeId] = JSClassDefinitionDuplicate(&ClassDefinition);
+        std::string SN = ClassDefinition.ScriptName;
+        CDataNameToClassDefinition[SN] = NameToClassDefinition[ClassDefinition.TypeId];
     }
 #if USING_IN_UNREAL_ENGINE
     else if (ClassDefinition.UETypeName)
@@ -135,9 +139,9 @@ void JSClassRegister::RegisterClass(const JSClassDefinition& ClassDefinition)
 #endif
 }
 
-const JSClassDefinition* JSClassRegister::FindClassByID(const char* Name)
+const JSClassDefinition* JSClassRegister::FindClassByID(const void* TypeId)
 {
-    auto Iter = NameToClassDefinition.find(Name);
+    auto Iter = NameToClassDefinition.find(TypeId);
     if (Iter == NameToClassDefinition.end())
     {
         return nullptr;
@@ -225,9 +229,9 @@ void ForeachRegisterClass(std::function<void(const JSClassDefinition* ClassDefin
     GetJSClassRegister()->ForeachRegisterClass(Callback);
 }
 
-const JSClassDefinition* FindClassByID(const char* Name)
+const JSClassDefinition* FindClassByID(const void* TypeId)
 {
-    return GetJSClassRegister()->FindClassByID(Name);
+    return GetJSClassRegister()->FindClassByID(TypeId);
 }
 
 const JSClassDefinition* FindCppTypeClassByName(const std::string& Name)

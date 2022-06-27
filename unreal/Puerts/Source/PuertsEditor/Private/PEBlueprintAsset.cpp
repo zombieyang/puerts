@@ -79,7 +79,7 @@ static bool IsPlaying()
 bool UPEBlueprintAsset::LoadOrCreate(
     const FString& InName, const FString& InPath, UClass* ParentClass, int32 InSetFlags, int32 InClearFlags)
 {
-    FString PackageName = FString(TEXT("/Game/Blueprints/TypeScript/")) / InPath / InName;
+    FString PackageName = FString(TEXT("/Game" TS_BLUEPRINT_PATH)) / InPath / InName;
 
     // UE_LOG(LogTemp, Warning, TEXT("LoadOrCreate.PackageName: %s"), *PackageName);
 
@@ -771,7 +771,7 @@ void UPEBlueprintAsset::AddFunction(FName InName, bool IsVoid, FPEGraphPinType I
             TSet<FName> OutputSet;
             for (auto& Pair : OutputParameterTypes)
             {
-                RetChanged = RetChanged || TryAddOutput(TargetNodes, Pair.Key, Pair.Value);
+                RetChanged = TryAddOutput(TargetNodes, Pair.Key, Pair.Value) || RetChanged;
                 if (RetChanged)
                     CanChangeCheck();
                 OutputSet.Add(Pair.Key);

@@ -28,9 +28,24 @@ void FJsEnv::Start(const FString& ModuleName, const TArray<TPair<FString, UObjec
     GameScript->Start(ModuleName, Arguments);
 }
 
+bool FJsEnv::IdleNotificationDeadline(double DeadlineInSeconds)
+{
+    return GameScript->IdleNotificationDeadline(DeadlineInSeconds);
+}
+
 void FJsEnv::LowMemoryNotification()
 {
     GameScript->LowMemoryNotification();
+}
+
+void FJsEnv::RequestMinorGarbageCollectionForTesting()
+{
+    GameScript->RequestMinorGarbageCollectionForTesting();
+}
+
+void FJsEnv::RequestFullGarbageCollectionForTesting()
+{
+    GameScript->RequestFullGarbageCollectionForTesting();
 }
 
 void FJsEnv::WaitDebugger(double timeout)

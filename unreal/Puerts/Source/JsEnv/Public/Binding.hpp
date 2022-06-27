@@ -16,8 +16,19 @@
 #else
 #include "JSClassRegister.h"
 #endif
-#include "Converter.hpp"
 #include "TypeInfo.hpp"
+
+namespace puerts
+{
+template <typename T, typename = void>
+struct ArgumentBufferType
+{
+    using type = typename std::decay<T>::type*;
+    static constexpr bool is_custom = false;
+};
+}    // namespace puerts
+
+#include "Converter.hpp"
 
 #define MakeConstructor(T, ...) ::puerts::template ConstructorWrapper<T, ##__VA_ARGS__>
 #define MakeGetter(M) &(::puerts::PropertyWrapper<decltype(M), M>::getter)
@@ -25,9 +36,21 @@
 #define MakeProperty(M)                                                                                         \
     &(::puerts::PropertyWrapper<decltype(M), M>::getter), &(::puerts::PropertyWrapper<decltype(M), M>::setter), \
         ::puerts::PropertyWrapper<decltype(M), M>::info()
-#define MakeFunction(M) &(::puerts::FuncCallWrapper<decltype(M), M>::call), ::puerts::FuncCallWrapper<decltype(M), M>::info()
-#define SelectFunction(SIGNATURE, M) \
-    &(::puerts::FuncCallWrapper<SIGNATURE, M>::call), ::puerts::FuncCallWrapper<SIGNATURE, M>::info()
+#define MakeReadonlyProperty(M) \
+    &(::puerts::PropertyWrapper<decltype(M), M>::getter), nullptr, ::puerts::PropertyWrapper<decltype(M), M>::info()
+#define MakeVariable(M) MakeProperty(M)
+#define MakeReadonlyVariable(M) MakeReadonlyProperty(M)
+#define MakeFunction(M, ...)                                                                    \
+    [](::puerts::CallbackInfoType info)                                                         \
+    { ::puerts::FuncCallWrapper<decltype(M), M>::callWithDefaultValues(info, ##__VA_ARGS__); }, \
+        ::puerts::FuncCallWrapper<decltype(M), M>::info(puerts::Count(__VA_ARGS__))
+#define SelectFunction(SIGNATURE, M, ...)                                                                                         \
+    [](::puerts::CallbackInfoType info) { ::puerts::FuncCallWrapper<SIGNATURE, M>::callWithDefaultValues(info, ##__VA_ARGS__); }, \
+        ::puerts::FuncCallWrapper<SIGNATURE, M>::info(puerts::Count(__VA_ARGS__))
+#define SelectFunction_PtrRet(SIGNATURE, M, ...)                                                    \
+    [](::puerts::CallbackInfoType info)                                                             \
+    { ::puerts::FuncCallWrapper<SIGNATURE, M, true>::callWithDefaultValues(info, ##__VA_ARGS__); }, \
+        ::puerts::FuncCallWrapper<SIGNATURE, M, true>::info(puerts::Count(__VA_ARGS__))
 #define MakeCheckFunction(M) \
     &(::puerts::FuncCallWrapper<decltype(M), M>::checkedCall), ::puerts::FuncCallWrapper<decltype(M), M>::info()
 #define MakeOverload(SIGNATURE, M) puerts::FuncCallWrapper<SIGNATURE, M>
@@ -38,10 +61,36 @@
     &::puerts::ConstructorsCombiner<__VA_ARGS__>::call, ::puerts::ConstructorsCombiner<__VA_ARGS__>::length, \
         ::puerts::ConstructorsCombiner<__VA_ARGS__>::infos()
 
-#define UsingCppType(CLS) __DefScriptTTypeName(CLS, CLS) __DefObjectType(CLS) __DefCDataPointerConverter(CLS)
+#define UsingNamedCppType(CLS, NAME) __DefScriptTTypeName(NAME, CLS) __DefObjectType(CLS) __DefCDataPointerConverter(CLS)
+
+#define UsingCppType(CLS) UsingNamedCppType(CLS, CLS)
 
 namespace puerts
 {
+template <class... Args>
+unsigned int Count(Args&&... args)
+{
+    return sizeof...(Args);
+}
+
+template <typename T>
+struct ArgumentBufferType<T*, typename std::enable_if<is_script_type<T>::value && !std::is_const<T>::value>::type>
+{
+    using type = typename std::decay<T>::type;
+    static constexpr bool is_custom = false;
+};
+
+template <typename T>
+struct ArgumentBufferType<T,
+    typename std::enable_if<std::is_lvalue_reference<T>::value && !std::is_const<typename std::remove_reference<T>::type>::value &&
+                            std::is_constructible<typename std::decay<T>::type>::value &&
+                            std::is_copy_constructible<typename std::decay<T>::type>::value &&
+                            std::is_destructible<typename std::decay<T>::type>::value>::type>
+{
+    using type = typename std::decay<T>::type;
+    static constexpr bool is_custom = false;
+};
+
 namespace internal
 {
 template <typename T, typename = void>
@@ -261,65 +310,270 @@ struct ArgumentsChecker<false, Args...>
     }
 };
 
-template <typename, bool CheckArguments>
+template <typename, bool CheckArguments, bool, bool>
 struct FuncCallHelper
 {
 };
 
-template <typename Ret, typename... Args, bool CheckArguments>
-struct FuncCallHelper<std::pair<Ret, std::tuple<Args...>>, CheckArguments>
+template <typename Ret, typename... Args, bool CheckArguments, bool ReturnByPointer, bool ScriptTypePtrAsRef>
+struct FuncCallHelper<std::pair<Ret, std::tuple<Args...>>, CheckArguments, ReturnByPointer, ScriptTypePtrAsRef>
 {
 private:
     template <typename T, typename = void>
-    struct ArgumentTupleType
+    struct ArgumentType
     {
         using type = typename std::decay<T>::type;
     };
 
     template <typename T>
-    struct ArgumentTupleType<T,
-        typename std::enable_if<
-            (is_objecttype<typename std::decay<T>::type>::value || is_uetype<typename std::decay<T>::type>::value) &&
-            std::is_lvalue_reference<T>::value && !std::is_const<typename std::remove_reference<T>::type>::value>::type>
+    struct ArgumentType<T, typename std::enable_if<(is_objecttype<typename std::decay<T>::type>::value ||
+                                                       is_uetype<typename std::decay<T>::type>::value) &&
+                                                   std::is_lvalue_reference<T>::value>::type>
     {
         using type = std::reference_wrapper<typename std::decay<T>::type>;
     };
 
     static constexpr auto ArgsLength = sizeof...(Args);
-    using ArgumentsTupleType = std::tuple<typename ArgumentTupleType<Args>::type...>;
 
     template <typename T, typename Enable = void>
-    struct RefValueSync
+    struct ReturnConverter
     {
-        static void Sync(ContextType context, ValueType holder, typename std::decay<T>::type value)
+        static ValueType Convert(ContextType context, T ret)
+        {
+            return TypeConverter<typename std::remove_reference<T>::type>::toScript(
+                context, std::forward<typename std::remove_reference<T>::type>(ret));
+        }
+    };
+
+    template <typename T>
+    struct ReturnConverter<T, typename std::enable_if<ReturnByPointer && std::is_reference<T>::value && !std::is_const<T>::value &&
+                                                      (is_objecttype<typename std::decay<T>::type>::value ||
+                                                          is_uetype<typename std::decay<T>::type>::value)>::type>
+    {
+        static ValueType Convert(ContextType context, T ret)
+        {
+            return TypeConverter<typename std::decay<T>::type*>::toScript(context, &ret);
+        }
+    };
+
+    template <typename T, typename Enable = void>
+    struct ArgumentHolder
+    {
+        typename ArgumentType<T>::type Arg;
+
+        using ArgumentDecayType = typename std::decay<T>::type;
+
+        ArgumentHolder(std::tuple<ContextType, ValueType> info)
+            : Arg(TypeConverter<ArgumentDecayType>::toCpp(std::get<0>(info), std::get<1>(info)))
+        {
+        }
+
+        typename ArgumentType<T>::type& GetArgument()
+        {
+            return Arg;
+        }
+
+        void SetRef(ContextType context, ValueType holder)
         {
         }
     };
 
     template <typename T>
-    struct RefValueSync<T, typename std::enable_if<std::is_lvalue_reference<T>::value &&
-                                                   !std::is_const<typename std::remove_reference<T>::type>::value>::type>
+    struct ArgumentHolder<T,
+        typename std::enable_if<
+            (is_objecttype<typename std::decay<T>::type>::value || is_uetype<typename std::decay<T>::type>::value) &&
+            std::is_lvalue_reference<T>::value && !std::is_const<typename std::remove_reference<T>::type>::value &&
+            std::is_constructible<typename std::decay<T>::type>::value &&
+            std::is_copy_constructible<typename std::decay<T>::type>::value &&
+            std::is_destructible<typename std::decay<T>::type>::value>::type>
     {
-        static void Sync(ContextType context, ValueType holder, typename std::decay<T>::type value)
+        typename ArgumentType<T>::type Arg;
+        typename ArgumentBufferType<T>::type Buf;
+
+        ArgumentHolder(std::tuple<ContextType, ValueType> info)
+            : Arg(*TypeConverter<typename ArgumentType<T>::type>::toCpp(std::get<0>(info), std::get<1>(info)))
         {
-            UpdateRefValue(context, holder, converter::Converter<typename std::decay<T>::type>::toScript(context, value));
+            if (&(Arg.get()) == nullptr)
+            {
+                Arg = Buf;
+            }
         }
 
-        static void Sync(ContextType context, ValueType holder, std::reference_wrapper<typename std::decay<T>::type> value)
+        ArgumentHolder(const ArgumentHolder&& other) noexcept : Arg(other.Arg)
         {
-            if (&(TypeConverter<typename ArgumentTupleType<T>::type>::toCpp(context, GetUndefined(context)).get()) !=
-                &(value.get()))
+            if (&(other.Buf) == &(other.Arg.get()))
+            {
+                Arg = Buf;
+            }
+        }
+
+        typename ArgumentType<T>::type& GetArgument()
+        {
+            return Arg;
+        }
+
+        void SetRef(ContextType context, ValueType holder)
+        {
+            if (&Buf != &(Arg.get()))
             {
                 return;
             }
-            UpdateRefValue(context, holder, converter::Converter<typename std::decay<T>::type*>::toScript(context, &(value.get())));
+            // new object and set
+            UpdateRefValue(context, holder, converter::Converter<typename std::decay<T>::type>::toScript(context, Arg.get()));
         }
     };
+
+    template <typename T>
+    struct ArgumentHolder<T,
+        typename std::enable_if<
+            (is_objecttype<typename std::decay<T>::type>::value || is_uetype<typename std::decay<T>::type>::value) &&
+            std::is_lvalue_reference<T>::value && !std::is_const<typename std::remove_reference<T>::type>::value &&
+            (!std::is_constructible<typename std::decay<T>::type>::value ||
+                !std::is_copy_constructible<typename std::decay<T>::type>::value ||
+                !std::is_destructible<typename std::decay<T>::type>::value)>::type>
+    {
+        typename ArgumentType<T>::type Arg;
+
+        // there may be nullptr ref
+        ArgumentHolder(std::tuple<ContextType, ValueType> info)
+            : Arg(*TypeConverter<typename ArgumentType<T>::type>::toCpp(std::get<0>(info), std::get<1>(info)))
+        {
+        }
+
+        typename ArgumentType<T>::type& GetArgument()
+        {
+            return Arg;
+        }
+
+        void SetRef(ContextType context, ValueType holder)
+        {
+        }
+    };
+
+    template <typename T>
+    struct ArgumentHolder<T,
+        typename std::enable_if<
+            (is_objecttype<typename std::decay<T>::type>::value || is_uetype<typename std::decay<T>::type>::value) &&
+            std::is_lvalue_reference<T>::value && std::is_const<typename std::remove_reference<T>::type>::value>::type>
+    {
+        typename ArgumentType<T>::type Arg;
+
+        // there may be nullptr ref
+        ArgumentHolder(std::tuple<ContextType, ValueType> info)
+            : Arg(*TypeConverter<typename std::decay<T>::type*>::toCpp(std::get<0>(info), std::get<1>(info)))
+        {
+        }
+
+        typename ArgumentType<T>::type& GetArgument()
+        {
+            return Arg;
+        }
+
+        void SetRef(ContextType context, ValueType holder)
+        {
+        }
+    };
+
+    template <typename T>
+    struct ArgumentHolder<T,
+        typename std::enable_if<!is_objecttype<typename std::decay<T>::type>::value &&
+                                !is_uetype<typename std::decay<T>::type>::value && std::is_lvalue_reference<T>::value &&
+                                !std::is_const<typename std::remove_reference<T>::type>::value>::type>
+    {
+        typename ArgumentType<T>::type Arg;
+
+        using ArgumentDecayType = typename std::decay<T>::type;
+
+        ArgumentHolder(std::tuple<ContextType, ValueType> info)
+            : Arg(TypeConverter<std::reference_wrapper<ArgumentDecayType>>::toCpp(std::get<0>(info), std::get<1>(info)))
+        {
+        }
+
+        typename ArgumentType<T>::type& GetArgument()
+        {
+            return Arg;
+        }
+
+        void SetRef(ContextType context, ValueType holder)
+        {
+            UpdateRefValue(context, holder, converter::Converter<typename std::decay<T>::type>::toScript(context, Arg));
+        }
+    };
+
+    template <typename T>
+    struct ArgumentHolder<T,
+        typename std::enable_if<ScriptTypePtrAsRef && is_script_type<typename std::remove_pointer<T>::type>::value &&
+                                !std::is_const<typename std::remove_pointer<T>::type>::value && std::is_pointer<T>::value>::type>
+    {
+        T Arg = nullptr;
+        using BuffType = typename std::remove_pointer<T>::type;
+        BuffType Buf;
+
+        ArgumentHolder(std::tuple<ContextType, ValueType> info)
+            : Buf(TypeConverter<std::reference_wrapper<BuffType>>::toCpp(std::get<0>(info), std::get<1>(info)))
+        {
+        }
+
+        T GetArgument()
+        {
+            return Arg ? Arg : &Buf;
+        }
+
+        void SetRef(ContextType context, ValueType holder)
+        {
+            UpdateRefValue(context, holder, converter::Converter<BuffType>::toScript(context, Buf));
+        }
+    };
+
+    template <typename T>
+    struct ArgumentHolder<T,
+        typename std::enable_if<!ScriptTypePtrAsRef && is_script_type<typename std::remove_pointer<T>::type>::value &&
+                                !std::is_const<typename std::remove_pointer<T>::type>::value && std::is_pointer<T>::value>::type>
+    {
+        T Arg = nullptr;
+
+        ArgumentHolder(std::tuple<ContextType, ValueType> info) : Arg(TypeConverter<T>::toCpp(std::get<0>(info), std::get<1>(info)))
+        {
+        }
+
+        T GetArgument()
+        {
+            return Arg;
+        }
+
+        void SetRef(ContextType context, ValueType holder)
+        {
+        }
+    };
+
+    template <typename T>
+    struct ArgumentHolder<T, typename std::enable_if<ArgumentBufferType<T>::is_custom>::type>
+    {
+        typename ArgumentType<T>::type Arg;
+
+        typename ArgumentBufferType<T>::type Buf;
+
+        ArgumentHolder(std::tuple<ContextType, ValueType> info) : Buf(std::get<0>(info), std::get<1>(info))
+        {
+            Arg = Buf.Data();
+        }
+
+        typename ArgumentType<T>::type GetArgument()
+        {
+            return Arg;
+        }
+
+        void SetRef(ContextType context, ValueType holder)
+        {
+        }
+    };
+
+    using ArgumentsHolder = std::tuple<ArgumentHolder<Args>...>;
 
     template <int, typename...>
     struct RefValuesSync
     {
-        static void Sync(ContextType context, CallbackInfoType info, ArgumentsTupleType& cppArgs)
+        static void Sync(ContextType context, CallbackInfoType info, ArgumentsHolder& cppArgHolders)
         {
         }
     };
@@ -327,58 +581,92 @@ private:
     template <int Pos, typename T, typename... Rest>
     struct RefValuesSync<Pos, T, Rest...>
     {
-        static void Sync(ContextType context, CallbackInfoType info, ArgumentsTupleType& cppArgs)
+        static void Sync(ContextType context, CallbackInfoType info, ArgumentsHolder& cppArgHolders)
         {
-            RefValueSync<T>::Sync(context, GetArg(info, Pos), std::get<Pos>(cppArgs));
-            RefValuesSync<Pos + 1, Rest...>::Sync(context, info, cppArgs);
+            std::get<Pos>(cppArgHolders).SetRef(context, GetArg(info, Pos));
+            RefValuesSync<Pos + 1, Rest...>::Sync(context, info, cppArgHolders);
         }
     };
 
-    template <typename Func, size_t... index>
+    template <int Skip, int Pos, typename... FullArgs>
+    struct DefaultValueSetter;
+
+    template <int Skip, int Pos, typename T, typename... FullArgs>
+    struct DefaultValueSetter<Skip, Pos, T, FullArgs...> : DefaultValueSetter<Skip - 1, Pos + 1, FullArgs...>
+    {
+    };
+
+    template <int Pos, typename T, typename... FullArgs>
+    struct DefaultValueSetter<0, Pos, T, FullArgs...>
+    {
+        template <class T1, class... DefaultArguments>
+        static void Set(ArgumentsHolder& cppArgHolders, int argCount, T1 defaultValue, const DefaultArguments&... rest)
+        {
+            if (argCount <= Pos)
+            {
+                std::get<Pos>(cppArgHolders).Arg = defaultValue;
+            }
+            DefaultValueSetter<0, Pos + 1, FullArgs...>::Set(cppArgHolders, argCount, rest...);
+        }
+    };
+
+    template <int Pos>
+    struct DefaultValueSetter<0, Pos>
+    {
+        static void Set(ArgumentsHolder& cppArgHolders, int argCount)
+        {
+        }
+    };
+
+    template <typename Func, size_t... index, class... DefaultArguments>
     static
         typename std::enable_if<std::is_same<typename internal::traits::FunctionTrait<Func>::ReturnType, void>::value, bool>::type
-        call(Func& func, CallbackInfoType info, std::index_sequence<index...>)
+        call(Func& func, CallbackInfoType info, std::index_sequence<index...>, DefaultArguments&&... defaultValues)
     {
         auto context = GetContext(info);
 
         if (!ArgumentsChecker<CheckArguments, Args...>::Check(context, info))
             return false;
 
-        ArgumentsTupleType cppArgs = std::make_tuple<typename ArgumentTupleType<Args>::type...>(
-            TypeConverter<typename ArgumentTupleType<Args>::type>::toCpp(context, GetArg(info, index))...);
+        ArgumentsHolder cppArgHolders(std::tuple<ContextType, ValueType>{context, GetArg(info, index)}...);
 
-        func(std::forward<Args>(std::get<index>(cppArgs))...);
+        DefaultValueSetter<sizeof...(Args) - sizeof...(DefaultArguments), 0, typename std::decay<Args>::type...>::Set(
+            cppArgHolders, GetArgsLen(info), std::forward<DefaultArguments>(defaultValues)...);
 
-        RefValuesSync<0, Args...>::Sync(context, info, cppArgs);
+        func(std::forward<Args>(std::get<index>(cppArgHolders).GetArgument())...);
+
+        RefValuesSync<0, Args...>::Sync(context, info, cppArgHolders);
 
         return true;
     }
 
-    template <typename Func, size_t... index>
+    template <typename Func, size_t... index, class... DefaultArguments>
     static
         typename std::enable_if<!std::is_same<typename internal::traits::FunctionTrait<Func>::ReturnType, void>::value, bool>::type
-        call(Func& func, CallbackInfoType info, std::index_sequence<index...>)
+        call(Func& func, CallbackInfoType info, std::index_sequence<index...>, DefaultArguments&&... defaultValues)
     {
         auto context = GetContext(info);
 
         if (!ArgumentsChecker<CheckArguments, Args...>::Check(context, info))
             return false;
 
-        ArgumentsTupleType cppArgs = std::make_tuple<typename ArgumentTupleType<Args>::type...>(
-            TypeConverter<typename ArgumentTupleType<Args>::type>::toCpp(context, GetArg(info, index))...);
+        ArgumentsHolder cppArgHolders(std::tuple<ContextType, ValueType>{context, GetArg(info, index)}...);
 
-        auto ret = func(std::forward<Args>(std::get<index>(cppArgs))...);
-        SetReturn(info, TypeConverter<Ret>::toScript(context, std::forward<Ret>(ret)));
+        DefaultValueSetter<sizeof...(Args) - sizeof...(DefaultArguments), 0, typename std::decay<Args>::type...>::Set(
+            cppArgHolders, GetArgsLen(info), std::forward<DefaultArguments>(defaultValues)...);
 
-        RefValuesSync<0, Args...>::Sync(context, info, cppArgs);
+        SetReturn(info, ReturnConverter<Ret>::Convert(
+                            context, std::forward<Ret>(func(std::forward<Args>(std::get<index>(cppArgHolders).GetArgument())...))));
+
+        RefValuesSync<0, Args...>::Sync(context, info, cppArgHolders);
 
         return true;
     }
 
-    template <typename Ins, typename Func, size_t... index>
+    template <typename Ins, typename Func, size_t... index, class... DefaultArguments>
     static
         typename std::enable_if<std::is_same<typename internal::traits::FunctionTrait<Func>::ReturnType, void>::value, bool>::type
-        callMethod(Func& func, CallbackInfoType info, std::index_sequence<index...>)
+        callMethod(Func& func, CallbackInfoType info, std::index_sequence<index...>, DefaultArguments&&... defaultValues)
     {
         auto context = GetContext(info);
 
@@ -386,27 +674,29 @@ private:
 
         if (!self)
         {
-            ThrowException(GetContext(info), "access a null object");
+            ThrowException(info, "access a null object");
             return true;
         }
 
         if (!ArgumentsChecker<CheckArguments, Args...>::Check(context, info))
             return false;
 
-        ArgumentsTupleType cppArgs = std::make_tuple<typename ArgumentTupleType<Args>::type...>(
-            TypeConverter<typename ArgumentTupleType<Args>::type>::toCpp(context, GetArg(info, index))...);
+        ArgumentsHolder cppArgHolders(std::tuple<ContextType, ValueType>{context, GetArg(info, index)}...);
 
-        (self->*func)(std::forward<Args>(std::get<index>(cppArgs))...);
+        DefaultValueSetter<sizeof...(Args) - sizeof...(DefaultArguments), 0, typename std::decay<Args>::type...>::Set(
+            cppArgHolders, GetArgsLen(info), std::forward<DefaultArguments>(defaultValues)...);
 
-        RefValuesSync<0, Args...>::Sync(context, info, cppArgs);
+        (self->*func)(std::forward<Args>(std::get<index>(cppArgHolders).GetArgument())...);
+
+        RefValuesSync<0, Args...>::Sync(context, info, cppArgHolders);
 
         return true;
     }
 
-    template <typename Ins, typename Func, size_t... index>
+    template <typename Ins, typename Func, size_t... index, class... DefaultArguments>
     static
         typename std::enable_if<!std::is_same<typename internal::traits::FunctionTrait<Func>::ReturnType, void>::value, bool>::type
-        callMethod(Func& func, CallbackInfoType info, std::index_sequence<index...>)
+        callMethod(Func& func, CallbackInfoType info, std::index_sequence<index...>, DefaultArguments&&... defaultValues)
     {
         auto context = GetContext(info);
 
@@ -414,126 +704,149 @@ private:
 
         if (!self)
         {
-            ThrowException(GetContext(info), "access a null object");
+            ThrowException(info, "access a null object");
             return true;
         }
 
         if (!ArgumentsChecker<CheckArguments, Args...>::Check(context, info))
             return false;
 
-        ArgumentsTupleType cppArgs = std::make_tuple<typename ArgumentTupleType<Args>::type...>(
-            TypeConverter<typename ArgumentTupleType<Args>::type>::toCpp(context, GetArg(info, index))...);
+        ArgumentsHolder cppArgHolders(std::tuple<ContextType, ValueType>{context, GetArg(info, index)}...);
 
-        auto ret = (self->*func)(std::forward<Args>(std::get<index>(cppArgs))...);
-        SetReturn(info, TypeConverter<typename std::remove_reference<Ret>::type>::toScript(
-                            context, std::forward<typename std::remove_reference<Ret>::type>(ret)));
+        DefaultValueSetter<sizeof...(Args) - sizeof...(DefaultArguments), 0, typename std::decay<Args>::type...>::Set(
+            cppArgHolders, GetArgsLen(info), std::forward<DefaultArguments>(defaultValues)...);
 
-        RefValuesSync<0, Args...>::Sync(context, info, cppArgs);
+        SetReturn(info, ReturnConverter<Ret>::Convert(context,
+                            std::forward<Ret>((self->*func)(std::forward<Args>(std::get<index>(cppArgHolders).GetArgument())...))));
+
+        RefValuesSync<0, Args...>::Sync(context, info, cppArgHolders);
 
         return true;
     }
 
 public:
-    template <typename Func>
-    static bool call(Func&& func, CallbackInfoType info)
+    template <typename Func, class... DefaultArguments>
+    static bool call(Func&& func, CallbackInfoType info, DefaultArguments&&... defaultValues)
     {
-        return call(func, info, std::make_index_sequence<ArgsLength>());
+        static_assert(sizeof...(Args) >= sizeof...(DefaultArguments), "too many default arguments");
+        return call(func, info, std::make_index_sequence<ArgsLength>(), std::forward<DefaultArguments>(defaultValues)...);
     }
 
-    template <typename Ins, typename Func>
-    static bool callMethod(Func&& func, CallbackInfoType info)
+    template <typename Ins, typename Func, class... DefaultArguments>
+    static bool callMethod(Func&& func, CallbackInfoType info, DefaultArguments&&... defaultValues)
     {
-        return callMethod<Ins>(func, info, std::make_index_sequence<ArgsLength>());
+        static_assert(sizeof...(Args) >= sizeof...(DefaultArguments), "too many default arguments");
+        return callMethod<Ins>(
+            func, info, std::make_index_sequence<ArgsLength>(), std::forward<DefaultArguments>(defaultValues)...);
     }
 };
 
 }    // namespace internal
 
-template <typename T, T>
+template <typename T, T, bool ReturnByPointer = false, bool ScriptTypePtrAsRef = true>
 struct FuncCallWrapper;
 
-template <typename Ret, typename... Args, Ret (*func)(Args...)>
-struct FuncCallWrapper<Ret (*)(Args...), func>
+template <typename Ret, typename... Args, Ret (*func)(Args...), bool ReturnByPointer, bool ScriptTypePtrAsRef>
+struct FuncCallWrapper<Ret (*)(Args...), func, ReturnByPointer, ScriptTypePtrAsRef>
 {
     static void call(CallbackInfoType info)
     {
-        using Helper = internal::FuncCallHelper<std::pair<Ret, std::tuple<Args...>>, false>;
+        using Helper = internal::FuncCallHelper<std::pair<Ret, std::tuple<Args...>>, false, ReturnByPointer, ScriptTypePtrAsRef>;
         Helper::call(func, info);
     }
 
     static bool overloadCall(CallbackInfoType info)
     {
-        using Helper = internal::FuncCallHelper<std::pair<Ret, std::tuple<Args...>>, true>;
+        using Helper = internal::FuncCallHelper<std::pair<Ret, std::tuple<Args...>>, true, ReturnByPointer, ScriptTypePtrAsRef>;
         return Helper::call(func, info);
     }
     static void checkedCall(CallbackInfoType info)
     {
-        using Helper = internal::FuncCallHelper<std::pair<Ret, std::tuple<Args...>>, true>;
+        using Helper = internal::FuncCallHelper<std::pair<Ret, std::tuple<Args...>>, true, ReturnByPointer, ScriptTypePtrAsRef>;
         if (!Helper::call(func, info))
         {
-            ThrowException(GetContext(info), "invalid parameter!");
+            ThrowException(info, "invalid parameter!");
         }
     }
-    static const CFunctionInfo* info()
+    template <class... DefaultArguments>
+    static void callWithDefaultValues(CallbackInfoType info, DefaultArguments&&... defaultValues)
     {
-        return CFunctionInfoImpl<Ret, Args...>::get();
+        using Helper = internal::FuncCallHelper<std::pair<Ret, std::tuple<Args...>>, false, ReturnByPointer, ScriptTypePtrAsRef>;
+        Helper::call(func, info, std::forward<DefaultArguments>(defaultValues)...);
+    }
+    static const CFunctionInfo* info(unsigned int defaultCount = 0)
+    {
+        return CFunctionInfoImpl<Ret, ScriptTypePtrAsRef, Args...>::get(defaultCount);
     }
 };
 
-template <typename Inc, typename Ret, typename... Args, Ret (Inc::*func)(Args...)>
-struct FuncCallWrapper<Ret (Inc::*)(Args...), func>
+template <typename Inc, typename Ret, typename... Args, Ret (Inc::*func)(Args...), bool ReturnByPointer, bool ScriptTypePtrAsRef>
+struct FuncCallWrapper<Ret (Inc::*)(Args...), func, ReturnByPointer, ScriptTypePtrAsRef>
 {
     static void call(CallbackInfoType info)
     {
-        using Helper = internal::FuncCallHelper<std::pair<Ret, std::tuple<Args...>>, false>;
+        using Helper = internal::FuncCallHelper<std::pair<Ret, std::tuple<Args...>>, false, ReturnByPointer, ScriptTypePtrAsRef>;
         Helper::template callMethod<Inc>(func, info);
     }
 
     static bool overloadCall(CallbackInfoType info)
     {
-        using Helper = internal::FuncCallHelper<std::pair<Ret, std::tuple<Args...>>, true>;
+        using Helper = internal::FuncCallHelper<std::pair<Ret, std::tuple<Args...>>, true, ReturnByPointer, ScriptTypePtrAsRef>;
         return Helper::template callMethod<Inc, decltype(func)>(func, info);
     }
     static void checkedCall(CallbackInfoType info)
     {
-        using Helper = internal::FuncCallHelper<std::pair<Ret, std::tuple<Args...>>, true>;
+        using Helper = internal::FuncCallHelper<std::pair<Ret, std::tuple<Args...>>, true, ReturnByPointer, ScriptTypePtrAsRef>;
         if (!Helper::template callMethod<Inc, decltype(func)>(func, info))
         {
-            ThrowException(GetContext(info), "invalid parameter!");
+            ThrowException(info, "invalid parameter!");
         }
     }
-    static const CFunctionInfo* info()
+    template <class... DefaultArguments>
+    static void callWithDefaultValues(CallbackInfoType info, DefaultArguments&&... defaultValues)
     {
-        return CFunctionInfoImpl<Ret, Args...>::get();
+        using Helper = internal::FuncCallHelper<std::pair<Ret, std::tuple<Args...>>, false, ReturnByPointer, ScriptTypePtrAsRef>;
+        Helper::template callMethod<Inc>(func, info, std::forward<DefaultArguments>(defaultValues)...);
+    }
+    static const CFunctionInfo* info(unsigned int defaultCount = 0)
+    {
+        return CFunctionInfoImpl<Ret, ScriptTypePtrAsRef, Args...>::get(defaultCount);
     }
 };
 
 // TODO: Similar logic...
-template <typename Inc, typename Ret, typename... Args, Ret (Inc::*func)(Args...) const>
-struct FuncCallWrapper<Ret (Inc::*)(Args...) const, func>
+template <typename Inc, typename Ret, typename... Args, Ret (Inc::*func)(Args...) const, bool ReturnByPointer,
+    bool ScriptTypePtrAsRef>
+struct FuncCallWrapper<Ret (Inc::*)(Args...) const, func, ReturnByPointer, ScriptTypePtrAsRef>
 {
     static void call(CallbackInfoType info)
     {
-        using Helper = internal::FuncCallHelper<std::pair<Ret, std::tuple<Args...>>, false>;
+        using Helper = internal::FuncCallHelper<std::pair<Ret, std::tuple<Args...>>, false, ReturnByPointer, ScriptTypePtrAsRef>;
         Helper::template callMethod<Inc>(func, info);
     }
 
     static bool overloadCall(CallbackInfoType info)
     {
-        using Helper = internal::FuncCallHelper<std::pair<Ret, std::tuple<Args...>>, true>;
+        using Helper = internal::FuncCallHelper<std::pair<Ret, std::tuple<Args...>>, true, ReturnByPointer, ScriptTypePtrAsRef>;
         return Helper::template callMethod<Inc, decltype(func)>(func, info);
     }
     static void checkedCall(CallbackInfoType info)
     {
-        using Helper = internal::FuncCallHelper<std::pair<Ret, std::tuple<Args...>>, true>;
+        using Helper = internal::FuncCallHelper<std::pair<Ret, std::tuple<Args...>>, true, ReturnByPointer, ScriptTypePtrAsRef>;
         if (!Helper::template callMethod<Inc, decltype(func)>(func, info))
         {
-            ThrowException(GetContext(info), "invalid parameter!");
+            ThrowException(info, "invalid parameter!");
         }
     }
-    static const CFunctionInfo* info()
+    template <class... DefaultArguments>
+    static void callWithDefaultValues(CallbackInfoType info, DefaultArguments&&... defaultValues)
     {
-        return CFunctionInfoImpl<Ret, Args...>::get();
+        using Helper = internal::FuncCallHelper<std::pair<Ret, std::tuple<Args...>>, false, ReturnByPointer, ScriptTypePtrAsRef>;
+        Helper::template callMethod<Inc>(func, info, std::forward<DefaultArguments>(defaultValues)...);
+    }
+    static const CFunctionInfo* info(unsigned int defaultCount = 0)
+    {
+        return CFunctionInfoImpl<Ret, ScriptTypePtrAsRef, Args...>::get(defaultCount);
     }
 };
 
@@ -562,9 +875,9 @@ public:
     {
         return call(info, std::make_index_sequence<ArgsLength>());
     }
-    static const CFunctionInfo* info()
+    static const CFunctionInfo* info(unsigned int defaultCount = 0)
     {
-        return CFunctionInfoImpl<T, Args...>::get();
+        return CFunctionInfoImpl<T, true, Args...>::get(defaultCount);
     }
 };
 
@@ -585,7 +898,7 @@ struct OverloadsRecursion
     {
         if (!_call(info))
         {
-            ThrowException(GetContext(info), "invalid parameter!");
+            ThrowException(info, "invalid parameter!");
         }
     }
 };
@@ -633,7 +946,7 @@ struct ConstructorRecursion
         auto Ret = _call(info);
         if (!Ret)
         {
-            ThrowException(GetContext(info), "invalid parameter!");
+            ThrowException(info, "invalid parameter!");
         }
         return Ret;
     }
@@ -677,7 +990,7 @@ struct PropertyWrapper<Ret Ins::*, member, typename std::enable_if<!is_objecttyp
         auto self = internal::TypeConverter<Ins*>::toCpp(context, GetThis(info));
         if (!self)
         {
-            ThrowException(context, "access a null object");
+            ThrowException(info, "access a null object");
             return;
         }
         SetReturn(info, internal::TypeConverter<Ret>::toScript(context, self->*member));
@@ -689,7 +1002,7 @@ struct PropertyWrapper<Ret Ins::*, member, typename std::enable_if<!is_objecttyp
         auto self = internal::TypeConverter<Ins*>::toCpp(context, GetThis(info));
         if (!self)
         {
-            ThrowException(context, "access a null object");
+            ThrowException(info, "access a null object");
             return;
         }
         self->*member = internal::TypeConverter<Ret>::toCpp(context, GetArg(info, 0));
@@ -710,10 +1023,12 @@ struct PropertyWrapper<Ret Ins::*, member, typename std::enable_if<is_objecttype
         auto self = internal::TypeConverter<Ins*>::toCpp(context, GetThis(info));
         if (!self)
         {
-            ThrowException(context, "access a null object");
+            ThrowException(info, "access a null object");
             return;
         }
-        SetReturn(info, internal::TypeConverter<Ret*>::toScript(context, &(self->*member)));
+        auto ret = internal::TypeConverter<Ret*>::toScript(context, &(self->*member));
+        LinkOuter<Ins, Ret>(context, GetThis(info), ret);
+        SetReturn(info, ret);
     }
 
     static void setter(CallbackInfoType info)
@@ -722,10 +1037,31 @@ struct PropertyWrapper<Ret Ins::*, member, typename std::enable_if<is_objecttype
         auto self = internal::TypeConverter<Ins*>::toCpp(context, GetThis(info));
         if (!self)
         {
-            ThrowException(context, "access a null object");
+            ThrowException(info, "access a null object");
             return;
         }
         self->*member = internal::TypeConverter<Ret>::toCpp(context, GetArg(info, 0));
+    }
+
+    static const char* info()
+    {
+        return ScriptTypeName<Ret>::value;
+    }
+};
+
+template <typename Ret, Ret* Variable>
+struct PropertyWrapper<Ret*, Variable>
+{
+    static void getter(CallbackInfoType info)
+    {
+        auto context = GetContext(info);
+        SetReturn(info, internal::TypeConverter<Ret>::toScript(context, *Variable));
+    }
+
+    static void setter(CallbackInfoType info)
+    {
+        auto context = GetContext(info);
+        *Variable = internal::TypeConverter<Ret>::toCpp(context, GetArg(info, 0));
     }
 
     static const char* info()
@@ -742,7 +1078,7 @@ class ClassDefineBuilder
 
     const char* className_ = nullptr;
 
-    const char* superClassName_ = nullptr;
+    const void* superTypeId_ = nullptr;
 
     std::vector<GeneralFunctionInfo> functions_{};
 
@@ -750,15 +1086,15 @@ class ClassDefineBuilder
 
     std::vector<GeneralPropertyInfo> properties_{};
 
-    InitializeFuncType constructor_{};
+    std::vector<GeneralPropertyInfo> variables_{};
 
-    typedef void (*FinalizeFuncType)(void* Ptr);
-    FinalizeFuncType finalize_{};
+    InitializeFuncType constructor_{};
 
     std::vector<GeneralFunctionReflectionInfo> constructorInfos_{};
     std::vector<GeneralFunctionReflectionInfo> methodInfos_{};
     std::vector<GeneralFunctionReflectionInfo> functionInfos_{};
     std::vector<GeneralPropertyReflectionInfo> propertyInfos_{};
+    std::vector<GeneralPropertyReflectionInfo> variableInfos_{};
 
 public:
     explicit ClassDefineBuilder(const char* className) : className_(className)
@@ -768,7 +1104,7 @@ public:
     template <typename S>
     ClassDefineBuilder<T>& Extends()
     {
-        superClassName_ = ScriptTypeName<S>::value;
+        superTypeId_ = StaticTypeId<S>::get();
         return *this;
     }
 
@@ -778,7 +1114,6 @@ public:
         InitializeFuncType constructor = ConstructorWrapper<T, Args...>::call;
         constructor_ = constructor;
         constructorInfos_.push_back(GeneralFunctionReflectionInfo{"constructor", ConstructorWrapper<T, Args...>::info()});
-        finalize_ = [](void* Ptr) { delete static_cast<T*>(Ptr); };
         return *this;
     }
 
@@ -789,7 +1124,6 @@ public:
             constructorInfos_.push_back(GeneralFunctionReflectionInfo{"constructor", infos[i]});
         }
         constructor_ = constructor;
-        finalize_ = [](void* Ptr) { delete static_cast<T*>(Ptr); };
         return *this;
     }
 
@@ -844,6 +1178,37 @@ public:
         return *this;
     }
 
+    ClassDefineBuilder<T>& Variable(
+        const char* name, FunctionCallbackType getter, FunctionCallbackType setter = nullptr, const char* type = nullptr)
+    {
+        if (type)
+        {
+            variableInfos_.push_back(GeneralPropertyReflectionInfo{name, type});
+        }
+        variables_.push_back(GeneralPropertyInfo{name, getter, setter, nullptr});
+        return *this;
+    }
+
+    typedef void (*FinalizeFuncType)(void* Ptr);
+
+    template <class FC, typename Enable = void>
+    struct FinalizeBuilder
+    {
+        static FinalizeFuncType Build()
+        {
+            return FinalizeFuncType{};
+        }
+    };
+
+    template <class FC>
+    struct FinalizeBuilder<FC, typename std::enable_if<std::is_destructible<FC>::value>::type>
+    {
+        static FinalizeFuncType Build()
+        {
+            return [](void* Ptr) { delete static_cast<FC*>(Ptr); };
+        }
+    };
+
 #if !BUILDING_PES_EXTENSION
     void Register()
     {
@@ -851,11 +1216,13 @@ public:
         static std::vector<JSFunctionInfo> s_functions_{};
         static std::vector<JSFunctionInfo> s_methods_{};
         static std::vector<JSPropertyInfo> s_properties_{};
+        static std::vector<JSPropertyInfo> s_variables_{};
 
         static std::vector<NamedFunctionInfo> s_constructorInfos_{};
         static std::vector<NamedFunctionInfo> s_methodInfos_{};
         static std::vector<NamedFunctionInfo> s_functionInfos_{};
         static std::vector<NamedPropertyInfo> s_propertyInfos_{};
+        static std::vector<NamedPropertyInfo> s_variableInfos_{};
 
         puerts::JSClassDefinition ClassDef = JSClassEmptyDefinition;
 
@@ -865,15 +1232,13 @@ public:
         }
         else
         {
-            ClassDef.CPPTypeName = className_;
-            ClassDef.CPPSuperTypeName = superClassName_;
+            ClassDef.ScriptName = className_;
+            ClassDef.TypeId = StaticTypeId<T>::get();
+            ClassDef.SuperTypeId = superTypeId_;
         }
 
         ClassDef.Initialize = constructor_;
-        if (constructor_)
-        {
-            ClassDef.Finalize = finalize_;
-        }
+        ClassDef.Finalize = FinalizeBuilder<T>::Build();
 
         s_functions_ = std::move(functions_);
         s_functions_.push_back({nullptr, nullptr, nullptr});
@@ -886,6 +1251,10 @@ public:
         s_properties_ = std::move(properties_);
         s_properties_.push_back(JSPropertyInfo{nullptr, nullptr, nullptr, nullptr});
         ClassDef.Properties = s_properties_.data();
+
+        s_variables_ = std::move(variables_);
+        s_variables_.push_back(JSPropertyInfo{nullptr, nullptr, nullptr, nullptr});
+        ClassDef.Variables = s_variables_.data();
 
         s_constructorInfos_ = std::move(constructorInfos_);
         s_constructorInfos_.push_back(NamedFunctionInfo{nullptr, nullptr});
@@ -903,32 +1272,40 @@ public:
         s_propertyInfos_.push_back(NamedPropertyInfo{nullptr, nullptr});
         ClassDef.PropertyInfos = s_propertyInfos_.data();
 
+        s_variableInfos_ = std::move(variableInfos_);
+        s_variableInfos_.push_back(NamedPropertyInfo{nullptr, nullptr});
+        ClassDef.VariableInfos = s_variableInfos_.data();
+
         puerts::RegisterJSClass(ClassDef);
     }
 #else
     void Register()
     {
-        std::vector<pesapi_property_descriptor> properties;
+        size_t properties_count = functions_.size() + methods_.size() + properties_.size();
+        auto properties = pesapi_alloc_property_descriptors(properties_count);
+        size_t pos = 0;
         for (const auto& func : functions_)
         {
-            properties.push_back({func.Name, true, func.Callback});
+            pesapi_set_method_info(properties, pos++, func.Name, true, func.Callback, nullptr, nullptr);
         }
 
         for (const auto& method : methods_)
         {
-            properties.push_back({method.Name, false, method.Callback});
+            pesapi_set_method_info(properties, pos++, method.Name, false, method.Callback, nullptr, nullptr);
         }
 
         for (const auto& prop : properties_)
         {
-            properties.push_back({prop.Name, false, nullptr, prop.Getter, prop.Setter});
+            pesapi_set_property_info(properties, pos++, prop.Name, false, prop.Getter, prop.Setter, nullptr, nullptr);
         }
-        pesapi_finalize finalize = nullptr;
-        if (constructor_)
+
+        for (const auto& prop : variables_)
         {
-            finalize = finalize_;
+            pesapi_set_property_info(properties, pos++, prop.Name, true, prop.Getter, prop.Setter, nullptr, nullptr);
         }
-        pesapi_define_class(className_, superClassName_, constructor_, finalize, properties.size(), properties.data());
+
+        pesapi_finalize finalize = FinalizeBuilder<T>::Build();
+        pesapi_define_class(StaticTypeId<T>::get(), superTypeId_, className_, constructor_, finalize, properties_count, properties);
     }
 #endif
 };

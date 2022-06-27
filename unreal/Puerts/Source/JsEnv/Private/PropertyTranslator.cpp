@@ -16,6 +16,9 @@
 #include "ArrayBuffer.h"
 #include "ContainerWrapper.h"
 #include "JsObject.h"
+#ifdef PUERTS_FTEXT_AS_OBJECT
+#include "TypeInfo.hpp"
+#endif
 
 namespace puerts
 {
@@ -37,6 +40,8 @@ void FPropertyTranslator::Getter(
         return;
     }
 
+    v8::Local<v8::Value> Ret;
+
     if (OwnerIsClass)
     {
         UObject* Object = FV8Utils::GetUObject(Info.Holder());
@@ -50,7 +55,7 @@ void FPropertyTranslator::Getter(
             FV8Utils::ThrowException(Isolate, "access a invalid object");
             return;
         }
-        Info.GetReturnValue().Set(UEToJsInContainer(Isolate, Context, Object, true));
+        Ret = UEToJsInContainer(Isolate, Context, Object, true);
     }
     else
     {
@@ -60,8 +65,13 @@ void FPropertyTranslator::Getter(
             FV8Utils::ThrowException(Isolate, "access a null struct");
             return;
         }
-        Info.GetReturnValue().Set(UEToJsInContainer(Isolate, Context, Ptr, true));
+        Ret = UEToJsInContainer(Isolate, Context, Ptr, true);
     }
+    if (NeedLinkOuter)
+    {
+        LinkOuterImpl(Context, Info.Holder(), Ret);
+    }
+    Info.GetReturnValue().Set(Ret);
 }
 
 void FPropertyTranslator::Setter(const v8::FunctionCallbackInfo<v8::Value>& Info)
@@ -392,7 +402,16 @@ public:
     bool JsToUE(v8::Isolate* Isolate, v8::Local<v8::Context>& Context, const v8::Local<v8::Value>& Value, void* ValuePtr,
         bool DeepCopy) const override
     {
-        NameProperty->SetPropertyValue(ValuePtr, FName(*FV8Utils::ToFString(Isolate, Value)));
+        if (Value->IsArrayBuffer())
+        {
+            auto Ab = v8::Local<v8::ArrayBuffer>::Cast(Value);
+            if (Ab->GetContents().ByteLength() == sizeof(FName))
+            {
+                NameProperty->SetPropertyValue(ValuePtr, *static_cast<FName*>(Ab->GetContents().Data()));
+                return true;
+            }
+        }
+        NameProperty->SetPropertyValue(ValuePtr, FV8Utils::ToFName(Isolate, Value));
         return true;
     }
 };
@@ -407,13 +426,23 @@ public:
     v8::Local<v8::Value> UEToJs(
         v8::Isolate* Isolate, v8::Local<v8::Context>& Context, const void* ValuePtr, bool PassByPointer) const override
     {
+#ifndef PUERTS_FTEXT_AS_OBJECT
         return FV8Utils::ToV8String(Isolate, TextProperty->GetPropertyValue(ValuePtr));
+#else
+        return DataTransfer::FindOrAddCData(Context->GetIsolate(), Context, puerts::StaticTypeId<FText>::get(),
+            PassByPointer ? ValuePtr : new FText(TextProperty->GetPropertyValue(ValuePtr)), PassByPointer);
+#endif
     }
 
     bool JsToUE(v8::Isolate* Isolate, v8::Local<v8::Context>& Context, const v8::Local<v8::Value>& Value, void* ValuePtr,
         bool DeepCopy) const override
     {
+#ifndef PUERTS_FTEXT_AS_OBJECT
         TextProperty->SetPropertyValue(ValuePtr, FText::FromString(FV8Utils::ToFString(Isolate, Value)));
+#else
+        auto TextPtr = DataTransfer::GetPointerFast<FText>(Value.As<v8::Object>());
+        TextProperty->SetPropertyValue(ValuePtr, TextPtr ? *TextPtr : FText());
+#endif
         return true;
     }
 };
@@ -565,16 +594,6 @@ public:
         {
             ParamShallowCopySize = StructProperty->Struct->GetStructureSize();
         }
-#if ENGINE_MINOR_VERSION >= 25 || ENGINE_MAJOR_VERSION > 4
-        auto Owner = Property->GetOwnerUObject();
-#else
-        auto Owner = Property->GetOuter();
-#endif
-        if (Owner && Owner->IsA<UScriptStruct>() && Property->GetOffset_ForInternal() == 0 &&
-            Owner->GetFName() != TEXT("PropertyMetaRoot"))
-        {
-            ForceNoCache = true;
-        }
     }
 
     v8::Local<v8::Value> UEToJs(
@@ -591,7 +610,7 @@ public:
             StructProperty->CopySingleValue(Ptr, ValuePtr);
         }
         return FV8Utils::IsolateData<IObjectMapper>(Isolate)->FindOrAddStruct(
-            Isolate, Context, StructProperty->Struct, Ptr, PassByPointer, ForceNoCache);
+            Isolate, Context, StructProperty->Struct, Ptr, PassByPointer);
     }
 
     bool JsToUE(v8::Isolate* Isolate, v8::Local<v8::Context>& Context, const v8::Local<v8::Value>& Value, void* ValuePtr,
