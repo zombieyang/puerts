@@ -17,14 +17,15 @@ namespace Puerts
         public abstract bool FileExists(string filepath);
         public virtual string ReadFile(string filepath, out string debugpath) 
         {
-            byte[] bytes = ReadByte(filepath, out debugpath);
+            int length;
+            byte[] bytes = ReadByte(filepath, out length, out debugpath);
             if (bytes == null)
             {
                 return null;
             }
             return Encoding.UTF8.GetString(bytes, 0, bytes.Length);
         }
-        protected internal abstract byte[] ReadByte(string filepath, out string debugpath);
+        protected internal abstract byte[] ReadByte(string filepath, out int length, out string debugpath);
     }
 
     public class DefaultLoader : ILoader
@@ -72,11 +73,13 @@ namespace Puerts
 #endif
         }
 
-        protected internal override byte[] ReadByte(string filepath, out string debugpath) 
+        protected internal override byte[] ReadByte(string filepath, out int length, out string debugpath) 
         {
 #if PUERTS_GENERAL
             debugpath = Path.Combine(root, filepath);
-            return File.ReadAllBytes(debugpath);
+            byte[] bytes = File.ReadAllBytes(debugpath);
+            length = bytes.Length;
+            return bytes;
 #else
             string pathToUse = this.PathToUse(filepath);
             UnityEngine.TextAsset file = (UnityEngine.TextAsset)UnityEngine.Resources.Load(pathToUse);
@@ -85,7 +88,9 @@ namespace Puerts
 #if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
             debugpath = debugpath.Replace("/", "\\");
 #endif
-            return file == null ? null : file.bytes;
+            byte[] bytes = file == null ? null : file.bytes;
+            length = bytes.Length;
+            return bytes;
 #endif
         }
     }

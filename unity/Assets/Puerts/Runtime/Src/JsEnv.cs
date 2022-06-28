@@ -214,15 +214,16 @@ namespace Puerts
             }
         }
 
-        internal byte[] ResolveModuleContent(string identifer) 
+        internal byte[] ResolveModuleContent(string identifer, out int length) 
         {
             if (!loader.FileExists(identifer)) 
             {
+                length = 0;
                 return null;
             }
 
             string debugPath;
-            return loader.ReadByte(identifer, out debugPath);
+            return loader.ReadByte(identifer, out length, out debugPath);
         }
 
         /**

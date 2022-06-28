@@ -26,7 +26,7 @@ namespace Puerts
                 } 
                 else 
                 {
-                    content = env.ResolveModuleContent(identifer);
+                    content = env.ResolveModuleContent(identifer, out byteLength);
                     if (content == null)
                     {
                         return IntPtr.Zero;
@@ -37,8 +37,6 @@ namespace Puerts
             {
                 content = Encoding.UTF8.GetBytes("throw new Error(`resolve module '" + identifer + "' error: " + e.Message + "`)");
             }
-
-            byteLength = content.Length;
 
             // 这段内存是没有末尾0的，如果这段真是字符串，qjs可能需要添加末尾0才能准确解析，所以多分配一位。
             // 在我们的C++侧分配内存，不使用AllocHGlobal

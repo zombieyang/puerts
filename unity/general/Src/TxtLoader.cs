@@ -26,7 +26,7 @@ public class TxtLoader : ILoader
             File.Exists(Path.Combine(editorRoot, filepath));
     }
 
-    protected override byte[] ReadByte(string filepath, out string debugpath)
+    protected override byte[] ReadByte(string filepath, out int length, out string debugpath)
     {
         debugpath = Path.Combine(root, filepath);
         if (File.Exists(Path.Combine(editorRoot, filepath)))
@@ -38,12 +38,16 @@ public class TxtLoader : ILoader
         string mockContent;
         if (mockFileContent.TryGetValue(filepath, out mockContent))
         {
-            return Encoding.UTF8.GetBytes(mockContent);
+            byte[] bytes = Encoding.UTF8.GetBytes(mockContent);
+            length = bytes.Length;
+            return bytes;
         }
 
         using (StreamReader reader = new StreamReader(debugpath))
         {
-            return Encoding.UTF8.GetBytes(reader.ReadToEnd());
+            byte[] bytes = Encoding.UTF8.GetBytes(reader.ReadToEnd());
+            length = bytes.Length;
+            return bytes;
         }
     }
 
