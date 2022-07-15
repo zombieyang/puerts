@@ -72,11 +72,11 @@ jobs:
         uses: ./.github/workflows/composites/unity-download-backend/
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          backend: v8_9.4
+          backend: v8
       - name: Build
         run: |
           cd unity/native_src
-          node make.js --platform ios --backend v8_9.4
+          node make.js --platform ios --backend v8
       - name: Upload
         uses: actions/upload-artifact@v2
         with:
