@@ -25,7 +25,9 @@ function build() {
     cmake -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DJS_ENGINE=$ENGINE -DANDROID_ABI=${ABI} -H. -B${BUILD_PATH} -DCMAKE_TOOLCHAIN_FILE=${NDK}/build/cmake/android.toolchain.cmake -DANDROID_NATIVE_API_LEVEL=${API} -DANDROID_TOOLCHAIN=clang -DANDROID_TOOLCHAIN_NAME=${TOOLCHAIN_ANME}
     cmake --build ${BUILD_PATH} --config Release
     mkdir -p ../Assets/Plugins/Android/libs/${ABI}/
+    mkdir -p ../Assets/Plugins/Android_symbol~/libs/${ABI}/
     cp ${BUILD_PATH}/libpuerts.so ../Assets/Plugins/Android/libs/${ABI}/libpuerts.so
+    cp ${BUILD_PATH}/libpuerts.so.symbol ../Assets/Plugins/Android_symbol~/libs/${ABI}/libpuerts.so.symbol
 }
 
 build android-18 armeabi-v7a arm-linux-androideabi-4.9
