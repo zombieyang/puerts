@@ -120,7 +120,7 @@ const platformCompileConfig = {
             outputPluginPath: 'macOS/x86_64',
             hook: async function(CMAKE_BUILD_PATH, OUTPUT_PATH, options) {
                 sx.cd(CMAKE_BUILD_PATH);
-                await sxExecAsync(`cmake -DJS_ENGINE=${options.backend} -GXcode ..`)
+                await sxExecAsync(`cmake -DTHREAD_SAFE=1 -DJS_ENGINE=${options.backend} -GXcode ..`)
                 sx.cd("..")
                 await sxExecAsync(`cmake --build ${CMAKE_BUILD_PATH} --config ${options.config}`)
 
