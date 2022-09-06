@@ -37,6 +37,7 @@ elseif ( APPLE AND NOT IOS )
             
         endif ()
     endif()
+    
 elseif ( UNIX )
     set(LIB_FILE_NAMES 
         ${BACKEND_ROOT}/Lib/Linux/libquickjs.a
