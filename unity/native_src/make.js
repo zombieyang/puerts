@@ -83,7 +83,7 @@ const platformCompileConfig = {
                 await sxExecAsync(`cmake -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DJS_ENGINE=${options.backend} -DCMAKE_BUILD_TYPE=${options.config} -DANDROID_ABI=${ABI} -H. -B${CMAKE_BUILD_PATH} -DCMAKE_TOOLCHAIN_FILE=${NDK}/build/cmake/android.toolchain.cmake -DANDROID_NATIVE_API_LEVEL=${API} -DANDROID_TOOLCHAIN=clang -DANDROID_TOOLCHAIN_NAME=${TOOLCHAIN_NAME}`)
                 await sxExecAsync(`cmake --build ${CMAKE_BUILD_PATH} --config ${options.config}`)
 
-                sx.cp(`${CMAKE_BUILD_PATH}/libpuerts.so`, OUTPUT_PATH)
+                sx.cp(`${CMAKE_BUILD_PATH}/*.so*`, OUTPUT_PATH)
             }
         },
         'arm64': {
@@ -97,7 +97,7 @@ const platformCompileConfig = {
                 await sxExecAsync(`cmake -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DJS_ENGINE=${options.backend} -DCMAKE_BUILD_TYPE=${options.config} -DANDROID_ABI=${ABI} -H. -B${CMAKE_BUILD_PATH} -DCMAKE_TOOLCHAIN_FILE=${NDK}/build/cmake/android.toolchain.cmake -DANDROID_NATIVE_API_LEVEL=${API} -DANDROID_TOOLCHAIN=clang -DANDROID_TOOLCHAIN_NAME=${TOOLCHAIN_NAME}`)
                 await sxExecAsync(`cmake --build ${CMAKE_BUILD_PATH} --config ${options.config}`)
 
-                sx.cp(`${CMAKE_BUILD_PATH}/libpuerts.so`, OUTPUT_PATH)
+                sx.cp(`${CMAKE_BUILD_PATH}/*.so*`, OUTPUT_PATH)
             }
         }
     },
@@ -110,8 +110,8 @@ const platformCompileConfig = {
                 sx.cd("..")
                 await sxExecAsync(`cmake --build ${CMAKE_BUILD_PATH} --config ${options.config}`)
 
-                sx.cp(`${CMAKE_BUILD_PATH}/${options.config}-iphoneos/libpuerts.a`, OUTPUT_PATH)
-                sx.cp('-r', `${options.backend}/Lib/iOS/arm64/*.a`, OUTPUT_PATH)
+                sx.cp(`${CMAKE_BUILD_PATH}/${options.config}-iphoneos/*.a`, OUTPUT_PATH)
+                // sx.cp('-r', `${options.backend}/Lib/iOS/arm64/*.a`, OUTPUT_PATH)
             }
         }
     },
@@ -126,13 +126,11 @@ const platformCompileConfig = {
 
                 if (options.config != 'Release') {
                     sx.mkdir('-p', '../general/vs2013/Bin');
-                    sx.cp(`${CMAKE_BUILD_PATH}/${options.config}/libpuerts.dylib`, '../general/vs2013/Bin')
-                    sx.cp('-r', `${options.backend}/Lib/macOS/*.dylib`, '../general/vs2013/Bin')
+                    sx.cp(`${CMAKE_BUILD_PATH}/${options.config}/*.dylib`, '../general/vs2013/Bin')
                 }
                 
-                sx.cp(`${CMAKE_BUILD_PATH}/${options.config}/libpuerts.dylib`, OUTPUT_PATH)
+                sx.cp(`${CMAKE_BUILD_PATH}/${options.config}/*.dylib`, OUTPUT_PATH)
                 sx.mv(`${OUTPUT_PATH}/libpuerts.dylib`, OUTPUT_PATH + "/puerts.bundle")
-                sx.cp('-r', `${options.backend}/Lib/macOS/*.dylib`, OUTPUT_PATH)
             }
         },
         'arm64': {
@@ -145,11 +143,9 @@ const platformCompileConfig = {
 
                 if (options.config != 'Release') {
                     sx.mkdir('-p', '../general/vs2022/Bin');
-                    sx.cp(`${CMAKE_BUILD_PATH}/${options.config}/libpuerts.dylib`, '../general/vs2022/Bin')
-                    sx.cp('-r', `${options.backend}/Lib/macOS_arm64/*.dylib`, '../general/vs2022/Bin')
+                    sx.cp(`${CMAKE_BUILD_PATH}/${options.config}/*.dylib`, '../general/vs2022/Bin')
                 }
-                sx.cp(`${CMAKE_BUILD_PATH}/${options.config}/libpuerts.dylib`, OUTPUT_PATH)
-                sx.cp('-r', `${options.backend}/Lib/macOS_arm64/*.dylib`, OUTPUT_PATH)
+                sx.cp(`${CMAKE_BUILD_PATH}/${options.config}/*.dylib`, OUTPUT_PATH)
             }
         }
     },
@@ -164,11 +160,9 @@ const platformCompileConfig = {
                 
                 if (options.config != 'Release') {
                     sx.mkdir('-p', '../general/vs2013/Bin');
-                    sx.cp(`${CMAKE_BUILD_PATH}/${options.config}/puerts.dll`, '../general/vs2013/Bin')
-                    sx.cp('-r', `${options.backend}/Lib/Win64/*.dll`, '../general/vs2013/Bin')
+                    sx.cp(`${CMAKE_BUILD_PATH}/${options.config}/*.dll`, '../general/vs2013/Bin')
                 }
-                sx.cp(`${CMAKE_BUILD_PATH}/${options.config}/puerts.dll`, OUTPUT_PATH)
-                sx.cp('-r', `${options.backend}/Lib/Win64/*.dll`, OUTPUT_PATH)
+                sx.cp(`${CMAKE_BUILD_PATH}/${options.config}/*.dll`, OUTPUT_PATH)
             }
         },
         'ia32': {
@@ -181,11 +175,10 @@ const platformCompileConfig = {
                 
                 if (options.config != 'Release') {
                     sx.mkdir('-p', '../general/vs2013/Bin');
-                    sx.cp(`${CMAKE_BUILD_PATH}/${options.config}/puerts.dll`, '../general/vs2013/Bin')
-                    sx.cp('-r', `${options.backend}/Lib/Win64/*.dll`, '../general/vs2013/Bin')
+                    sx.cp(`${CMAKE_BUILD_PATH}/${options.config}/*.dll`, '../general/vs2013/Bin')
                 }
-                sx.cp(`${CMAKE_BUILD_PATH}/${options.config}/puerts.dll`, OUTPUT_PATH)
-                sx.cp('-r', `${options.backend}/Lib/Win32/*.dll`, OUTPUT_PATH)
+                sx.cp(`${CMAKE_BUILD_PATH}/${options.config}/*.dll`, OUTPUT_PATH)
+                // sx.cp('-r', `${options.backend}/Lib/Win32/*.dll`, OUTPUT_PATH)
             }
         }
     },
@@ -198,7 +191,7 @@ const platformCompileConfig = {
                 sx.cd("..")
                 await sxExecAsync(`cmake --build ${CMAKE_BUILD_PATH} --config ${options.config}`)
                 
-                sx.cp(`${CMAKE_BUILD_PATH}/libpuerts.so`, OUTPUT_PATH)
+                sx.cp(`${CMAKE_BUILD_PATH}/*`, OUTPUT_PATH)
             }
         }
     }
