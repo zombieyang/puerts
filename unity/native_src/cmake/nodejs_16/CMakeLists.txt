@@ -37,7 +37,7 @@ elseif ( APPLE AND NOT IOS )
             
         endif ()
     else ()
-        add_custom_command(TARGET puerts POST_BUILD COMMAND "cp" "${PROJECT_SOURCE_DIR}/${BACKEND_ROOT}/Lib/iOS/arm64/*.a" "${CMAKE_BINARY_DIR}/")
+        add_custom_command(TARGET puerts POST_BUILD COMMAND "cp" "${PROJECT_SOURCE_DIR}/${BACKEND_ROOT}/lib/iOS/*.a" "${CMAKE_BINARY_DIR}/")
     endif()
 
 elseif ( UNIX )
