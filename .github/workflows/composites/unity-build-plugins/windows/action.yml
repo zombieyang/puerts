@@ -25,7 +25,7 @@ runs:
       shell: powershell
       run: |
         cd unity\native_src
-        node make.js --platform win --backend ${{ inputs.backend }} --config ${{ inputs.config }}
+        node make.js --platform win --backend ${{ inputs.backend }} --config ${{ inputs.config }} --arch x64
     - name: Upload
       uses: actions/upload-artifact@v2
       with:
