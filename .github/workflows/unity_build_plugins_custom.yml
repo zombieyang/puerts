@@ -22,7 +22,7 @@ jobs:
     
     steps:
     - name: Build
-      uses: ./.github/workflows/composites/unity-build-plugins/android.yml
+      uses: ./.github/workflows/composites/unity-build-plugins/android/
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         backend: ${{ github.event.inputs.backend }}
@@ -31,7 +31,7 @@ jobs:
 
     steps:
     - name: Build
-      uses: ./.github/workflows/composites/unity-build-plugins/ios.yml
+      uses: ./.github/workflows/composites/unity-build-plugins/ios/
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         backend: ${{ github.event.inputs.backend }}
@@ -40,7 +40,7 @@ jobs:
 
     steps:
     - name: Build
-      uses: ./.github/workflows/composites/unity-build-plugins/osx.yml
+      uses: ./.github/workflows/composites/unity-build-plugins/osx/
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         backend: ${{ github.event.inputs.backend }}
@@ -49,7 +49,7 @@ jobs:
 
     steps:
     - name: Build
-      uses: ./.github/workflows/composites/unity-build-plugins/windows.yml
+      uses: ./.github/workflows/composites/unity-build-plugins/windows/
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         backend: ${{ github.event.inputs.backend }}
@@ -58,7 +58,7 @@ jobs:
 
     steps:
     - name: Build
-      uses: ./.github/workflows/composites/unity-build-plugins/linux.yml
+      uses: ./.github/workflows/composites/unity-build-plugins/linux/
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         backend: ${{ github.event.inputs.backend }}
