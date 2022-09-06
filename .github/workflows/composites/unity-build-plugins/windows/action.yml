@@ -19,14 +19,15 @@ runs:
     - name: Get backend artifact
       uses: ./.github/workflows/composites/unity-download-backend/
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        backend: ${{ github.event.inputs.backend }}
+        github_token: ${{ inputs.GITHUB_TOKEN }}
+        backend: ${{ inputs.backend }}
     - name: Build
+      shell: powershell
       run: |
         cd unity\native_src
-        node make.js --platform win --backend ${{ github.event.inputs.backend }} --config ${{ github.event.inputs.config }}
+        node make.js --platform win --backend ${{ inputs.backend }} --config ${{ inputs.config }}
     - name: Upload
       uses: actions/upload-artifact@v2
       with:
         path: ./unity/Assets/Plugins/**/*
-        name: Unity_Plugins (${{ github.event.inputs.backend }}_${{ github.event.inputs.config }})
+        name: Unity_Plugins (${{ inputs.backend }}_${{ inputs.config }})

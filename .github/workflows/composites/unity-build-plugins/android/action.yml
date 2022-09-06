@@ -19,20 +19,22 @@ runs:
     - name: Get backend artifact
       uses: ./.github/workflows/composites/unity-download-backend/
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        backend: ${{ github.event.inputs.backend }}
+        github_token: ${{ inputs.GITHUB_TOKEN }}
+        backend: ${{ inputs.backend }}
     - name: Install NDK
+      shell: bash
       run: |
         cd ~
         wget -O NDK -q https://dl.google.com/android/repository/android-ndk-r21b-linux-x86_64.zip
         sudo apt install unzip -y
         unzip -q NDK
     - name: Build
+      shell: bash
       run: |
         cd unity/native_src
-        ANDROID_NDK=~/android-ndk-r21b node make.js --platform android --backend ${{ github.event.inputs.backend }} --config ${{ github.event.inputs.config }}
+        ANDROID_NDK=~/android-ndk-r21b node make.js --platform android --backend ${{ inputs.backend }} --config ${{ inputs.config }}
     - name: Upload
       uses: actions/upload-artifact@v2
       with:
         path: ./unity/Assets/Plugins/**/*
-        name: Unity_Plugins (${{ github.event.inputs.backend }}_${{ github.event.inputs.config }})
+        name: Unity_Plugins (${{ inputs.backend }}_${{ inputs.config }})
