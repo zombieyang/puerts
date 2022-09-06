@@ -190,14 +190,10 @@ elseif (UNIX)
 endif ()
 
 # link
-foreach(LIB_FILE_NAME IN LISTS LIB_FILE_NAMES)
-    target_link_libraries(puerts
-        ${LIB_FILE_NAME}
-    )
-    if ( LIB_FILE_NAME MATCHES "^(\.dll|\.so|\.dylib)$")
-        add_custom_command(TARGET puerts POST_BUILD COMMAND "cp" "${LIB_FILE_NAME}" "${CMAKE_BINARY_DIR}/")
-    endif ()
-endforeach()
+target_link_libraries(puerts
+    ${LIB_FILE_NAMES}
+)
+file(COPY ${COPY_FILE_NAMES} DESTINATION ${CMAKE_BINARY_DIR})
 
 if ( WIN32 AND NOT CYGWIN AND NOT ( CMAKE_SYSTEM_NAME STREQUAL "WindowsStore" ) AND NOT ANDROID AND NOT MSYS)
 	set_property(TARGET puerts PROPERTY
