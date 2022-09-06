@@ -32,7 +32,7 @@ runs:
       shell: bash
       run: |
         cd unity/native_src
-        ls -l ${{ inputs.backend }}/Lib/
+        ls -l ${{ inputs.backend }}/
         ANDROID_NDK=~/android-ndk-r21b node make.js --platform android --backend ${{ inputs.backend }} --config ${{ inputs.config }}
     - name: Upload
       uses: actions/upload-artifact@v2
