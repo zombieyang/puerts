@@ -21,7 +21,6 @@ runs:
         sudo apt-get install clang
         sudo apt-get install libc++-dev
         sudo apt-get install libc++abi-dev
-    - uses: actions/checkout@v2
     - name: Get backend artifact
       uses: ./.github/workflows/composites/unity-download-backend/
       with:

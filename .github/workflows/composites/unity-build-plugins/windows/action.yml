@@ -16,7 +16,6 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - uses: actions/checkout@v2
     - name: Get backend artifact
       uses: ./.github/workflows/composites/unity-download-backend/
       with:
