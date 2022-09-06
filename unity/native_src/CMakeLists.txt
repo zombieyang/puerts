@@ -32,12 +32,17 @@ set(BACKEND_ROOT ${PROJECT_SOURCE_DIR}/${JS_ENGINE})
 
 set(ThirdParty ${PROJECT_SOURCE_DIR}/../../unreal/Puerts/ThirdParty)
 
+string (REPLACE ";" "$<SEMICOLON>" BACKEND_INC_NAMES "${BACKEND_INC_NAMES}")
+string (REPLACE ";" "$<SEMICOLON>" BACKEND_LIB_NAMES "${BACKEND_LIB_NAMES}")
+string (REPLACE ";" "$<SEMICOLON>" BACKEND_DEFINITIONS "${BACKEND_DEFINITIONS}")
+
 include_directories(
     ${PROJECT_SOURCE_DIR}
     ${ThirdParty}/Include/websocketpp
     ${ThirdParty}/Include/asio
     Inc
     ${PROJECT_SOURCE_DIR}/../../unreal/Puerts/Source/JsEnv/Private
+    ${BACKEND_ROOT}${BACKEND_INC_NAMES}
 )
 
 set ( PUERTS_INC
@@ -115,8 +120,6 @@ if ( NOT CMAKE_BUILD_TYPE MATCHES "Release" )
     target_compile_definitions (puerts PRIVATE PUERTS_DEBUG)
 endif ()
 
-include(${PROJECT_SOURCE_DIR}/cmake/${JS_ENGINE}/CMakeLists.txt)
-
 if ( MSYS OR WIN32 )
     if ( WIN32 ) 
         target_link_libraries(puerts
@@ -190,10 +193,13 @@ elseif (UNIX)
 endif ()
 
 # link
-target_link_libraries(puerts
-    ${LIB_FILE_NAMES}
-)
-file(COPY ${COPY_FILE_NAMES} DESTINATION ${CMAKE_BINARY_DIR})
+# foreach(BACKEND_LIB_NAME in BACKEND_LIB_NAMES)
+    target_link_libraries(puerts
+        ${BACKEND_ROOT}${BACKEND_LIB_NAMES}
+    )
+# endforeach()
+
+target_compile_definitions (puerts PRIVATE ${BACKEND_DEFINITIONS})
 
 if ( WIN32 AND NOT CYGWIN AND NOT ( CMAKE_SYSTEM_NAME STREQUAL "WindowsStore" ) AND NOT ANDROID AND NOT MSYS)
 	set_property(TARGET puerts PROPERTY

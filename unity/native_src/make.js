@@ -74,13 +74,13 @@ const platformCompileConfig = {
     'android': {
         'armv7': {
             outputPluginPath: 'Android/libs/armeabi-v7a/',
-            hook: async function(CMAKE_BUILD_PATH, OUTPUT_PATH, options) {
+            hook: async function(CMAKE_BUILD_PATH, OUTPUT_PATH, options, cmakeDArgs) {
                 const NDK = process.env.ANDROID_NDK || process.env.ANDROID_NDK_HOME || '~/android-ndk-r21b';
                 const API = 'android-21';
                 const ABI = 'armeabi-v7a';
                 const TOOLCHAIN_NAME = 'arm-linux-androideabi-4.9';
 
-                await sxExecAsync(`cmake -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DJS_ENGINE=${options.backend} -DCMAKE_BUILD_TYPE=${options.config} -DANDROID_ABI=${ABI} -H. -B${CMAKE_BUILD_PATH} -DCMAKE_TOOLCHAIN_FILE=${NDK}/build/cmake/android.toolchain.cmake -DANDROID_NATIVE_API_LEVEL=${API} -DANDROID_TOOLCHAIN=clang -DANDROID_TOOLCHAIN_NAME=${TOOLCHAIN_NAME}`)
+                await sxExecAsync(`cmake ${cmakeDArgs} -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DJS_ENGINE=${options.backend} -DCMAKE_BUILD_TYPE=${options.config} -DANDROID_ABI=${ABI} -H. -B${CMAKE_BUILD_PATH} -DCMAKE_TOOLCHAIN_FILE=${NDK}/build/cmake/android.toolchain.cmake -DANDROID_NATIVE_API_LEVEL=${API} -DANDROID_TOOLCHAIN=clang -DANDROID_TOOLCHAIN_NAME=${TOOLCHAIN_NAME}`)
                 await sxExecAsync(`cmake --build ${CMAKE_BUILD_PATH} --config ${options.config}`)
 
                 sx.cp(`${CMAKE_BUILD_PATH}/libpuerts.so`, OUTPUT_PATH)
@@ -88,13 +88,13 @@ const platformCompileConfig = {
         },
         'arm64': {
             outputPluginPath: 'Android/libs/arm64-v8a/',
-            hook: async function(CMAKE_BUILD_PATH, OUTPUT_PATH, options) {
+            hook: async function(CMAKE_BUILD_PATH, OUTPUT_PATH, options, cmakeDArgs) {
                 const NDK = process.env.ANDROID_NDK || process.env.ANDROID_NDK_HOME || '~/android-ndk-r21b';
                 const API = 'android-21';
                 const ABI = 'arm64-v8a';
                 const TOOLCHAIN_NAME = 'arm-linux-androideabi-clang';
 
-                await sxExecAsync(`cmake -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DJS_ENGINE=${options.backend} -DCMAKE_BUILD_TYPE=${options.config} -DANDROID_ABI=${ABI} -H. -B${CMAKE_BUILD_PATH} -DCMAKE_TOOLCHAIN_FILE=${NDK}/build/cmake/android.toolchain.cmake -DANDROID_NATIVE_API_LEVEL=${API} -DANDROID_TOOLCHAIN=clang -DANDROID_TOOLCHAIN_NAME=${TOOLCHAIN_NAME}`)
+                await sxExecAsync(`cmake ${cmakeDArgs} -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DJS_ENGINE=${options.backend} -DCMAKE_BUILD_TYPE=${options.config} -DANDROID_ABI=${ABI} -H. -B${CMAKE_BUILD_PATH} -DCMAKE_TOOLCHAIN_FILE=${NDK}/build/cmake/android.toolchain.cmake -DANDROID_NATIVE_API_LEVEL=${API} -DANDROID_TOOLCHAIN=clang -DANDROID_TOOLCHAIN_NAME=${TOOLCHAIN_NAME}`)
                 await sxExecAsync(`cmake --build ${CMAKE_BUILD_PATH} --config ${options.config}`)
 
                 sx.cp(`${CMAKE_BUILD_PATH}/libpuerts.so`, OUTPUT_PATH)
@@ -104,9 +104,9 @@ const platformCompileConfig = {
     'ios': {
         'arm64': {
             outputPluginPath: 'iOS',
-            hook: async function(CMAKE_BUILD_PATH, OUTPUT_PATH, options) {
+            hook: async function(CMAKE_BUILD_PATH, OUTPUT_PATH, options, cmakeDArgs) {
                 sx.cd(CMAKE_BUILD_PATH);
-                await sxExecAsync(`cmake -DJS_ENGINE=${options.backend} -DCMAKE_BUILD_TYPE=${options.config} -DCMAKE_TOOLCHAIN_FILE=../cmake/ios.toolchain.cmake -DPLATFORM=OS64 -GXcode ..`)
+                await sxExecAsync(`cmake ${cmakeDArgs} -DJS_ENGINE=${options.backend} -DCMAKE_BUILD_TYPE=${options.config} -DCMAKE_TOOLCHAIN_FILE=../cmake/ios.toolchain.cmake -DPLATFORM=OS64 -GXcode ..`)
                 sx.cd("..")
                 await sxExecAsync(`cmake --build ${CMAKE_BUILD_PATH} --config ${options.config}`)
 
@@ -118,9 +118,9 @@ const platformCompileConfig = {
     'osx': {
         'x64': {
             outputPluginPath: 'macOS/x86_64',
-            hook: async function(CMAKE_BUILD_PATH, OUTPUT_PATH, options) {
+            hook: async function(CMAKE_BUILD_PATH, OUTPUT_PATH, options, cmakeDArgs) {
                 sx.cd(CMAKE_BUILD_PATH);
-                await sxExecAsync(`cmake -DTHREAD_SAFE=1 -DJS_ENGINE=${options.backend} -GXcode ..`)
+                await sxExecAsync(`cmake ${cmakeDArgs} -DTHREAD_SAFE=1 -DJS_ENGINE=${options.backend} -GXcode ..`)
                 sx.cd("..")
                 await sxExecAsync(`cmake --build ${CMAKE_BUILD_PATH} --config ${options.config}`)
 
@@ -137,9 +137,10 @@ const platformCompileConfig = {
         },
         'arm64': {
             outputPluginPath: 'macOS/arm64',
-            hook: async function(CMAKE_BUILD_PATH, OUTPUT_PATH, options) {
+            hook: async function(CMAKE_BUILD_PATH, OUTPUT_PATH, options, cmakeDArgs) {
                 sx.cd(CMAKE_BUILD_PATH);
-                await sxExecAsync(`cmake -DJS_ENGINE=${options.backend} -DFOR_SILICON=ON -GXcode ..`)
+                console.log(`cmake ${cmakeDArgs} -DTHREAD_SAFE=1 -DJS_ENGINE=${options.backend} -GXcode ..`);
+                await sxExecAsync(`cmake ${cmakeDArgs} -DJS_ENGINE=${options.backend} -DFOR_SILICON=ON -GXcode ..`)
                 sx.cd("..")
                 await sxExecAsync(`cmake --build ${CMAKE_BUILD_PATH} --config ${options.config}`)
 
@@ -156,9 +157,9 @@ const platformCompileConfig = {
     'win': {
         'x64': {
             outputPluginPath: 'x86_64',
-            hook: async function(CMAKE_BUILD_PATH, OUTPUT_PATH, options) {
+            hook: async function(CMAKE_BUILD_PATH, OUTPUT_PATH, options, cmakeDArgs) {
                 sx.cd(CMAKE_BUILD_PATH);                         
-                await sxExecAsync(`cmake -DJS_ENGINE=${options.backend} -DCMAKE_BUILD_TYPE=${options.config} -G "Visual Studio 16 2019" -A x64 ..`)
+                await sxExecAsync(`cmake ${cmakeDArgs} -DJS_ENGINE=${options.backend} -DCMAKE_BUILD_TYPE=${options.config} -G "Visual Studio 16 2019" -A x64 ..`)
                 sx.cd("..")
                 await sxExecAsync(`cmake --build ${CMAKE_BUILD_PATH} --config ${options.config}`)
                 
@@ -173,9 +174,9 @@ const platformCompileConfig = {
         },
         'ia32': {
             outputPluginPath: 'x86',
-            hook: async function(CMAKE_BUILD_PATH, OUTPUT_PATH, options) {
+            hook: async function(CMAKE_BUILD_PATH, OUTPUT_PATH, options, cmakeDArgs) {
                 sx.cd(CMAKE_BUILD_PATH);
-                await sxExecAsync(`cmake -DJS_ENGINE=${options.backend} -DCMAKE_BUILD_TYPE=${options.config} -G "Visual Studio 16 2019" -A Win32 ..`)
+                await sxExecAsync(`cmake ${cmakeDArgs} -DJS_ENGINE=${options.backend} -DCMAKE_BUILD_TYPE=${options.config} -G "Visual Studio 16 2019" -A Win32 ..`)
                 sx.cd("..")
                 await sxExecAsync(`cmake --build ${CMAKE_BUILD_PATH} --config ${options.config}`)
                 
@@ -192,9 +193,9 @@ const platformCompileConfig = {
     'linux': {
         'x64': {
             outputPluginPath: 'x86_64',
-            hook: async function(CMAKE_BUILD_PATH, OUTPUT_PATH, options) {
+            hook: async function(CMAKE_BUILD_PATH, OUTPUT_PATH, options, cmakeDArgs) {
                 sx.cd(CMAKE_BUILD_PATH);
-                await sxExecAsync(`cmake -DJS_ENGINE=${options.backend} -DCMAKE_BUILD_TYPE=${options.config} ..`)
+                await sxExecAsync(`cmake ${cmakeDArgs} -DJS_ENGINE=${options.backend} -DCMAKE_BUILD_TYPE=${options.config} ..`)
                 sx.cd("..")
                 await sxExecAsync(`cmake --build ${CMAKE_BUILD_PATH} --config ${options.config}`)
                 
@@ -230,8 +231,14 @@ async function runMake() {
     const BuildConfig = platformCompileConfig[options.platform][options.arch];
     const CMAKE_BUILD_PATH = pwd + `/build_${options.platform}_${options.arch}_${options.backend}${options.config != "Release" ? "_debug": ""}`
     const OUTPUT_PATH = pwd + '/../Assets/Plugins/' + BuildConfig.outputPluginPath;
+    const BackendConfig = JSON.parse(fs.readFileSync(pwd + `/cmake/${options.backend}/backend.json`))
     
+    const definitionD = (BackendConfig.definition || []).join(';')
+    const linkD =  (BackendConfig.link[options.platform]?.[options.arch] || []).join(';')
+    const incD = (BackendConfig.include || []).join(';')
+
     sx.mkdir('-p', CMAKE_BUILD_PATH);
     sx.mkdir('-p', OUTPUT_PATH)
-    return await BuildConfig.hook(CMAKE_BUILD_PATH, OUTPUT_PATH, options);    
+    const DArgsName = ['-DBACKEND_DEFINITIONS=', '-DBACKEND_LIB_NAMES=', '-DBACKEND_INC_NAMES=']
+    return await BuildConfig.hook(CMAKE_BUILD_PATH, OUTPUT_PATH, options, [definitionD, linkD, incD].map((r, index)=> r ? DArgsName[index] + '"' + r + '"' : null).filter(t=> t).join(' '));    
 }

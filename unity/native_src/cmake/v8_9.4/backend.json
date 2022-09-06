@@ -17,7 +17,7 @@
     },
     "copy": {
         "ios": {
-            "arm64": ["/Lib/iOS/arm64/*.a"]
+            "arm64": ["/Lib/iOS/arm64/libwee8.a"]
         }
     }
 }

@@ -1,0 +1,4 @@
+/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs/CMakeFiles/puerts.dir
+/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs/CMakeFiles/install.dir
+/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs/CMakeFiles/ALL_BUILD.dir
+/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs/CMakeFiles/ZERO_CHECK.dir

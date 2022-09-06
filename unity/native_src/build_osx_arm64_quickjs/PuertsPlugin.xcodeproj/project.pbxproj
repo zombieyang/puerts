@@ -1,0 +1,1038 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXAggregateTarget section */
+		09E9723C22D245B4B902F289 /* ALL_BUILD */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = E8DBB90F8DE946419CD6A83E /* Build configuration list for PBXAggregateTarget "ALL_BUILD" */;
+			buildPhases = (
+				9B76922B507FB52D84FB510C /* Generate CMakeFiles/ALL_BUILD */,
+			);
+			dependencies = (
+				C84FE0785E554ECAB7B6E71E /* PBXTargetDependency */,
+				F2B9FA2AD8454794B834F6CD /* PBXTargetDependency */,
+			);
+			name = ALL_BUILD;
+			productName = ALL_BUILD;
+		};
+		39120E4EAB414803834FF5EF /* install */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 0728FEBE25124C5EADB7BC07 /* Build configuration list for PBXAggregateTarget "install" */;
+			buildPhases = (
+				93426DA6A4AC2C2AC9CE883C /* CMake PostBuild Rules */,
+			);
+			dependencies = (
+				D9E0AB9041FE430D860A3E5E /* PBXTargetDependency */,
+			);
+			name = install;
+			productName = install;
+		};
+		746822F2841745CFB03B75F2 /* ZERO_CHECK */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 2C7836599B3B42DDB57102D4 /* Build configuration list for PBXAggregateTarget "ZERO_CHECK" */;
+			buildPhases = (
+				24A137B3E91C6506D8DEF24E /* Generate CMakeFiles/ZERO_CHECK */,
+			);
+			dependencies = (
+			);
+			name = ZERO_CHECK;
+			productName = ZERO_CHECK;
+		};
+/* End PBXAggregateTarget section */
+
+/* Begin PBXBuildFile section */
+		141D58580F304CCE91EBA973 /* /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/Inc/JSEngine.h */ = {isa = PBXBuildFile; fileRef = B54A0981DAD44F0F99138D25 /* /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/Inc/JSEngine.h */; };
+		2DB2CB45028F4EFFBE511357 /* /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/Src/JSEngine.cpp */ = {isa = PBXBuildFile; fileRef = 71A0D5B17752458D841F2B5E /* /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/Src/JSEngine.cpp */; };
+		3E2783965D9F41D584B2C607 /* /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/Src/JSFunction.cpp */ = {isa = PBXBuildFile; fileRef = 1338719336BE406F89F0D1D1 /* /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/Src/JSFunction.cpp */; };
+		43B0943E65DB429A92BE0FED /* /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/Inc/JSFunction.h */ = {isa = PBXBuildFile; fileRef = 1AD36DF4B952484C9489EF71 /* /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/Inc/JSFunction.h */; };
+		72B8AFDC6753484689B6A88E /* /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/Inc/Log.h */ = {isa = PBXBuildFile; fileRef = 9D0256004C564A46B8D49AE2 /* /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/Inc/Log.h */; };
+		78AA825CCC87421281ABF8B1 /* /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/Inc/V8Utils.h */ = {isa = PBXBuildFile; fileRef = 2F574ABBDB614ED29C85EFC5 /* /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/Inc/V8Utils.h */; };
+		BE40DE5B91C74D2DB4BD5E84 /* /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/Src/JSEngine_Eval.cpp */ = {isa = PBXBuildFile; fileRef = 4AE84A9076C44AB38CD54505 /* /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/Src/JSEngine_Eval.cpp */; };
+		C0FF914701B64BA6A32F491D /* /Volumes/DATA/Code/puerts@stable/puerts/unreal/Puerts/Source/JsEnv/Private/V8InspectorImpl.cpp */ = {isa = PBXBuildFile; fileRef = E584D9D7B8FE4CB1885505CD /* /Volumes/DATA/Code/puerts@stable/puerts/unreal/Puerts/Source/JsEnv/Private/V8InspectorImpl.cpp */; };
+		C4314B555EA44D8E95023590 /* /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/CMakeLists.txt */ = {isa = PBXBuildFile; fileRef = 953BC95927ED46B5AD3B3174 /* /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/CMakeLists.txt */; };
+		C942C96633324867BEC1D773 /* /Volumes/DATA/Code/puerts@stable/puerts/unreal/Puerts/Source/JsEnv/Private/PromiseRejectCallback.hpp */ = {isa = PBXBuildFile; fileRef = 8B30A6A9C66B4DB582DD3D6B /* /Volumes/DATA/Code/puerts@stable/puerts/unreal/Puerts/Source/JsEnv/Private/PromiseRejectCallback.hpp */; };
+		D50BE0396B844A6EAFE6CAC2 /* /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/Src/Log.cpp */ = {isa = PBXBuildFile; fileRef = 3650DC0589F44D79B08D519E /* /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/Src/Log.cpp */; };
+		D782A716CE6B45E99396B998 /* /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/Src/Puerts.cpp */ = {isa = PBXBuildFile; fileRef = 7799A4B887E1417E9C539FB5 /* /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/Src/Puerts.cpp */; };
+		F23128C56D6E49EC95ABA22C /* /Volumes/DATA/Code/puerts@stable/puerts/unreal/Puerts/Source/JsEnv/Private/V8InspectorImpl.h */ = {isa = PBXBuildFile; fileRef = ADBF68FDA69949159781734C /* /Volumes/DATA/Code/puerts@stable/puerts/unreal/Puerts/Source/JsEnv/Private/V8InspectorImpl.h */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXBuildStyle section */
+		0CF1844502474E29BFF01B89 /* Release */ = {
+			isa = PBXBuildStyle;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+			};
+			name = Release;
+		};
+		38AAD1DD120345C687B9AAC6 /* MinSizeRel */ = {
+			isa = PBXBuildStyle;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+			};
+			name = MinSizeRel;
+		};
+		6CF7B227D78A447EAF22549B /* Debug */ = {
+			isa = PBXBuildStyle;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+			};
+			name = Debug;
+		};
+		D2ED99D997DB4E3CB13C6CA4 /* RelWithDebInfo */ = {
+			isa = PBXBuildStyle;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+			};
+			name = RelWithDebInfo;
+		};
+/* End PBXBuildStyle section */
+
+/* Begin PBXContainerItemProxy section */
+		30B6AF5819FF474DBD145E80 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 6F65991B2959428A93AA383A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E7A3829DBE9C43F1A5969ABE;
+			remoteInfo = puerts;
+		};
+		3FE791E186EA425DAE921AD0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 6F65991B2959428A93AA383A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 09E9723C22D245B4B902F289;
+			remoteInfo = ALL_BUILD;
+		};
+		DD33666B9A154C4FBA8A6235 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 6F65991B2959428A93AA383A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 746822F2841745CFB03B75F2;
+			remoteInfo = ZERO_CHECK;
+		};
+		E6E2DCD10C7A408084BE4176 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 6F65991B2959428A93AA383A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 746822F2841745CFB03B75F2;
+			remoteInfo = ZERO_CHECK;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		1338719336BE406F89F0D1D1 /* /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/Src/JSFunction.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = JSFunction.cpp; path = Src/JSFunction.cpp; sourceTree = SOURCE_ROOT; };
+		1AD36DF4B952484C9489EF71 /* /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/Inc/JSFunction.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = JSFunction.h; path = Inc/JSFunction.h; sourceTree = SOURCE_ROOT; };
+		2F574ABBDB614ED29C85EFC5 /* /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/Inc/V8Utils.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = V8Utils.h; path = Inc/V8Utils.h; sourceTree = SOURCE_ROOT; };
+		3650DC0589F44D79B08D519E /* /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/Src/Log.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = Log.cpp; path = Src/Log.cpp; sourceTree = SOURCE_ROOT; };
+		4AE84A9076C44AB38CD54505 /* /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/Src/JSEngine_Eval.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = JSEngine_Eval.cpp; path = Src/JSEngine_Eval.cpp; sourceTree = SOURCE_ROOT; };
+		6CB018BAFBE4481CA26C5948 /* /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/CMakeLists.txt */ = {isa = PBXFileReference; explicitFileType = sourcecode.text; fileEncoding = 4; name = CMakeLists.txt; path = CMakeLists.txt; sourceTree = SOURCE_ROOT; };
+		71A0D5B17752458D841F2B5E /* /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/Src/JSEngine.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = JSEngine.cpp; path = Src/JSEngine.cpp; sourceTree = SOURCE_ROOT; };
+		7799A4B887E1417E9C539FB5 /* /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/Src/Puerts.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = Puerts.cpp; path = Src/Puerts.cpp; sourceTree = SOURCE_ROOT; };
+		8B30A6A9C66B4DB582DD3D6B /* /Volumes/DATA/Code/puerts@stable/puerts/unreal/Puerts/Source/JsEnv/Private/PromiseRejectCallback.hpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; fileEncoding = 4; name = PromiseRejectCallback.hpp; path = ../../unreal/Puerts/Source/JsEnv/Private/PromiseRejectCallback.hpp; sourceTree = SOURCE_ROOT; };
+		953BC95927ED46B5AD3B3174 /* /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/CMakeLists.txt */ = {isa = PBXFileReference; explicitFileType = sourcecode.text; fileEncoding = 4; name = CMakeLists.txt; path = CMakeLists.txt; sourceTree = SOURCE_ROOT; };
+		9D0256004C564A46B8D49AE2 /* /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/Inc/Log.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = Log.h; path = Inc/Log.h; sourceTree = SOURCE_ROOT; };
+		ADBF68FDA69949159781734C /* /Volumes/DATA/Code/puerts@stable/puerts/unreal/Puerts/Source/JsEnv/Private/V8InspectorImpl.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = V8InspectorImpl.h; path = ../../unreal/Puerts/Source/JsEnv/Private/V8InspectorImpl.h; sourceTree = SOURCE_ROOT; };
+		B54A0981DAD44F0F99138D25 /* /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/Inc/JSEngine.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = JSEngine.h; path = Inc/JSEngine.h; sourceTree = SOURCE_ROOT; };
+		D1EA283E5E194A3EA367D9EE /* puerts */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; path = libpuerts.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
+		E584D9D7B8FE4CB1885505CD /* /Volumes/DATA/Code/puerts@stable/puerts/unreal/Puerts/Source/JsEnv/Private/V8InspectorImpl.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = V8InspectorImpl.cpp; path = ../../unreal/Puerts/Source/JsEnv/Private/V8InspectorImpl.cpp; sourceTree = SOURCE_ROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		94D0F1BF3B8043FA82488E84 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0FD34C2FECB449C0B488CBF1 = {
+			isa = PBXGroup;
+			children = (
+				AD2CB99D0A2A43AD9EED6575 /* puerts */,
+				5CE17F8F0B264D0BA8E1CF84 /* ALL_BUILD */,
+				50F70C6A9DB44C00BF951E51 /* Products */,
+				F240DCF470E04651AE9E8903 /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		1BB851B033554FD2B1D8E809 /* Src */ = {
+			isa = PBXGroup;
+			children = (
+				71A0D5B17752458D841F2B5E /* /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/Src/JSEngine.cpp */,
+				4AE84A9076C44AB38CD54505 /* /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/Src/JSEngine_Eval.cpp */,
+				1338719336BE406F89F0D1D1 /* /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/Src/JSFunction.cpp */,
+				3650DC0589F44D79B08D519E /* /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/Src/Log.cpp */,
+				7799A4B887E1417E9C539FB5 /* /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/Src/Puerts.cpp */,
+			);
+			name = Src;
+			sourceTree = "<group>";
+		};
+		47627828FB1242978995600F /* Puerts */ = {
+			isa = PBXGroup;
+			children = (
+				B2F465B6489449D7A53789D6 /* Source */,
+			);
+			name = Puerts;
+			sourceTree = "<group>";
+		};
+		4B64844B8D584B209425156D /* Private */ = {
+			isa = PBXGroup;
+			children = (
+				8B30A6A9C66B4DB582DD3D6B /* /Volumes/DATA/Code/puerts@stable/puerts/unreal/Puerts/Source/JsEnv/Private/PromiseRejectCallback.hpp */,
+				E584D9D7B8FE4CB1885505CD /* /Volumes/DATA/Code/puerts@stable/puerts/unreal/Puerts/Source/JsEnv/Private/V8InspectorImpl.cpp */,
+				ADBF68FDA69949159781734C /* /Volumes/DATA/Code/puerts@stable/puerts/unreal/Puerts/Source/JsEnv/Private/V8InspectorImpl.h */,
+			);
+			name = Private;
+			sourceTree = "<group>";
+		};
+		4D0FB9535CB046A2B6E456C3 /* CMake Rules */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = "CMake Rules";
+			sourceTree = "<group>";
+		};
+		50F70C6A9DB44C00BF951E51 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D1EA283E5E194A3EA367D9EE /* puerts */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		5CE17F8F0B264D0BA8E1CF84 /* ALL_BUILD */ = {
+			isa = PBXGroup;
+			children = (
+				4D0FB9535CB046A2B6E456C3 /* CMake Rules */,
+				6CB018BAFBE4481CA26C5948 /* /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/CMakeLists.txt */,
+			);
+			name = ALL_BUILD;
+			sourceTree = "<group>";
+		};
+		60F3DC1261DF4EE08EBFF966 /* .. */ = {
+			isa = PBXGroup;
+			children = (
+				D4DDADD76A3F4DEEB9A226C3 /* .. */,
+			);
+			name = ..;
+			sourceTree = "<group>";
+		};
+		A7EF6971EB4741F4BAC85905 /* JsEnv */ = {
+			isa = PBXGroup;
+			children = (
+				4B64844B8D584B209425156D /* Private */,
+			);
+			name = JsEnv;
+			sourceTree = "<group>";
+		};
+		ACC3DD35E374497789268E5A /* Inc */ = {
+			isa = PBXGroup;
+			children = (
+				B54A0981DAD44F0F99138D25 /* /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/Inc/JSEngine.h */,
+				1AD36DF4B952484C9489EF71 /* /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/Inc/JSFunction.h */,
+				9D0256004C564A46B8D49AE2 /* /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/Inc/Log.h */,
+				2F574ABBDB614ED29C85EFC5 /* /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/Inc/V8Utils.h */,
+			);
+			name = Inc;
+			sourceTree = "<group>";
+		};
+		AD2CB99D0A2A43AD9EED6575 /* puerts */ = {
+			isa = PBXGroup;
+			children = (
+				1BB851B033554FD2B1D8E809 /* Src */,
+				60F3DC1261DF4EE08EBFF966 /* .. */,
+				ACC3DD35E374497789268E5A /* Inc */,
+				953BC95927ED46B5AD3B3174 /* /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/CMakeLists.txt */,
+			);
+			name = puerts;
+			sourceTree = "<group>";
+		};
+		B2F465B6489449D7A53789D6 /* Source */ = {
+			isa = PBXGroup;
+			children = (
+				A7EF6971EB4741F4BAC85905 /* JsEnv */,
+			);
+			name = Source;
+			sourceTree = "<group>";
+		};
+		C2E7074417214E088522E8CD /* unreal */ = {
+			isa = PBXGroup;
+			children = (
+				47627828FB1242978995600F /* Puerts */,
+			);
+			name = unreal;
+			sourceTree = "<group>";
+		};
+		D4DDADD76A3F4DEEB9A226C3 /* .. */ = {
+			isa = PBXGroup;
+			children = (
+				C2E7074417214E088522E8CD /* unreal */,
+			);
+			name = ..;
+			sourceTree = "<group>";
+		};
+		F240DCF470E04651AE9E8903 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		E7A3829DBE9C43F1A5969ABE /* puerts */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 98796469AB2443468F5354CA /* Build configuration list for PBXNativeTarget "puerts" */;
+			buildPhases = (
+				D67DE4D226FB41509CC6A2B2 /* Sources */,
+				94D0F1BF3B8043FA82488E84 /* Frameworks */,
+				B4702E4C8CF34A18D44EF9FA /* CMake PostBuild Rules */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				4B1D3032DB3B4606B02E0B82 /* PBXTargetDependency */,
+			);
+			name = puerts;
+			productName = puerts;
+			productReference = D1EA283E5E194A3EA367D9EE /* puerts */;
+			productType = "com.apple.product-type.library.dynamic";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		6F65991B2959428A93AA383A /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1340;
+			};
+			buildConfigurationList = BA5E887EAAD74D5F9E280B97 /* Build configuration list for PBXProject "PuertsPlugin" */;
+			buildSettings = {
+			};
+			buildStyles = (
+				6CF7B227D78A447EAF22549B /* Debug */,
+				0CF1844502474E29BFF01B89 /* Release */,
+				38AAD1DD120345C687B9AAC6 /* MinSizeRel */,
+				D2ED99D997DB4E3CB13C6CA4 /* RelWithDebInfo */,
+			);
+			compatibilityVersion = "Xcode 3.2";
+			hasScannedForEncodings = 0;
+			mainGroup = 0FD34C2FECB449C0B488CBF1;
+			projectDirPath = ../;
+			projectRoot = "";
+			targets = (
+				09E9723C22D245B4B902F289 /* ALL_BUILD */,
+				746822F2841745CFB03B75F2 /* ZERO_CHECK */,
+				39120E4EAB414803834FF5EF /* install */,
+				E7A3829DBE9C43F1A5969ABE /* puerts */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		24A137B3E91C6506D8DEF24E /* Generate CMakeFiles/ZERO_CHECK */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Generate CMakeFiles/ZERO_CHECK";
+			outputPaths = (
+"/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs/CMakeFiles/ZERO_CHECK"			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -e
+if test \"$CONFIGURATION\" = \"Debug\"; then :
+  cd /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs
+  make -f /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs/CMakeScripts/ReRunCMake.make
+fi
+if test \"$CONFIGURATION\" = \"Release\"; then :
+  cd /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs
+  make -f /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs/CMakeScripts/ReRunCMake.make
+fi
+if test \"$CONFIGURATION\" = \"MinSizeRel\"; then :
+  cd /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs
+  make -f /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs/CMakeScripts/ReRunCMake.make
+fi
+if test \"$CONFIGURATION\" = \"RelWithDebInfo\"; then :
+  cd /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs
+  make -f /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs/CMakeScripts/ReRunCMake.make
+fi
+";
+			showEnvVarsInLog = 0;
+		};
+		3C0110FC8322DE7E50886E21 = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# shell script goes here
+exit 0";
+			showEnvVarsInLog = 0;
+		};
+		87AF4882E018677E2624B544 = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# shell script goes here
+exit 0";
+			showEnvVarsInLog = 0;
+		};
+		93426DA6A4AC2C2AC9CE883C /* CMake PostBuild Rules */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "CMake PostBuild Rules";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -e
+if test \"$CONFIGURATION\" = \"Debug\"; then :
+  cd /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs
+  /Applications/CMake.app/Contents/bin/cmake -DBUILD_TYPE=$CONFIGURATION$EFFECTIVE_PLATFORM_NAME -P cmake_install.cmake
+fi
+if test \"$CONFIGURATION\" = \"Release\"; then :
+  cd /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs
+  /Applications/CMake.app/Contents/bin/cmake -DBUILD_TYPE=$CONFIGURATION$EFFECTIVE_PLATFORM_NAME -P cmake_install.cmake
+fi
+if test \"$CONFIGURATION\" = \"MinSizeRel\"; then :
+  cd /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs
+  /Applications/CMake.app/Contents/bin/cmake -DBUILD_TYPE=$CONFIGURATION$EFFECTIVE_PLATFORM_NAME -P cmake_install.cmake
+fi
+if test \"$CONFIGURATION\" = \"RelWithDebInfo\"; then :
+  cd /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs
+  /Applications/CMake.app/Contents/bin/cmake -DBUILD_TYPE=$CONFIGURATION$EFFECTIVE_PLATFORM_NAME -P cmake_install.cmake
+fi
+";
+			showEnvVarsInLog = 0;
+		};
+		9B50530E35CC49C82C2FACCF = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# shell script goes here
+exit 0";
+			showEnvVarsInLog = 0;
+		};
+		9B76922B507FB52D84FB510C /* Generate CMakeFiles/ALL_BUILD */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Generate CMakeFiles/ALL_BUILD";
+			outputPaths = (
+"/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs/CMakeFiles/ALL_BUILD"			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -e
+if test \"$CONFIGURATION\" = \"Debug\"; then :
+  cd /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs
+  echo Build\\ all\\ projects
+fi
+if test \"$CONFIGURATION\" = \"Release\"; then :
+  cd /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs
+  echo Build\\ all\\ projects
+fi
+if test \"$CONFIGURATION\" = \"MinSizeRel\"; then :
+  cd /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs
+  echo Build\\ all\\ projects
+fi
+if test \"$CONFIGURATION\" = \"RelWithDebInfo\"; then :
+  cd /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs
+  echo Build\\ all\\ projects
+fi
+";
+			showEnvVarsInLog = 0;
+		};
+		B4702E4C8CF34A18D44EF9FA /* CMake PostBuild Rules */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "CMake PostBuild Rules";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -e
+if test \"$CONFIGURATION\" = \"Debug\"; then :
+  cd /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs
+  /Applications/CMake.app/Contents/bin/cmake -E cmake_symlink_library /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs/Debug/libpuerts.dylib /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs/Debug/libpuerts.dylib /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs/Debug/libpuerts.dylib
+fi
+if test \"$CONFIGURATION\" = \"Release\"; then :
+  cd /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs
+  /Applications/CMake.app/Contents/bin/cmake -E cmake_symlink_library /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs/Release/libpuerts.dylib /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs/Release/libpuerts.dylib /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs/Release/libpuerts.dylib
+fi
+if test \"$CONFIGURATION\" = \"MinSizeRel\"; then :
+  cd /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs
+  /Applications/CMake.app/Contents/bin/cmake -E cmake_symlink_library /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs/MinSizeRel/libpuerts.dylib /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs/MinSizeRel/libpuerts.dylib /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs/MinSizeRel/libpuerts.dylib
+fi
+if test \"$CONFIGURATION\" = \"RelWithDebInfo\"; then :
+  cd /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs
+  /Applications/CMake.app/Contents/bin/cmake -E cmake_symlink_library /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs/RelWithDebInfo/libpuerts.dylib /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs/RelWithDebInfo/libpuerts.dylib /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs/RelWithDebInfo/libpuerts.dylib
+fi
+";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		D67DE4D226FB41509CC6A2B2 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2DB2CB45028F4EFFBE511357 /* /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/Src/JSEngine.cpp */,
+				BE40DE5B91C74D2DB4BD5E84 /* /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/Src/JSEngine_Eval.cpp */,
+				3E2783965D9F41D584B2C607 /* /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/Src/JSFunction.cpp */,
+				D50BE0396B844A6EAFE6CAC2 /* /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/Src/Log.cpp */,
+				D782A716CE6B45E99396B998 /* /Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/Src/Puerts.cpp */,
+				C0FF914701B64BA6A32F491D /* /Volumes/DATA/Code/puerts@stable/puerts/unreal/Puerts/Source/JsEnv/Private/V8InspectorImpl.cpp */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		4B1D3032DB3B4606B02E0B82 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 746822F2841745CFB03B75F2 /* ZERO_CHECK */;
+			targetProxy = E6E2DCD10C7A408084BE4176 /* PBXContainerItemProxy */;
+		};
+		C84FE0785E554ECAB7B6E71E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 746822F2841745CFB03B75F2 /* ZERO_CHECK */;
+			targetProxy = DD33666B9A154C4FBA8A6235 /* PBXContainerItemProxy */;
+		};
+		D9E0AB9041FE430D860A3E5E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 09E9723C22D245B4B902F289 /* ALL_BUILD */;
+			targetProxy = 3FE791E186EA425DAE921AD0 /* PBXContainerItemProxy */;
+		};
+		F2B9FA2AD8454794B834F6CD /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E7A3829DBE9C43F1A5969ABE /* puerts */;
+			targetProxy = 30B6AF5819FF474DBD145E80 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		1A2E18173F914CED83D11CD4 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = arm64;
+				MACOSX_DEPLOYMENT_TARGET = 12.2;
+				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk;
+				SYMROOT = "/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs/build";
+			};
+			name = MinSizeRel;
+		};
+		2B695BA545FA4A759A3709AA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				DYLIB_COMPATIBILITY_VERSION = "";
+				DYLIB_CURRENT_VERSION = "";
+				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_SUFFIX = .dylib;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",puerts_EXPORTS,PUERTS_DEBUG,PLATFORM_MAC_ARM64,PLATFORM_MAC,WITH_QUICKJS,WITHOUT_INSPECTOR,"$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src","/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/../../unreal/Puerts/ThirdParty/Include/websocketpp","/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/../../unreal/Puerts/ThirdParty/Include/asio","/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/Inc","/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/../../unreal/Puerts/Source/JsEnv/Private","/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/quickjs/Inc","$(inherited)");
+				INSTALL_PATH = "@rpath";
+				LIBRARY_STYLE = DYNAMIC;
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CPLUSPLUSFLAGS = "   -fPIC '-std=gnu++14' ";
+				OTHER_LDFLAGS = ("-rpath '@loader_path/' -dynamiclib -Wl,-headerpad_max_install_names","/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/quickjs/Lib/macOS_arm64/libquickjs.a","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = puerts;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Debug;
+		};
+		3181622C816B47138B32C60A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("-rpath '@loader_path/'","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ALL_BUILD;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Release;
+		};
+		5325506E798A4D79B43281FE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("-rpath '@loader_path/'","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = install;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Release;
+		};
+		5711DADDCFFA456FA0BA0A65 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("-rpath '@loader_path/'","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ZERO_CHECK;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		6A824FCAD1724D0491FD173E /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				DYLIB_COMPATIBILITY_VERSION = "";
+				DYLIB_CURRENT_VERSION = "";
+				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_SUFFIX = .dylib;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 2;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",puerts_EXPORTS,PUERTS_DEBUG,PLATFORM_MAC_ARM64,PLATFORM_MAC,WITH_QUICKJS,WITHOUT_INSPECTOR,"$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src","/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/../../unreal/Puerts/ThirdParty/Include/websocketpp","/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/../../unreal/Puerts/ThirdParty/Include/asio","/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/Inc","/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/../../unreal/Puerts/Source/JsEnv/Private","/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/quickjs/Inc","$(inherited)");
+				INSTALL_PATH = "@rpath";
+				LIBRARY_STYLE = DYNAMIC;
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CPLUSPLUSFLAGS = "       -DNDEBUG -fPIC '-std=gnu++14' ";
+				OTHER_LDFLAGS = ("-rpath '@loader_path/' -dynamiclib -Wl,-headerpad_max_install_names","/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/quickjs/Lib/macOS_arm64/libquickjs.a","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = puerts;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		845821EE3D6B4AC9B4A58077 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("-rpath '@loader_path/'","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ZERO_CHECK;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Debug;
+		};
+		92C69A3310124977A0474893 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = arm64;
+				MACOSX_DEPLOYMENT_TARGET = 12.2;
+				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk;
+				SYMROOT = "/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs/build";
+			};
+			name = Debug;
+		};
+		94DD17D5B34C4017AB565B0A /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("-rpath '@loader_path/'","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ZERO_CHECK;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		98D6620EA270498886DAA5D0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("-rpath '@loader_path/'","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ZERO_CHECK;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Release;
+		};
+		9D357BA7922940AC9226A841 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				DYLIB_COMPATIBILITY_VERSION = "";
+				DYLIB_CURRENT_VERSION = "";
+				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_SUFFIX = .dylib;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = s;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",puerts_EXPORTS,PUERTS_DEBUG,PLATFORM_MAC_ARM64,PLATFORM_MAC,WITH_QUICKJS,WITHOUT_INSPECTOR,"$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src","/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/../../unreal/Puerts/ThirdParty/Include/websocketpp","/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/../../unreal/Puerts/ThirdParty/Include/asio","/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/Inc","/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/../../unreal/Puerts/Source/JsEnv/Private","/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/quickjs/Inc","$(inherited)");
+				INSTALL_PATH = "@rpath";
+				LIBRARY_STYLE = DYNAMIC;
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CPLUSPLUSFLAGS = "    -DNDEBUG -fPIC '-std=gnu++14' ";
+				OTHER_LDFLAGS = ("-rpath '@loader_path/' -dynamiclib -Wl,-headerpad_max_install_names","/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/quickjs/Lib/macOS_arm64/libquickjs.a","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = puerts;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		A42DEDCDE10341A3AFFB6D23 /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = arm64;
+				MACOSX_DEPLOYMENT_TARGET = 12.2;
+				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk;
+				SYMROOT = "/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs/build";
+			};
+			name = RelWithDebInfo;
+		};
+		A523226F587C43B09D22841A /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("-rpath '@loader_path/'","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = install;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		A68E02D8CE334692BBD897E9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("-rpath '@loader_path/'","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = install;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Debug;
+		};
+		D2CEC7D7995745CBBAECABC3 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("-rpath '@loader_path/'","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ALL_BUILD;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		D387DCE13BAA423DBF9936B1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				DYLIB_COMPATIBILITY_VERSION = "";
+				DYLIB_CURRENT_VERSION = "";
+				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_SUFFIX = .dylib;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",puerts_EXPORTS,PUERTS_DEBUG,PLATFORM_MAC_ARM64,PLATFORM_MAC,WITH_QUICKJS,WITHOUT_INSPECTOR,"$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src","/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/../../unreal/Puerts/ThirdParty/Include/websocketpp","/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/../../unreal/Puerts/ThirdParty/Include/asio","/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/Inc","/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/../../unreal/Puerts/Source/JsEnv/Private","/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/quickjs/Inc","$(inherited)");
+				INSTALL_PATH = "@rpath";
+				LIBRARY_STYLE = DYNAMIC;
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CPLUSPLUSFLAGS = "    -DNDEBUG -fPIC '-std=gnu++14' ";
+				OTHER_LDFLAGS = ("-rpath '@loader_path/' -dynamiclib -Wl,-headerpad_max_install_names","/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/quickjs/Lib/macOS_arm64/libquickjs.a","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = puerts;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Release;
+		};
+		DA3281F8BA404272BCCAA609 /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("-rpath '@loader_path/'","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ALL_BUILD;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		E1E28F8965A94EC2B92AF3A3 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("-rpath '@loader_path/'","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = install;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		EE34869B387343EBA253669D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","$(inherited)");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = ("-rpath '@loader_path/'","$(inherited)");
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ALL_BUILD;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Debug;
+		};
+		F2A2AD8B7F9F4F32BFEDD5F3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = arm64;
+				MACOSX_DEPLOYMENT_TARGET = 12.2;
+				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk;
+				SYMROOT = "/Volumes/DATA/Code/puerts@stable/puerts/unity/native_src/build_osx_arm64_quickjs/build";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		0728FEBE25124C5EADB7BC07 /* Build configuration list for PBXAggregateTarget "install" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A68E02D8CE334692BBD897E9 /* Debug */,
+				5325506E798A4D79B43281FE /* Release */,
+				E1E28F8965A94EC2B92AF3A3 /* MinSizeRel */,
+				A523226F587C43B09D22841A /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		2C7836599B3B42DDB57102D4 /* Build configuration list for PBXAggregateTarget "ZERO_CHECK" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				845821EE3D6B4AC9B4A58077 /* Debug */,
+				98D6620EA270498886DAA5D0 /* Release */,
+				5711DADDCFFA456FA0BA0A65 /* MinSizeRel */,
+				94DD17D5B34C4017AB565B0A /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		98796469AB2443468F5354CA /* Build configuration list for PBXNativeTarget "puerts" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2B695BA545FA4A759A3709AA /* Debug */,
+				D387DCE13BAA423DBF9936B1 /* Release */,
+				9D357BA7922940AC9226A841 /* MinSizeRel */,
+				6A824FCAD1724D0491FD173E /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		BA5E887EAAD74D5F9E280B97 /* Build configuration list for PBXProject "PuertsPlugin" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				92C69A3310124977A0474893 /* Debug */,
+				F2A2AD8B7F9F4F32BFEDD5F3 /* Release */,
+				1A2E18173F914CED83D11CD4 /* MinSizeRel */,
+				A42DEDCDE10341A3AFFB6D23 /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		E8DBB90F8DE946419CD6A83E /* Build configuration list for PBXAggregateTarget "ALL_BUILD" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EE34869B387343EBA253669D /* Debug */,
+				3181622C816B47138B32C60A /* Release */,
+				D2CEC7D7995745CBBAECABC3 /* MinSizeRel */,
+				DA3281F8BA404272BCCAA609 /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 6F65991B2959428A93AA383A /* Project object */;
+}
