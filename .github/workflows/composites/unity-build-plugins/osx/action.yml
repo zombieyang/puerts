@@ -1,4 +1,4 @@
-name: unity build plugin
+name: build osx unity plugin
 
 inputs:
   backend:

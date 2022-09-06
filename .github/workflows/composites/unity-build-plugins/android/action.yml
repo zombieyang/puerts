@@ -1,4 +1,4 @@
-name: unity build plugin
+name: build android unity plugin
 
 inputs:
   backend:

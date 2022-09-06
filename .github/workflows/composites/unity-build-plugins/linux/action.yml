@@ -1,4 +1,4 @@
-name: unity build plugin
+name: build linux unity plugin
 
 inputs:
   backend:
