@@ -1,11 +1,11 @@
 if ( MSYS OR WIN32 )
     if("${CMAKE_SIZEOF_VOID_P}" STREQUAL "4")
         set(LIB_FILE_NAMES 
-            ${BACKEND_ROOT}/lib/Win32/libnode.lib
+            ${BACKEND_ROOT}/Lib/Win32/libnode.lib
         )
     else ()
         set(LIB_FILE_NAMES 
-            ${BACKEND_ROOT}/lib/Win64/libnode.lib
+            ${BACKEND_ROOT}/Lib/Win64/libnode.lib
         )
     endif ()
 
@@ -48,8 +48,8 @@ endif ()
 
 include_directories(    
     ${PROJECT_SOURCE_DIR}/${JS_ENGINE}/include
-    ${PROJECT_SOURCE_DIR}/${JS_ENGINE}/deps/v8/include
     ${PROJECT_SOURCE_DIR}/${JS_ENGINE}/deps/uv/include
+    ${PROJECT_SOURCE_DIR}/${JS_ENGINE}/deps/v8/include
 )
 
 target_compile_definitions (puerts PRIVATE WITH_NODEJS)

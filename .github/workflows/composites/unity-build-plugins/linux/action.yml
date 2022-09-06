@@ -31,7 +31,6 @@ runs:
       shell: bash
       run: |
         cd unity/native_src
-        ls -l ${{ inputs.backend }}/
         node make.js --platform linux --backend ${{ inputs.backend }} --config ${{ inputs.config }}
     - name: Upload
       uses: actions/upload-artifact@v2
