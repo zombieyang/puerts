@@ -132,13 +132,13 @@ if ( MSYS OR WIN32 )
     if("${CMAKE_SIZEOF_VOID_P}" STREQUAL "4")
         foreach(LIB_FILE_NAME IN LISTS LIB_FILE_NAMES)
             target_link_libraries(puerts
-                ${ENGINE_ROOT}/Lib/Win32/${LIB_FILE_NAME}
+                ${ENGINE_ROOT}/lib/Win32/${LIB_FILE_NAME}
             )
         endforeach()
     else ()
         foreach(LIB_FILE_NAME IN LISTS LIB_FILE_NAMES)
             target_link_libraries(puerts
-                ${ENGINE_ROOT}/Lib/Win64/${LIB_FILE_NAME}
+                ${ENGINE_ROOT}/lib/Win64/${LIB_FILE_NAME}
             )
         endforeach()
     endif ()
@@ -157,7 +157,7 @@ elseif ( ANDROID )
         # link
         foreach(LIB_FILE_NAME IN LISTS LIB_FILE_NAMES)
             target_link_libraries(puerts
-                ${ENGINE_ROOT}/Lib/Android/armeabi-v7a/${LIB_FILE_NAME}
+                ${ENGINE_ROOT}/lib/Android/armeabi-v7a/${LIB_FILE_NAME}
             )
         endforeach()
 
@@ -168,7 +168,7 @@ elseif ( ANDROID )
         # link
         foreach(LIB_FILE_NAME IN LISTS LIB_FILE_NAMES)
             target_link_libraries(puerts
-                ${ENGINE_ROOT}/Lib/Android/arm64-v8a/${LIB_FILE_NAME}
+                ${ENGINE_ROOT}/lib/Android/arm64-v8a/${LIB_FILE_NAME}
                 ${log-lib}
             )
         endforeach()
@@ -202,11 +202,11 @@ elseif ( APPLE )
         
             if ( NOT DEFINED FOR_SILICON )
                 target_link_libraries(puerts
-                    ${ENGINE_ROOT}/Lib/macOS/${LIB_FILE_NAME}
+                    ${ENGINE_ROOT}/lib/macOS/${LIB_FILE_NAME}
                 )
             else ()
                 target_link_libraries(puerts
-                    ${ENGINE_ROOT}/Lib/macOS_arm64/${LIB_FILE_NAME}
+                    ${ENGINE_ROOT}/lib/macOS_arm64/${LIB_FILE_NAME}
                 )
             endif ()
         endforeach()
@@ -222,7 +222,7 @@ elseif (UNIX)
     # link
     foreach(LIB_FILE_NAME IN LISTS LIB_FILE_NAMES)
         target_link_libraries(puerts
-            ${ENGINE_ROOT}/Lib/Linux/${LIB_FILE_NAME}
+            ${ENGINE_ROOT}/lib/Linux/${LIB_FILE_NAME}
             pthread
         )
     endforeach()
