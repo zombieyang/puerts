@@ -2,12 +2,20 @@ if ( WIN32 AND NOT MSYS )
     set(LIB_FILE_NAMES 
         libnode.lib
     )
-elseif ( APPLE AND NOT IOS )
-    set(LIB_FILE_NAMES 
-        libnode.93.dylib
+elseif ( APPLE )
+    if (NOT IOS) 
+        set(LIB_FILE_NAMES 
+            libnode.93.dylib
+        )
+    endif ()
+elseif ( ANDROID ) 
+    set(LIB_FILE_NAMES
+        libnode.so
     )
-else ()
-    message( FATAL_ERROR "Node.js is only supported in osx/win" )
+else ( UNIX )
+    set(LIB_FILE_NAMES
+        libnode.so.93
+    )
 endif()
 
 include_directories(    

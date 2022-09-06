@@ -1,0 +1,33 @@
+name: unity build plugin
+
+inputs:
+  backend:
+    description: 'js backend'     
+    required: true
+  config:
+    type: choice
+    description: Release Or Debug
+    options:
+    - Release
+    - Debug
+  GITHUB_TOKEN:
+    required:
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v2
+    - name: Get backend artifact
+      uses: ./.github/workflows/composites/unity-download-backend/
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        backend: ${{ github.event.inputs.backend }}
+    - name: Build
+      run: |
+        cd unity/native_src
+        node make.js --platform osx --backend ${{ github.event.inputs.backend }} --config ${{ github.event.inputs.config }}
+    - name: Upload
+      uses: actions/upload-artifact@v2
+      with:
+        path: ./unity/Assets/Plugins/**/*
+        name: Unity_Plugins (${{ github.event.inputs.backend }}_${{ github.event.inputs.config }})
