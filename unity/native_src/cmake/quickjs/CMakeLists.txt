@@ -10,7 +10,6 @@ if ( MSYS OR WIN32 )
     endif ()
 
 elseif ( ANDROID )
-
     if( ANDROID_ABI STREQUAL "armeabi-v7a")
         set(LIB_FILE_NAMES 
             ${BACKEND_ROOT}/Lib/Android/armeabi-v7a/libquickjs.a
