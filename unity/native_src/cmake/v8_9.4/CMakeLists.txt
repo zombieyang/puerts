@@ -36,6 +36,9 @@ elseif ( APPLE AND NOT IOS )
             )
             
         endif ()
+    else ()
+        add_custom_command(TARGET puerts POST_BUILD COMMAND "cp" "${PROJECT_SOURCE_DIR}/v8_9.4/Lib/iOS/arm64/*.a" "${CMAKE_BINARY_DIR}/")
+
     endif()
 elseif ( UNIX )
     set(LIB_FILE_NAMES 
