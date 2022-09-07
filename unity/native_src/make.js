@@ -84,7 +84,7 @@ const platformCompileConfig = {
                 await sxExecAsync(`cmake ${cmakeDArgs} -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DJS_ENGINE=${options.backend} -DCMAKE_BUILD_TYPE=${options.config} -DANDROID_ABI=${ABI} -H. -B${CMAKE_BUILD_PATH} -DCMAKE_TOOLCHAIN_FILE=${NDK}/build/cmake/android.toolchain.cmake -DANDROID_NATIVE_API_LEVEL=${API} -DANDROID_TOOLCHAIN=clang -DANDROID_TOOLCHAIN_NAME=${TOOLCHAIN_NAME}`)
                 await sxExecAsync(`cmake --build ${CMAKE_BUILD_PATH} --config ${options.config}`)
 
-                sx.cp(`${CMAKE_BUILD_PATH}/libpuerts.so`, OUTPUT_PATH)
+                return `${CMAKE_BUILD_PATH}/libpuerts.so`
             }
         },
         'arm64': {
@@ -98,7 +98,7 @@ const platformCompileConfig = {
                 await sxExecAsync(`cmake ${cmakeDArgs} -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DJS_ENGINE=${options.backend} -DCMAKE_BUILD_TYPE=${options.config} -DANDROID_ABI=${ABI} -H. -B${CMAKE_BUILD_PATH} -DCMAKE_TOOLCHAIN_FILE=${NDK}/build/cmake/android.toolchain.cmake -DANDROID_NATIVE_API_LEVEL=${API} -DANDROID_TOOLCHAIN=clang -DANDROID_TOOLCHAIN_NAME=${TOOLCHAIN_NAME}`)
                 await sxExecAsync(`cmake --build ${CMAKE_BUILD_PATH} --config ${options.config}`)
 
-                sx.cp(`${CMAKE_BUILD_PATH}/libpuerts.so`, OUTPUT_PATH)
+                return `${CMAKE_BUILD_PATH}/libpuerts.so`
             }
         }
     },
@@ -111,8 +111,7 @@ const platformCompileConfig = {
                 sx.cd("..")
                 await sxExecAsync(`cmake --build ${CMAKE_BUILD_PATH} --config ${options.config}`)
 
-                sx.cp(`${CMAKE_BUILD_PATH}/${options.config}-iphoneos/libpuerts.a`, OUTPUT_PATH)
-                sx.cp('-r', `${options.backend}/Lib/iOS/arm64/*.a`, OUTPUT_PATH)
+                return `${CMAKE_BUILD_PATH}/${options.config}-iphoneos/libpuerts.a`
             }
         }
     },
@@ -125,15 +124,8 @@ const platformCompileConfig = {
                 sx.cd("..")
                 await sxExecAsync(`cmake --build ${CMAKE_BUILD_PATH} --config ${options.config}`)
 
-                if (options.config != 'Release') {
-                    sx.mkdir('-p', '../general/vs2013/Bin');
-                    sx.cp(`${CMAKE_BUILD_PATH}/${options.config}/libpuerts.dylib`, '../general/vs2013/Bin')
-                    sx.cp('-r', `${options.backend}/Lib/macOS/*.dylib`, '../general/vs2013/Bin')
-                }
-
-                sx.cp(`${CMAKE_BUILD_PATH}/${options.config}/libpuerts.dylib`, OUTPUT_PATH)
-                sx.mv(`${OUTPUT_PATH}/libpuerts.dylib`, OUTPUT_PATH + "/puerts.bundle")
-                sx.cp('-r', `${options.backend}/Lib/macOS/*.dylib`, OUTPUT_PATH)
+                sx.mv(`${CMAKE_BUILD_PATH}/${options.config}/libpuerts.dylib`, `${CMAKE_BUILD_PATH}/${options.config}/puerts.bundle`)
+                return `${CMAKE_BUILD_PATH}/${options.config}/puerts.bundle`
             }
         },
         'arm64': {
@@ -144,13 +136,7 @@ const platformCompileConfig = {
                 sx.cd("..")
                 await sxExecAsync(`cmake --build ${CMAKE_BUILD_PATH} --config ${options.config}`)
 
-                if (options.config != 'Release') {
-                    sx.mkdir('-p', '../general/vs2022/Bin');
-                    sx.cp(`${CMAKE_BUILD_PATH}/${options.config}/libpuerts.dylib`, '../general/vs2022/Bin')
-                    sx.cp('-r', `${options.backend}/Lib/macOS_arm64/*.dylib`, '../general/vs2022/Bin')
-                }
-                sx.cp(`${CMAKE_BUILD_PATH}/${options.config}/libpuerts.dylib`, OUTPUT_PATH)
-                sx.cp('-r', `${options.backend}/Lib/macOS_arm64/*.dylib`, OUTPUT_PATH)
+                return `${CMAKE_BUILD_PATH}/${options.config}/libpuerts.dylib`
             }
         }
     },
@@ -163,13 +149,7 @@ const platformCompileConfig = {
                 sx.cd("..")
                 await sxExecAsync(`cmake --build ${CMAKE_BUILD_PATH} --config ${options.config}`)
 
-                if (options.config != 'Release') {
-                    sx.mkdir('-p', '../general/vs2013/Bin');
-                    sx.cp(`${CMAKE_BUILD_PATH}/${options.config}/puerts.dll`, '../general/vs2013/Bin')
-                    sx.cp('-r', `${options.backend}/Lib/Win64/*.dll`, '../general/vs2013/Bin')
-                }
-                sx.cp(`${CMAKE_BUILD_PATH}/${options.config}/puerts.dll`, OUTPUT_PATH)
-                sx.cp('-r', `${options.backend}/Lib/Win64/*.dll`, OUTPUT_PATH)
+                return `${CMAKE_BUILD_PATH}/${options.config}/puerts.dll`
             }
         },
         'ia32': {
@@ -180,13 +160,7 @@ const platformCompileConfig = {
                 sx.cd("..")
                 await sxExecAsync(`cmake --build ${CMAKE_BUILD_PATH} --config ${options.config}`)
 
-                if (options.config != 'Release') {
-                    sx.mkdir('-p', '../general/vs2013/Bin');
-                    sx.cp(`${CMAKE_BUILD_PATH}/${options.config}/puerts.dll`, '../general/vs2013/Bin')
-                    sx.cp('-r', `${options.backend}/Lib/Win64/*.dll`, '../general/vs2013/Bin')
-                }
-                sx.cp(`${CMAKE_BUILD_PATH}/${options.config}/puerts.dll`, OUTPUT_PATH)
-                sx.cp('-r', `${options.backend}/Lib/Win32/*.dll`, OUTPUT_PATH)
+                return `${CMAKE_BUILD_PATH}/${options.config}/puerts.dll`
             }
         }
     },
@@ -235,6 +209,11 @@ async function runMake() {
     const OUTPUT_PATH = pwd + '/../Assets/Plugins/' + BuildConfig.outputPluginPath;
     const BackendConfig = JSON.parse(fs.readFileSync(pwd + `/cmake/${options.backend}/backend.json`))
 
+    if (BackendConfig.skip[options.platform]?.[options.arch]) {
+        console.log("=== Puer ===");
+        console.log(`not supported yet: ${options.backend} in ${options.platform} ${options.arch}`);
+        console.log("=== Puer ===");
+    }
     const definitionD = (BackendConfig.definition || []).join(';')
     const linkD = (BackendConfig.link[options.platform]?.[options.arch] || []).join(';')
     const incD = (BackendConfig.include || []).join(';')
@@ -242,14 +221,21 @@ async function runMake() {
     sx.mkdir('-p', CMAKE_BUILD_PATH);
     sx.mkdir('-p', OUTPUT_PATH)
     const DArgsName = ['-DBACKEND_DEFINITIONS=', '-DBACKEND_LIB_NAMES=', '-DBACKEND_INC_NAMES=']
-    await BuildConfig.hook(
+    var outputFile = await BuildConfig.hook(
         CMAKE_BUILD_PATH,
         OUTPUT_PATH,
         options,
         [definitionD, linkD, incD].map((r, index) => r ? DArgsName[index] + '"' + r + '"' : null).filter(t => t).join(' ')
     );
-    const copyConfig = BackendConfig.copy[options.platform]?.[options.arch];
-    copyConfig.forEach(pathToBackend => {
-        sx.cp(join(pwd, options.backend, pathToBackend), OUTPUT_PATH);
+    const copyConfig = (BackendConfig.copy[options.platform]?.[options.arch] || [])
+        .map(pathToBackend=> join(pwd, options.backend, pathToBackend))
+        .concat([outputFile]);
+        
+    copyConfig?.forEach(filepath => {
+        sx.cp(filepath, OUTPUT_PATH)
+        if (options.config != 'Release') {
+            sx.cp(filepath, '../general/vs2022/Bin')
+            sx.cp(filepath, '../general/vs2013/Bin')    
+        }
     })
 }
