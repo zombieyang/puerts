@@ -32,8 +32,8 @@ set(BACKEND_ROOT ${PROJECT_SOURCE_DIR}/${JS_ENGINE})
 
 set(ThirdParty ${PROJECT_SOURCE_DIR}/../../unreal/Puerts/ThirdParty)
 
-string (REPLACE ";" "$<SEMICOLON>" BACKEND_INC_NAMES "${BACKEND_INC_NAMES}")
-string (REPLACE ";" "$<SEMICOLON>" BACKEND_LIB_NAMES "${BACKEND_LIB_NAMES}")
+string (REPLACE ";" "$<SEMICOLON>${BACKEND_ROOT}" BACKEND_INC_NAMES "${BACKEND_ROOT}${BACKEND_INC_NAMES}")
+string (REPLACE ";" "$<SEMICOLON>${BACKEND_ROOT}" BACKEND_LIB_NAMES "${BACKEND_ROOT}${BACKEND_LIB_NAMES}")
 string (REPLACE ";" "$<SEMICOLON>" BACKEND_DEFINITIONS "${BACKEND_DEFINITIONS}")
 
 include_directories(
@@ -42,7 +42,7 @@ include_directories(
     ${ThirdParty}/Include/asio
     Inc
     ${PROJECT_SOURCE_DIR}/../../unreal/Puerts/Source/JsEnv/Private
-    ${BACKEND_ROOT}${BACKEND_INC_NAMES}
+    ${BACKEND_INC_NAMES}
 )
 
 set ( PUERTS_INC
@@ -195,7 +195,7 @@ endif ()
 # link
 # foreach(BACKEND_LIB_NAME in BACKEND_LIB_NAMES)
     target_link_libraries(puerts
-        ${BACKEND_ROOT}${BACKEND_LIB_NAMES}
+        ${BACKEND_LIB_NAMES}
     )
 # endforeach()
 

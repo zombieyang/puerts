@@ -34,7 +34,7 @@
             "arm64": ["/lib/macOS_arm64/libnode.93.dylib"]
         },
         "ios": {
-            "arm64": ["/Lib/iOS/arm64/*.a"]
+            "arm64": ["/lib/iOS/*.a"]
         },
         "linux": ["/lib/Linux/libnode.so.93"]
     }
