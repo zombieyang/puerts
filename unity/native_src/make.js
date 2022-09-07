@@ -44,8 +44,8 @@ program.addOption(
 );
 program.addOption(
     new Option("--arch <arch>", "the target architecture")
-        .default("all")
-        .choices(["all", "ia32", "x64", "arm64", "armv7"])
+        .default("auto")
+        .choices(["auto", "ia32", "x64", "arm64", "armv7"])
 );
 program.addOption(
     new Option("--config <ReleaseOrDebug>", "the target architecture")
@@ -182,7 +182,7 @@ const platformCompileConfig = {
 
     /////////////////// make
     ; (async function () {
-        if (options.platform && !options.arch) {
+        if (options.platform && options.arch == 'auto') {
             let promiseChain = Promise.resolve();
             Object.keys(platformCompileConfig[options.platform]).forEach(arch => {
                 promiseChain = promiseChain.then(function () {
@@ -191,7 +191,7 @@ const platformCompileConfig = {
                 })
             });
 
-        } else if (!options.platform && !options.arch) {
+        } else if (!options.platform && options.arch == 'auto') {
             options.platform = nodePlatformToPuerPlatform[process.platform]
             options.arch = process.arch;
             return runMake();
