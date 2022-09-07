@@ -165,17 +165,17 @@ jobs:
             
       - uses: actions/download-artifact@v1
         with:
-          name: Unity_Plugins (v8_9.4_Rlease)
+          name: Unity_Plugins (v8_9.4_Release)
           path: V8/Puerts/Runtime/Plugins/
           
       - uses: actions/download-artifact@v1
         with:
-          name: Unity_Plugins (quickjs_Rlease)
+          name: Unity_Plugins (quickjs_Release)
           path: Quickjs/Puerts/Runtime/Plugins/
 
       - uses: actions/download-artifact@v1
         with:
-          name: Unity_Plugins (nodejs_16_Rlease)
+          name: Unity_Plugins (nodejs_16_Release)
           path: Nodejs/Puerts/Editor/Plugins/
           
       - name: Create Release Asset
