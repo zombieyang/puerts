@@ -7,12 +7,14 @@ inputs:
   config:
     type: choice
     description: Release Or Debug
+    default: 'Release'
     options:
     - Release
     - Debug
   arch:
     type: choice
-    description: building arch (default is all)
+    description: building arch
+    default: 'auto'
     options:
       - auto
       - x64

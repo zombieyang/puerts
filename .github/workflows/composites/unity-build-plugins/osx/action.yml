@@ -7,6 +7,7 @@ inputs:
   config:
     type: choice
     description: Release Or Debug
+    default: 'Release'
     options:
     - Release
     - Debug
