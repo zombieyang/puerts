@@ -10,6 +10,13 @@ inputs:
     options:
     - Release
     - Debug
+  arch:
+    type: choice
+    description: building arch (default is all)
+    options:
+      - 
+      - x64
+      - ia32
   GITHUB_TOKEN:
     required:
 
@@ -25,7 +32,7 @@ runs:
       shell: powershell
       run: |
         cd unity\native_src
-        node make.js --platform win --backend ${{ inputs.backend }} --config ${{ inputs.config }}
+        node make.js --platform win --backend ${{ inputs.backend }} --config ${{ inputs.config }} --arch ${{ inputs.arch }}
     - name: Upload
       uses: actions/upload-artifact@v2
       with:
