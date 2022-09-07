@@ -14,7 +14,7 @@ inputs:
     type: choice
     description: building arch (default is all)
     options:
-      - 
+      - all
       - x64
       - ia32
   GITHUB_TOKEN:
