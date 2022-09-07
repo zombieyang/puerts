@@ -213,6 +213,7 @@ async function runMake() {
         console.log("=== Puer ===");
         console.log(`not supported yet: ${options.backend} in ${options.platform} ${options.arch}`);
         console.log("=== Puer ===");
+        return;
     }
     const definitionD = (BackendConfig.definition || []).join(';')
     const linkD = (BackendConfig.link[options.platform]?.[options.arch] || []).join(';')
@@ -234,6 +235,8 @@ async function runMake() {
     copyConfig?.forEach(filepath => {
         sx.cp(filepath, OUTPUT_PATH)
         if (options.config != 'Release') {
+            sx.mkdir('-p', filepath, '../general/vs2013/Bin')
+            sx.mkdir('-p', filepath, '../general/vs2022/Bin')
             sx.cp(filepath, '../general/vs2022/Bin')
             sx.cp(filepath, '../general/vs2013/Bin')    
         }

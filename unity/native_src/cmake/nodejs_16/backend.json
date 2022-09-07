@@ -19,7 +19,9 @@
             "x64": ["/lib/macOS/libnode.93.dylib"],
             "arm64": ["/lib/macOS_arm64/libnode.93.dylib"]
         },
-        "linux": ["/lib/Linux/libnode.so.93"]
+        "linux": {
+            "x64": ["/lib/Linux/libnode.so.93"]
+        }
     },
     "copy": {
         "win": {
@@ -37,6 +39,8 @@
         "ios": {
             "arm64": ["/lib/iOS/*.a"]
         },
-        "linux": ["/lib/Linux/libnode.so.93"]
+        "linux": {
+            "x64": ["/lib/Linux/libnode.so.93"]
+        }
     }
 }

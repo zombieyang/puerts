@@ -14,7 +14,9 @@
             "x64": ["/Lib/macOS/libquickjs.a"],
             "arm64": ["/Lib/macOS_arm64/libquickjs.a"]
         },
-        "linux": ["/Lib/Linux/libquickjs.a"]
+        "linux": {
+            "x64": ["/Lib/Linux/libquickjs.a"]
+        }
     },
     "copy": {
         "win": {

@@ -13,7 +13,9 @@
             "x64": ["/Lib/macOS/libwee8.a"],
             "arm64": ["/Lib/macOS_arm64/libwee8.a"]
         },
-        "linux": ["/Lib/Linux/libwee8.a"]
+        "linux": {
+            "x64": ["/Lib/Linux/libwee8.a"]
+        }
     },
     "copy": {
         "ios": {
