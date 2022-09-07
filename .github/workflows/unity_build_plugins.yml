@@ -20,7 +20,8 @@ jobs:
     
     steps:
       - uses: actions/checkout@v2
-      - uses: ./.github/workflows/composites/unity-build-plugins/android/
+      - name: BuildAndroid
+        uses: ./.github/workflows/composites/unity-build-plugins/android/
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           backend: v8_9.4
@@ -30,7 +31,8 @@ jobs:
     
     steps:
       - uses: actions/checkout@v2
-      - uses: ./.github/workflows/composites/unity-build-plugins/android/
+      - name: BuildAndroidQuickJS
+        uses: ./.github/workflows/composites/unity-build-plugins/android/
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           backend: quickjs
@@ -40,7 +42,8 @@ jobs:
     
     steps:
       - uses: actions/checkout@v2
-      - uses: ./.github/workflows/composites/unity-build-plugins/android/
+      - name: BuildAndroidNodeJS
+        uses: ./.github/workflows/composites/unity-build-plugins/android/
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           backend: nodejs_16
@@ -51,7 +54,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: ./.github/workflows/composites/unity-build-plugins/ios/
+      - name: BuildiOS
+        uses: ./.github/workflows/composites/unity-build-plugins/ios/
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           backend: v8_9.4
@@ -61,7 +65,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: ./.github/workflows/composites/unity-build-plugins/ios/
+      - name: BuildiOSQuickjs
+        uses: ./.github/workflows/composites/unity-build-plugins/ios/
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           backend: quickjs
@@ -71,7 +76,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: ./.github/workflows/composites/unity-build-plugins/ios/
+      - name: BuildiOSNodeJS
+        uses: ./.github/workflows/composites/unity-build-plugins/ios/
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           backend: nodejs_16
@@ -82,7 +88,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: ./.github/workflows/composites/unity-build-plugins/osx/
+      - name: BuildOSX
+        uses: ./.github/workflows/composites/unity-build-plugins/osx/
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           backend: v8_9.4
@@ -92,7 +99,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: ./.github/workflows/composites/unity-build-plugins/osx/
+      - name: BuildOSXNodejs
+        uses: ./.github/workflows/composites/unity-build-plugins/osx/
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           backend: nodejs_16
@@ -102,7 +110,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: ./.github/workflows/composites/unity-build-plugins/osx/
+      - name: BuildOSXQuickJS
+        uses: ./.github/workflows/composites/unity-build-plugins/osx/
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           backend: quickjs
@@ -113,7 +122,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: ./.github/workflows/composites/unity-build-plugins/windows/
+      - name: BuildWindows
+        uses: ./.github/workflows/composites/unity-build-plugins/windows/
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           backend: v8_9.4
@@ -123,7 +133,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: ./.github/workflows/composites/unity-build-plugins/windows/
+      - name: BuildWindowsQuickjs
+        uses: ./.github/workflows/composites/unity-build-plugins/windows/
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           backend: quickjs
@@ -133,7 +144,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: ./.github/workflows/composites/unity-build-plugins/windows/
+      - name: BuildWindowsNodeJS
+        uses: ./.github/workflows/composites/unity-build-plugins/windows/
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           backend: nodejs_16
@@ -144,7 +156,8 @@ jobs:
     
     steps:
       - uses: actions/checkout@v2
-      - uses: ./.github/workflows/composites/unity-build-plugins/linux/
+      - name: BuildLinux
+        uses: ./.github/workflows/composites/unity-build-plugins/linux/
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           backend: v8_9.4

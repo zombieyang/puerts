@@ -24,7 +24,8 @@ jobs:
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v1.0.2
       - uses: actions/checkout@v2
-      - uses: ./.github/workflows/composites/unity-build-plugins/windows/
+      - name: Build
+        uses: ./.github/workflows/composites/unity-build-plugins/windows/
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           backend: v8_9.4
@@ -43,7 +44,8 @@ jobs:
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v1.0.2
       - uses: actions/checkout@v2
-      - uses: ./.github/workflows/composites/unity-build-plugins/windows/
+      - name: Build
+        uses: ./.github/workflows/composites/unity-build-plugins/windows/
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           backend: quickjs
@@ -63,7 +65,8 @@ jobs:
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v1.0.2
       - uses: actions/checkout@v2
-      - uses: ./.github/workflows/composites/unity-build-plugins/windows/
+      - name: Build
+        uses: ./.github/workflows/composites/unity-build-plugins/windows/
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           backend: nodejs_16

@@ -209,7 +209,7 @@ async function runMake() {
     const OUTPUT_PATH = pwd + '/../Assets/Plugins/' + BuildConfig.outputPluginPath;
     const BackendConfig = JSON.parse(fs.readFileSync(pwd + `/cmake/${options.backend}/backend.json`))
 
-    if (BackendConfig.skip[options.platform]?.[options.arch]) {
+    if (BackendConfig.skip?.[options.platform]?.[options.arch]) {
         console.log("=== Puer ===");
         console.log(`not supported yet: ${options.backend} in ${options.platform} ${options.arch}`);
         console.log("=== Puer ===");
