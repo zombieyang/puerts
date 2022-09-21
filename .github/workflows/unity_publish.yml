@@ -199,6 +199,8 @@ jobs:
           cd -
           echo "===handle AllInOneBackend==="
           mkdir -p AllInOne/Puerts/Plugins/
+          ls -l
+          ls -l ./NodeJS
           cp -r ./NodeJS/Puerts/Plugins ./AllInOne/Puerts/Plugins/NodeJS
           cp -r ./V8/Puerts/Plugins ./AllInOne/Puerts/Plugins/V8
           cp -r ./QuickJS/Puerts/Plugins ./AllInOne/Puerts/Plugins/QuickJS
