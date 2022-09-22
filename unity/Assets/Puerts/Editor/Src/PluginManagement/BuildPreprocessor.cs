@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if UNITY_EDITOR
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -22,26 +23,32 @@ namespace Puerts.Editor.PluginManagement
         /// <summary>
         /// 可设置激活的插件类型，默认V8,然后根据发布的是 development Debug还是Release而设置
         /// </summary>
-        public PuertsBackEndType activateType = PuertsBackEndType.None;
+        // protected BackendType deployBackendType = BackendType.None;
+
         public void OnPreprocessBuildInternal(UnityEditor.BuildTarget target, string path)
         {
             //激活插件
             Activator.deactivateAllPlugins();
-            if (this.activateType == PuertsBackEndType.None)
+            var deployBackendType = BackendStorage.GetCurrentBackendType();
+            // if (this.deployBackendType == BackendType.None)
+            if (deployBackendType == BackendType.None)
             {
                 var isDevBuild = UnityEditor.EditorUserBuildSettings.development;
-                this.activateType = isDevBuild ? PuertsBackEndType.V8_Debug : PuertsBackEndType.V8_Release;
+                // this.deployBackendType = isDevBuild ? BackendType.V8_Debug : BackendType.V8;
+                deployBackendType = isDevBuild ? BackendType.V8_Debug : BackendType.V8;
             }
-            Activator.activatePluginsForDeployment(target, this.activateType, true);
+            // Activator.activatePluginsForDeployment(target, this.deployBackendType, true);
+            Activator.activatePluginsForDeployment(target, deployBackendType, true);
         }
-        public static string GetIp { get; } = Dns.GetHostEntry(Dns.GetHostName()).AddressList.FirstOrDefault(p => p.AddressFamily.ToString() == "InterNetwork")?.ToString();
         public void OnPostprocessBuildInternal(UnityEditor.BuildTarget target, string path)
         {
 
-            Activator.activatePluginsForDeployment(target, this.activateType, false);
+            // Activator.activatePluginsForDeployment(target, this.deployBackendType, false);
+            Activator.activatePluginByBackendType(BackendStorage.GetCurrentBackendType());
+            Menus.updateMenuItemState(BackendStorage.GetCurrentBackendType());
         }
 
-#if UNITY_2018_1_OR_NEWER
+    #if UNITY_2018_1_OR_NEWER
         public void OnPreprocessBuild(UnityEditor.Build.Reporting.BuildReport report)
         {
 
@@ -52,8 +59,8 @@ namespace Puerts.Editor.PluginManagement
         {
             OnPostprocessBuildInternal(report.summary.platform, report.summary.outputPath);
         }
-#else
-            public void OnPreprocessBuild(UnityEditor.BuildTarget target, string path)
+    #else
+        public void OnPreprocessBuild(UnityEditor.BuildTarget target, string path)
         {
             OnPreprocessBuildInternal(target, path);
         }
@@ -62,6 +69,7 @@ namespace Puerts.Editor.PluginManagement
         {
             OnPostprocessBuildInternal(target, path);
         }
-#endif
+    #endif
     }
 }
+#endif

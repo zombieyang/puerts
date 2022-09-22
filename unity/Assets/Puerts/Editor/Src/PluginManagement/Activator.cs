@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Puerts.Editor.PluginManagement
 {
     [UnityEditor.InitializeOnLoad]
-    public class PuertsPluginActivator
+    public class Activator
     {
         public enum PluginRuntimeType
         {
@@ -16,133 +16,173 @@ namespace Puerts.Editor.PluginManagement
             ALL
         }
 
-        private const string MENU_PATH = "PuerTS/ActivatePlugins/";
         private const string PuertsPluginFolder = "Plugins";
         private const UnityEditor.BuildTarget INVALID_BUILD_TARGET = (UnityEditor.BuildTarget)(-1);
-        static PuertsPluginActivator()
+        static Activator()
         {
             BuildTargetToPlatformName.Add(UnityEditor.BuildTarget.StandaloneOSX, "macOS");
             BuildTargetToPlatformName.Add(UnityEditor.BuildTarget.StandaloneWindows, "x86");
             BuildTargetToPlatformName.Add(UnityEditor.BuildTarget.StandaloneWindows64, "x86_64");
-            var curEditorEngineType = EditorBackEndTypeSetting.getAsset().backEndType;
-            activatePluginByEngineType(curEditorEngineType, false);
-            UnityEditor.EditorApplication.delayCall += delayUpdateMenu;
+            var curEditorEngineType = BackendStorage.GetCurrentBackendType();
+            activatePluginByBackendType(curEditorEngineType);
 
         }
-        // private static ScriptEngineType ttype;
 
-        // private static void delayUpdateMenu()
-        // {
-        //     var curEditorEngineType = TsProjDevUserSetting.getAsset().editorEngineType;
-        //     ttype = curEditorEngineType;
-        //     UnityEngine.Debug.LogError("enginetype"+ttype.ToString());
-        //     activatePluginByEngineType(ttype, false);
-        //     updateMenuItemState(ttype);
-
-        // }
-        private static void delayUpdateMenu()
+        protected class PluginInfo 
         {
-            var curBackEndType = EditorBackEndTypeSetting.getAsset().backEndType;
-
-            updateMenuItemState(curBackEndType);
-
+            public string Backend;
+            public string Platform;
+            public string Architecture;
         }
-        public static bool activatePluginsForEditor(PuertsBackEndType targetType)
+        protected static PluginInfo getPluginInfoFromAssetPath(string assetPath)
         {
-            var importers = getPuertsPluginImporters(new UnityEditor.BuildTarget[] { UnityEditor.BuildTarget.StandaloneWindows, UnityEditor.BuildTarget.StandaloneOSX });
+            var splitPath = splitAssetPathRelativeToPlugin(assetPath);
+            if (splitPath == null) return null;
+
+            PluginInfo pi = new PluginInfo();
+
+            pi.Backend = splitPath[0];
+
+            var pluginBasename = splitPath[splitPath.Length - 1].Split('.')[0];
+            var pluginExtname = splitPath[splitPath.Length - 1].Split('.')[1];
+
+            var split1 = splitPath[1];
+            switch (split1) 
+            {
+                // TODO 理论上应该把build出来的目录结构标准化
+                case "x86":
+                case "x86_64":
+                    pi.Architecture = split1;
+                    if (pluginExtname == "so") 
+                        pi.Platform = "Linux";
+                    else 
+                        pi.Platform = "Windows";
+                    break;
+                case "Android":
+                    pi.Platform = "Android";
+                    pi.Architecture = splitPath[3];
+                    break;
+                case "iOS":
+                    pi.Platform = "iOS";
+                    pi.Architecture = "arm64";
+                    break;
+                default:
+                    pi.Platform = split1;
+                    pi.Architecture = splitPath[2];
+                    break;
+            }
+            return pi;
+        }
+        
+        public static bool activatePluginsForEditor(BackendType targetType)
+        {
+            var importers = getPuertsPluginImporters(
+                new UnityEditor.BuildTarget[] { 
+                    UnityEditor.BuildTarget.StandaloneWindows, 
+                    UnityEditor.BuildTarget.StandaloneOSX 
+                }
+            );
             var hadActivated = false;
+
+            List<UnityEditor.PluginImporter> ActiveList = new List<UnityEditor.PluginImporter>();
+            List<UnityEditor.PluginImporter> DeactiveList = new List<UnityEditor.PluginImporter>();
+
 
             foreach (var pluginImporter in importers)
             {
-                var splitPath = getPluginInfoFromPath(pluginImporter.assetPath);
-                if (splitPath == null)
-                {
-                    continue;
-                }
-                var pluginPlatform = splitPath[0];
-                var engineType = string.Empty;
+                PluginInfo pi = getPluginInfoFromAssetPath(pluginImporter.assetPath);
                 var editorCPU = string.Empty;
                 var editorOS = string.Empty;
 
-                if (pluginPlatform != "macOS" && pluginPlatform != "x86" && pluginPlatform != "x86_64") continue;
-
-                switch (pluginPlatform)
-                {
-                    case "macOS":
-                        editorCPU = splitPath[1];
-                        engineType = splitPath[2];
-
-                        editorOS = "OSX";
-                        break;
-
-                    case "x86":
-                        editorCPU = "x86";
-                        engineType = splitPath[1];
-                        editorOS = "Windows";
-                        break;
-                    case "x86_64":
-                        editorCPU = "x86_64";
-                        engineType = splitPath[1];
-                        editorOS = "Windows";
-                        break;
+                if (pi.Platform != "macOS" && pi.Platform != "Windows") continue;
+                editorOS = pi.Platform;
+                if (pi.Platform == "macOS") {
+                    editorOS = "OSX";
                 }
+                editorCPU = pi.Architecture;
+                
+                if (
+                    !string.IsNullOrEmpty(editorOS)
+                    && pi.Backend == targetType.ToString()
+                )
+                {
+                    hadActivated = true;
+                    pluginImporter.SetEditorData("CPU", editorCPU);
+                    pluginImporter.SetEditorData("OS", editorOS);
+                    ActiveList.Add(pluginImporter);
+                } 
+                else 
+                {
+                    DeactiveList.Add(pluginImporter);
+                }
+            }
+
+            // deactive plugins that not match the target
+            foreach (var pluginImporter in DeactiveList)
+            {
                 var AssetChanged = false;
                 if (pluginImporter.GetCompatibleWithAnyPlatform())
                 {
                     pluginImporter.SetCompatibleWithAnyPlatform(false);
+#if UNITY_2019_1_OR_NEWER
                     pluginImporter.isPreloaded = false;
+#endif
                     AssetChanged = true;
                 }
-                var bActivate = false;
-                if (!string.IsNullOrEmpty(editorOS))
-                {
-                    bActivate = engineType == targetType.ToString();
+                AssetChanged |= pluginImporter.GetCompatibleWithEditor() != false;
+                pluginImporter.SetCompatibleWithEditor(false);
+#if UNITY_2019_1_OR_NEWER
+                pluginImporter.isPreloaded = false;
+#endif
 
-                    if (bActivate)
-                    {
-                        hadActivated = true;
-                        pluginImporter.SetEditorData("CPU", editorCPU);
-                        pluginImporter.SetEditorData("OS", editorOS);
-                    }
-                }
-                AssetChanged |= pluginImporter.GetCompatibleWithEditor() != bActivate;
-                pluginImporter.SetCompatibleWithEditor(bActivate);
-                pluginImporter.isPreloaded = bActivate;
                 if (AssetChanged)
                 {
                     UnityEditor.AssetDatabase.ImportAsset(pluginImporter.assetPath);
                 }
             }
+            foreach (var pluginImporter in ActiveList)
+            {
+                var AssetChanged = false;
+                if (pluginImporter.GetCompatibleWithAnyPlatform())
+                {
+                    pluginImporter.SetCompatibleWithAnyPlatform(false);
+#if UNITY_2019_1_OR_NEWER
+                    pluginImporter.isPreloaded = false;
+#endif
+                    AssetChanged = true;
+                }
+                AssetChanged |= pluginImporter.GetCompatibleWithEditor() != true;
+                pluginImporter.SetCompatibleWithEditor(true);
+#if UNITY_2019_1_OR_NEWER
+                pluginImporter.isPreloaded = true;
+#endif
+
+                if (AssetChanged)
+                {
+                    UnityEditor.AssetDatabase.ImportAsset(pluginImporter.assetPath);
+                }
+            }
+
+
             if (hadActivated)
             {
                 UnityEngine.Debug.Log("[Puerts] Plugins successfully activated for " + targetType.ToString() + " in Editor.");
             }
             else
             {
-                UnityEngine.Debug.LogWarning("[Puerts] Plugins fail activated for " + targetType.ToString() + " in Editor. maybe not has " + targetType.ToString());
+                UnityEngine.Debug.LogWarning("[Puerts] Plugins fail activated for " + targetType.ToString() + " in Editor. maybe there is no " + targetType.ToString() + " plugin existing");
             }
             return hadActivated;
         }
-        public static void activatePluginsForDeployment(UnityEditor.BuildTarget target, PuertsBackEndType type, bool activate)
+        public static void activatePluginsForDeployment(UnityEditor.BuildTarget target, BackendType type, bool activate)
         {
             var importers = getPuertsPluginImporters(new UnityEditor.BuildTarget[] { target });
             foreach (var pluginImporter in importers)
             {
-                var splitPath = getPluginInfoFromPath(pluginImporter.assetPath);
-                if (splitPath == null)
-                {
-                    continue;
-                }
+                PluginInfo pi = getPluginInfoFromAssetPath(pluginImporter.assetPath);
+                if (pi == null) continue;
 
-                var pluginPlatform = splitPath[0];
-
-
-                var pluginName = splitPath[splitPath.Length - 1].Split('.')[0];
-                var pluginArch = string.Empty;
-                var engineType = string.Empty;
-
-
-                switch (pluginPlatform)
+                switch (pi.Platform)
                 {
                     case "iOS":
                     case "tvOS":
@@ -152,97 +192,74 @@ namespace Puerts.Editor.PluginManagement
                     case "Stadia":
                     case "XboxSeriesX":
                     case "XboxOneGC":
-                        engineType = splitPath[1];
                         break;
 
                     case "Android":
-                        pluginArch = splitPath[1];
-                        engineType = splitPath[2];
-
-                        if (pluginArch == "armeabi-v7a")
+                        if (pi.Architecture == "armeabi-v7a")
                         {
                             pluginImporter.SetPlatformData(UnityEditor.BuildTarget.Android, "CPU", "ARMv7");
                         }
-                        else if (pluginArch == "arm64-v8a")
+                        else if (pi.Architecture == "arm64-v8a")
                         {
                             pluginImporter.SetPlatformData(UnityEditor.BuildTarget.Android, "CPU", "ARM64");
                         }
-                        else if (pluginArch == "x86")
+                        else if (pi.Architecture == "x86")
                         {
                             pluginImporter.SetPlatformData(UnityEditor.BuildTarget.Android, "CPU", "x86");
                         }
                         else
                         {
-                            UnityEngine.Debug.Log("[Puerts]: Architecture not found: " + pluginArch);
+                            UnityEngine.Debug.Log("[Puerts]: Architecture not found: " + pi.Architecture);
                         }
                         break;
 
                     case "Linux":
-                        pluginArch = splitPath[1];
-                        engineType = splitPath[2];
-
-                        if (pluginArch != "x86" && pluginArch != "x86_64")
+                        if (pi.Architecture != "x86" && pi.Architecture != "x86_64")
                         {
-                            UnityEngine.Debug.Log("[Puerts]: Architecture not found: " + pluginArch);
+                            UnityEngine.Debug.Log("[Puerts]: Architecture not found: " + pi.Architecture);
                             continue;
                         }
-                        setStandalonePlatformData(pluginImporter, pluginPlatform, pluginArch);
+                        setStandalonePlatformData(pluginImporter, pi.Platform, pi.Architecture);
                         break;
 
                     case "macOS":
-                        pluginArch = splitPath[1];
-                        engineType = splitPath[2];
-                        setStandalonePlatformData(pluginImporter, pluginPlatform, pluginArch);
+                        setStandalonePlatformData(pluginImporter, pi.Platform, pi.Architecture);
                         break;
 
                     // case "WSA":
-                    //     pluginArch = splitPath[1];
+                    //     pi.Architecture = splitPath[1];
                     //     engineType = splitPath[2];
 
                     //     pluginImporter.SetPlatformData(UnityEditor.BuildTarget.WSAPlayer, "SDK", "AnySDK");
 
-                    //     if (pluginArch == "WSA_UWP_Win32")
+                    //     if (pi.Architecture == "WSA_UWP_Win32")
                     //     {
                     //         pluginImporter.SetPlatformData(UnityEditor.BuildTarget.WSAPlayer, "CPU", "X86");
                     //     }
-                    //     else if (pluginArch == "WSA_UWP_x64")
+                    //     else if (pi.Architecture == "WSA_UWP_x64")
                     //     {
                     //         pluginImporter.SetPlatformData(UnityEditor.BuildTarget.WSAPlayer, "CPU", "X64");
                     //     }
-                    //     else if (pluginArch == "WSA_UWP_ARM")
+                    //     else if (pi.Architecture == "WSA_UWP_ARM")
                     //     {
                     //         pluginImporter.SetPlatformData(UnityEditor.BuildTarget.WSAPlayer, "CPU", "ARM");
                     //     }
-                    //     else if (pluginArch == "WSA_UWP_ARM64")
+                    //     else if (pi.Architecture == "WSA_UWP_ARM64")
                     //     {
                     //         pluginImporter.SetPlatformData(UnityEditor.BuildTarget.WSAPlayer, "CPU", "ARM64");
                     //     }
                     //     break;
 
-                    case "x86":
-                        pluginArch = "x86";
-                        engineType = splitPath[1];
-
-                        if (pluginArch != "x86" && pluginArch != "x86_64")
+                    case "Windows":
+                        if (pi.Architecture != "x86" && pi.Architecture != "x86_64")
                         {
-                            UnityEngine.Debug.Log("[Puerts]: Architecture not found: " + pluginArch);
+                            UnityEngine.Debug.Log("[Puerts]: Architecture not found: " + pi.Architecture);
                             continue;
                         }
-                        setStandalonePlatformData(pluginImporter, pluginPlatform, pluginArch);
-                        break;
-                    case "x86_64":
-                        pluginArch = "x86_64";
-                        engineType = splitPath[1];
-
-                        if (pluginArch != "x86" && pluginArch != "x86_64")
-                        {
-                            UnityEngine.Debug.Log("[Puerts]: Architecture not found: " + pluginArch);
-                            continue;
-                        }
-                        setStandalonePlatformData(pluginImporter, pluginPlatform, pluginArch);
+                        setStandalonePlatformData(pluginImporter, pi.Platform, pi.Architecture);
                         break;
                     // case "Switch":
-                    //     pluginArch = splitPath[1];
+                    //     pi.Architecture = splitPath[1];
                     //     engineType = splitPath[2];
 
                     //     if (SwitchBuildTarget == INVALID_BUILD_TARGET)
@@ -250,15 +267,15 @@ namespace Puerts.Editor.PluginManagement
                     //         continue;
                     //     }
 
-                    //     if (pluginArch != "NX32" && pluginArch != "NX64")
+                    //     if (pi.Architecture != "NX32" && pi.Architecture != "NX64")
                     //     {
-                    //         UnityEngine.Debug.Log("[Puerts]: Architecture not found: " + pluginArch);
+                    //         UnityEngine.Debug.Log("[Puerts]: Architecture not found: " + pi.Architecture);
                     //         continue;
                     //     }
                     //     break;
 
                     default:
-                        UnityEngine.Debug.Log("[Puerts]: Unknown platform: " + pluginPlatform);
+                        UnityEngine.Debug.Log("[Puerts]: Unknown platform: " + pi.Platform);
                         continue;
                 }
 
@@ -270,7 +287,7 @@ namespace Puerts.Editor.PluginManagement
                 }
 
                 var bActivate = true;
-                if (engineType != type.ToString())
+                if (pi.Backend != type.ToString())
                 {
                     bActivate = false;
                 }
@@ -312,16 +329,16 @@ namespace Puerts.Editor.PluginManagement
             var isX86 = architecture == "x86";
             var isX64 = architecture == "x86_64";
 
-    #if !UNITY_2019_2_OR_NEWER
+#if !UNITY_2019_2_OR_NEWER
             pluginImporter.SetPlatformData(UnityEditor.BuildTarget.StandaloneLinux, "CPU", isLinux && isX86 ? "x86" : "None");
             pluginImporter.SetPlatformData(UnityEditor.BuildTarget.StandaloneLinuxUniversal, "CPU", !isLinux ? "None" : isX86 ? "x86" : isX64 ? "x86_64" : "None");
-    #endif
+#endif
             pluginImporter.SetPlatformData(UnityEditor.BuildTarget.StandaloneLinux64, "CPU", isLinux && isX64 ? "x86_64" : "None");
             pluginImporter.SetPlatformData(UnityEditor.BuildTarget.StandaloneWindows, "CPU", isWindows && isX86 ? "AnyCPU" : "None");
             pluginImporter.SetPlatformData(UnityEditor.BuildTarget.StandaloneWindows64, "CPU", isWindows && isX64 ? "AnyCPU" : "None");
             pluginImporter.SetPlatformData(UnityEditor.BuildTarget.StandaloneOSX, "CPU", isMac ? "AnyCPU" : "None");
         }
-        private static string[] getPluginInfoFromPath(string path)
+        private static string[] splitAssetPathRelativeToPlugin(string path)
         {
             var indexOfPluginFolder = path.IndexOf(PuertsPluginFolder, System.StringComparison.OrdinalIgnoreCase);
             if (indexOfPluginFolder == -1)
@@ -331,14 +348,32 @@ namespace Puerts.Editor.PluginManagement
 
             return path.Substring(indexOfPluginFolder + PuertsPluginFolder.Length + 1).Split('/');
         }
+        
         public static List<UnityEditor.PluginImporter> getPuertsPluginImporters(UnityEditor.BuildTarget[] targetPlatforms)
-
         {
-
             UnityEditor.PluginImporter[] pluginImporters = UnityEditor.PluginImporter.GetAllImporters();
 
+            string searchingPath = "com.tencent.puerts.core/Plugins";
+            // search for puerts.dll and find the Plugins directory
+            foreach (var pluginImporter in pluginImporters)
+            {
+                if (
+                    pluginImporter.assetPath.Contains("puerts.dll") ||
+                    pluginImporter.assetPath.Contains("puerts.bundle") || 
+                    pluginImporter.assetPath.Contains("libpuerts.dylib") || 
+                    pluginImporter.assetPath.Contains("libpuerts.so") || 
+                    pluginImporter.assetPath.Contains("libpuerts.a")
+                )
+                {
+                    searchingPath = pluginImporter.assetPath.Substring(
+                        0, pluginImporter.assetPath.IndexOf("Plugins") + 7
+                    );
+                    break;
+                }
+            }
+
+
             List<UnityEditor.PluginImporter> puertsPlugins = new List<UnityEditor.PluginImporter>();
-            string filterPath = "com.tencent.puerts.core/Runtime/Plugins";
 
 
             foreach (var pluginImporter in pluginImporters)
@@ -348,8 +383,11 @@ namespace Puerts.Editor.PluginManagement
                     for (int i = 0; i < targetPlatforms.Length; i++)
                     {
                         string platformName = getBuildTargetPlatformName(targetPlatforms[i]);
-                        string platformFilterPath = filterPath + "/" + platformName;
-                        if (pluginImporter.assetPath.Contains(platformFilterPath))
+
+                        if (
+                            pluginImporter.assetPath.Contains(searchingPath) && 
+                            pluginImporter.assetPath.Contains(platformName)
+                        )
                         {
                             puertsPlugins.Add(pluginImporter);
                         }
@@ -357,57 +395,35 @@ namespace Puerts.Editor.PluginManagement
                 }
                 else
                 {
-                    if (pluginImporter.assetPath.Contains(filterPath))
+                    if (pluginImporter.assetPath.Contains(searchingPath))
                     {
                         puertsPlugins.Add(pluginImporter);
                     }
                 }
-
-
             }
             return puertsPlugins;
         }
 
-        private static void activatePluginByEngineType(PuertsBackEndType type, bool updateMenu = true)
+        internal static void activatePluginByBackendType(BackendType type)
         {
             if (UnityEngine.Application.isPlaying)
             {
-                Debug.LogWarning("[Puerts]can not change Plugin in play mode");
+                Debug.LogWarning("[Puerts] can not switch PuerTS backend in play mode");
                 return;
             }
-            if (type == PuertsBackEndType.None) return;
-            var activatedBackEnd = activatePluginsForEditor(type);
-            if (activatedBackEnd)
+            if (type == BackendType.None) return;
+            var activatedBackend = activatePluginsForEditor(type);
+            if (activatedBackend)
             {
-                EditorBackEndTypeSetting.setCurEditorEngineType(type);
-                if (updateMenu) updateMenuItemState(type);
+                BackendStorage.SetCurrentBackendType(type);
             }
 
         }
-        private static void updateMenuItemState(PuertsBackEndType type)
-        {
 
-            SetChecked(PuertsBackEndType.Nodejs, type);
-            SetChecked(PuertsBackEndType.Quickjs, type);
-            SetChecked(PuertsBackEndType.V8_Debug, type);
-            SetChecked(PuertsBackEndType.V8_Release, type);
-        }
-        private static void SetChecked(PuertsBackEndType menuType, PuertsBackEndType targetType)
-        {
-
-            UnityEditor.Menu.SetChecked(MENU_PATH + menuType, menuType == targetType);
-        }
-        [UnityEditor.MenuItem(MENU_PATH + "DisableAll", false)]
-        public static void disableAllPuertsPlugin()
-        {
-            PuertsPluginActivator.deactivateAllPlugins();
-            EditorBackEndTypeSetting.setCurEditorEngineType(PuertsBackEndType.None);
-            updateMenuItemState(PuertsBackEndType.None);
-        }
         /// <summary>
         /// puerts插件，所有平台禁用
         /// </summary>
-        public static void deactivateAllPlugins()
+        internal static void deactivateAllPlugins()
         {
             var importers = getPuertsPluginImporters(null);
             var platforms = new BuildTarget[] {
@@ -448,49 +464,15 @@ namespace Puerts.Editor.PluginManagement
 
                 if (isChanged)
                 {
+#if UNITY_2019_1_OR_NEWER
                     pluginImporter.isPreloaded = false;
+#endif
                     pluginImporter.SaveAndReimport();
                 }
 
             }
 
         }
-        /// <summary>
-        /// 所有puerts插件在编辑器平台禁用
-        /// </summary>
-        private static void deactivateEditorPlugins()
-        {
-            var importers = getPuertsPluginImporters(null);
-            foreach (var pluginImporter in importers)
-            {
-                //var assetPath = pluginImporter.assetPath;
-                pluginImporter.SetCompatibleWithAnyPlatform(false);
-                pluginImporter.SetCompatibleWithEditor(false);
-                pluginImporter.isPreloaded = false;
-            }
-        }
-        [UnityEditor.MenuItem(MENU_PATH + "Nodejs", false)]
-        public static void ActivateNodejs()
-        {
-            activatePluginByEngineType(PuertsBackEndType.Nodejs);
-        }
-        [UnityEditor.MenuItem(MENU_PATH + "Quickjs")]
-        public static void ActivateQuickjs()
-        {
-            activatePluginByEngineType(PuertsBackEndType.Quickjs);
-        }
-        [UnityEditor.MenuItem(MENU_PATH + "V8_Debug")]
-        public static void ActivateV8_Debug()
-        {
-            activatePluginByEngineType(PuertsBackEndType.V8_Debug);
-        }
-        [UnityEditor.MenuItem(MENU_PATH + "V8_Release")]
-        public static void ActivateV8_Release()
-        {
-            activatePluginByEngineType(PuertsBackEndType.V8_Release);
-
-        }
     }
 }
 #endif
-
