@@ -166,26 +166,47 @@ jobs:
       - uses: actions/download-artifact@v1
         with:
           name: Unity_Plugins (v8_9.4_Release)
-          path: V8/Puerts/Plugins/
+          path: V8/Puerts/Plugins/V8/
           
       - uses: actions/download-artifact@v1
         with:
           name: Unity_Plugins (quickjs_Release)
-          path: Quickjs/Puerts/Plugins/
+          path: QuickJS/Puerts/Plugins/QuickJS/
 
       - uses: actions/download-artifact@v1
         with:
           name: Unity_Plugins (nodejs_16_Release)
-          path: Nodejs/Puerts/Plugins/
+          path: NodeJS/Puerts/Plugins/NodeJS/
           
       - name: Create Release Asset
         run: |
           cp $GITHUB_WORKSPACE/doc/unity/zhcn/changelog.md $GITHUB_WORKSPACE/unity/Assets/Puerts
           cp $GITHUB_WORKSPACE/LICENSE $GITHUB_WORKSPACE/unity/Assets/Puerts
-          cd V8/ && cp -r $GITHUB_WORKSPACE/unity/Assets/Puerts . && tar cvfz ../PuerTS_V8_${{ github.event.inputs.tag_name }}.tgz Puerts && cd -
-          cd Quickjs/ && cp -r $GITHUB_WORKSPACE/unity/Assets/Puerts . && tar cvfz ../PuerTS_Quickjs_${{ github.event.inputs.tag_name }}.tgz Puerts && cd -
-          cd Nodejs/ && cp -r $GITHUB_WORKSPACE/unity/Assets/Puerts . && tar cvfz ../PuerTS_Nodejs_${{ github.event.inputs.tag_name }}.tgz Puerts && cd -
-          
+          echo "===handle V8 Backend==="
+          cd V8/
+          cp -r $GITHUB_WORKSPACE/unity/Assets/Puerts . 
+          tar cvfz ../PuerTS_V8_${{ github.event.inputs.tag_name }}.tgz Puerts 
+          cd -
+          echo "===handle QuickJS Backend==="
+          cd QuickJS/
+          cp -r $GITHUB_WORKSPACE/unity/Assets/Puerts .
+          tar cvfz ../PuerTS_QuickJS_${{ github.event.inputs.tag_name }}.tgz Puerts
+          cd -
+          echo "===handle NodeJS Backend==="
+          cd NodeJS/
+          cp -r $GITHUB_WORKSPACE/unity/Assets/Puerts .
+          tar cvfz ../PuerTS_NodeJS_${{ github.event.inputs.tag_name }}.tgz Puerts
+          cd -
+          echo "===handle AllInOneBackend==="
+          mkdir -p AllInOne/Puerts/Plugins/
+          ls -l
+          cp -r ./NodeJS/Puerts/NodeJS ./AllInOne/Puerts/Plugins/
+          cp -r ./V8/Puerts/Plugins/V8 ./AllInOne/Puerts/Plugins/
+          cp -r ./QuickJS/Puerts/Plugins/QuickJS ./AllInOne/Puerts/Plugins/
+          cd AllInOne
+          cp -r $GITHUB_WORKSPACE/unity/Assets/Puerts .
+          tar cvfz ../PuerTS_AllInOne_${{ github.event.inputs.tag_name }}.tgz Puerts
+
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -195,7 +216,7 @@ jobs:
           body: |
             中文版本请查看 [`doc/unity/zhcn/changelog.md`](https://github.com/Tencent/puerts/blob/master/doc/unity/zhcn/changelog.md)
             
-            > difference between Node.js/Quickjs/V8: [wiki](https://github.com/Tencent/puerts/wiki/%5BUnity%5D-Release%E9%87%8C%E5%90%84%E4%B8%AAPlugin%E7%9A%84%E5%8C%BA%E5%88%AB)
+            > difference between Node.js/QuickJS/V8: [wiki](https://github.com/Tencent/puerts/wiki/%5BUnity%5D-Release%E9%87%8C%E5%90%84%E4%B8%AAPlugin%E7%9A%84%E5%8C%BA%E5%88%AB)
           tag_name: Unity_v${{ github.event.inputs.tag_name }}
           release_name: Unity_v${{ github.event.inputs.tag_name }},ApiLevel:${{ env.API_LEVEL }}
           draft: false
@@ -219,8 +240,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./PuerTS_Quickjs_${{ github.event.inputs.tag_name }}.tgz
-          asset_name: PuerTS_Quickjs_${{ github.event.inputs.tag_name }}.tgz
+          asset_path: ./PuerTS_QuickJS_${{ github.event.inputs.tag_name }}.tgz
+          asset_name: PuerTS_QuickJS_${{ github.event.inputs.tag_name }}.tgz
           asset_content_type: application/tgz
           
       - name: Upload Nodejs Plugins
@@ -230,10 +251,17 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./PuerTS_Nodejs_${{ github.event.inputs.tag_name }}.tgz
-          asset_name: "PuerTS_Nodejs_${{ github.event.inputs.tag_name }}.tgz"
+          asset_path: ./PuerTS_NodeJS_${{ github.event.inputs.tag_name }}.tgz
+          asset_name: "PuerTS_NodeJS_${{ github.event.inputs.tag_name }}.tgz"
           asset_content_type: application/tgz
 
-      # - name: Trigger demo/upm repository update
-      #   run: |
-      #     curl -XPOST -u "${{ secrets.PAT_USERNAME}}:${{secrets.PAT_TOKEN}}" -H "Accept: application/vnd.github.v3+json" -H "Content-Type: application/json" https://api.github.com/repos/zombieyang/puerts_unity_demo/actions/workflows/sync-package.yml/dispatches -d '{"ref": "master", "inputs": {"push_tag_version": "${{ github.event.inputs.tag_name }}"}}'
+      - name: Upload AllInOne Plugins
+        #id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./PuerTS_AllInOne_${{ github.event.inputs.tag_name }}.tgz
+          asset_name: "PuerTS_AllInOne_${{ github.event.inputs.tag_name }}.tgz"
+          asset_content_type: application/tgz
