@@ -6,34 +6,9 @@ using UnityEngine;
 
 namespace Puerts.Editor.PluginManagement
 {
-    public enum BackendType
-    {
-        NodeJS,
-        QuickJS,
-        V8,
-        V8_Debug,
-        None
-    }
-
     [UnityEditor.InitializeOnLoad]
     public class Activator
     {
-        protected static void SetStoragedBackendType(BackendType type) 
-        {
-            EditorPrefs.SetString("PuerTS_PluginManagement_CurrentBackend", type.ToString());
-        }
-        protected static BackendType GetStoragedBackendType() 
-        {
-            string typeStr = EditorPrefs.GetString("PuerTS_PluginManagement_CurrentBackend");
-            BackendType ret;
-            if (typeStr == string.Empty || typeStr == null || !Enum.TryParse(typeStr, out ret))
-            {
-                return BackendType.NodeJS;
-            }
-            return ret;
-        }
-
-
         public enum PluginRuntimeType
         {
             Editor,
@@ -41,7 +16,6 @@ namespace Puerts.Editor.PluginManagement
             ALL
         }
 
-        private const string MENU_PATH = "PuerTS/Select Backend/";
         private const string PuertsPluginFolder = "Plugins";
         private const UnityEditor.BuildTarget INVALID_BUILD_TARGET = (UnityEditor.BuildTarget)(-1);
         static Activator()
@@ -49,9 +23,8 @@ namespace Puerts.Editor.PluginManagement
             BuildTargetToPlatformName.Add(UnityEditor.BuildTarget.StandaloneOSX, "macOS");
             BuildTargetToPlatformName.Add(UnityEditor.BuildTarget.StandaloneWindows, "x86");
             BuildTargetToPlatformName.Add(UnityEditor.BuildTarget.StandaloneWindows64, "x86_64");
-            var curEditorEngineType = GetStoragedBackendType();
-            activatePluginByEngineType(curEditorEngineType, false);
-            UnityEditor.EditorApplication.delayCall += delayUpdateMenu;
+            var curEditorEngineType = BackendStorage.GetCurrentBackendType();
+            activatePluginByBackendType(curEditorEngineType);
 
         }
 
@@ -76,6 +49,7 @@ namespace Puerts.Editor.PluginManagement
             var split1 = splitPath[1];
             switch (split1) 
             {
+                // TODO 理论上应该把build出来的目录结构标准化
                 case "x86":
                 case "x86_64":
                     pi.Architecture = split1;
@@ -84,6 +58,14 @@ namespace Puerts.Editor.PluginManagement
                     else 
                         pi.Platform = "Windows";
                     break;
+                case "Android":
+                    pi.Platform = "Android";
+                    pi.Architecture = splitPath[3];
+                    break;
+                case "iOS":
+                    pi.Platform = "iOS";
+                    pi.Architecture = "arm64";
+                    break;
                 default:
                     pi.Platform = split1;
                     pi.Architecture = splitPath[2];
@@ -91,24 +73,7 @@ namespace Puerts.Editor.PluginManagement
             }
             return pi;
         }
-        // private static ScriptEngineType ttype;
-
-        // private static void delayUpdateMenu()
-        // {
-        //     var curEditorEngineType = TsProjDevUserSetting.getAsset().editorEngineType;
-        //     ttype = curEditorEngineType;
-        //     UnityEngine.Debug.LogError("enginetype"+ttype.ToString());
-        //     activatePluginByEngineType(ttype, false);
-        //     updateMenuItemState(ttype);
-
-        // }
-        private static void delayUpdateMenu()
-        {
-            var curBackEndType = GetStoragedBackendType();
-
-            updateMenuItemState(curBackEndType);
-
-        }
+        
         public static bool activatePluginsForEditor(BackendType targetType)
         {
             var importers = getPuertsPluginImporters(
@@ -435,13 +400,11 @@ namespace Puerts.Editor.PluginManagement
                         puertsPlugins.Add(pluginImporter);
                     }
                 }
-
-
             }
             return puertsPlugins;
         }
 
-        private static void activatePluginByEngineType(BackendType type, bool updateMenu = true)
+        internal static void activatePluginByBackendType(BackendType type)
         {
             if (UnityEngine.Application.isPlaying)
             {
@@ -452,44 +415,15 @@ namespace Puerts.Editor.PluginManagement
             var activatedBackend = activatePluginsForEditor(type);
             if (activatedBackend)
             {
-                SetStoragedBackendType(type);
-                if (updateMenu) updateMenuItemState(type);
+                BackendStorage.SetCurrentBackendType(type);
             }
 
         }
 
-
-
-
-
-
-
-
-
-
-        private static void updateMenuItemState(BackendType type)
-        {
-            SetChecked(BackendType.NodeJS, type);
-            SetChecked(BackendType.QuickJS, type);
-            SetChecked(BackendType.V8_Debug, type);
-            SetChecked(BackendType.V8, type);
-        }
-        private static void SetChecked(BackendType menuType, BackendType targetType)
-        {
-
-            UnityEditor.Menu.SetChecked(MENU_PATH + menuType, menuType == targetType);
-        }
-        [UnityEditor.MenuItem(MENU_PATH + "DisableAll", false)]
-        public static void disableAllPuertsPlugin()
-        {
-            Activator.deactivateAllPlugins();
-            SetStoragedBackendType(BackendType.None);
-            updateMenuItemState(BackendType.None);
-        }
         /// <summary>
         /// puerts插件，所有平台禁用
         /// </summary>
-        public static void deactivateAllPlugins()
+        internal static void deactivateAllPlugins()
         {
             var importers = getPuertsPluginImporters(null);
             var platforms = new BuildTarget[] {
@@ -538,32 +472,6 @@ namespace Puerts.Editor.PluginManagement
 
             }
 
-        }
-        /// <summary>
-        /// 所有puerts插件在编辑器平台禁用
-        /// </summary>
-        private static void deactivateEditorPlugins() {
-            updateMenuItemState(BackendType.None);
-        }
-        [UnityEditor.MenuItem(MENU_PATH + "NodeJS", false)]
-        public static void ActivateNodeJS()
-        {
-            activatePluginByEngineType(BackendType.NodeJS);
-        }
-        [UnityEditor.MenuItem(MENU_PATH + "QuickJS")]
-        public static void ActivateQuickJS()
-        {
-            activatePluginByEngineType(BackendType.QuickJS);
-        }
-        [UnityEditor.MenuItem(MENU_PATH + "V8")]
-        public static void ActivateV8()
-        {
-            activatePluginByEngineType(BackendType.V8);
-        }
-        [UnityEditor.MenuItem(MENU_PATH + "V8_Debug")]
-        public static void ActivateV8_Debug()
-        {
-            activatePluginByEngineType(BackendType.V8_Debug);
         }
     }
 }
