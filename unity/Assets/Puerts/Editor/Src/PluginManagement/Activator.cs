@@ -390,7 +390,7 @@ namespace Puerts.Editor.PluginManagement
             UnityEditor.PluginImporter[] pluginImporters = UnityEditor.PluginImporter.GetAllImporters();
 
             List<UnityEditor.PluginImporter> puertsPlugins = new List<UnityEditor.PluginImporter>();
-            string filterPath = "package/Plugins";
+            string searchingPath = "com.tencent.puerts.core/Plugins";
 
 
             foreach (var pluginImporter in pluginImporters)
@@ -402,7 +402,7 @@ namespace Puerts.Editor.PluginManagement
                         string platformName = getBuildTargetPlatformName(targetPlatforms[i]);
 
                         if (
-                            pluginImporter.assetPath.Contains(filterPath) && 
+                            pluginImporter.assetPath.Contains(searchingPath) && 
                             pluginImporter.assetPath.Contains(platformName)
                         )
                         {
@@ -412,7 +412,7 @@ namespace Puerts.Editor.PluginManagement
                 }
                 else
                 {
-                    if (pluginImporter.assetPath.Contains(filterPath))
+                    if (pluginImporter.assetPath.Contains(searchingPath))
                     {
                         puertsPlugins.Add(pluginImporter);
                     }
