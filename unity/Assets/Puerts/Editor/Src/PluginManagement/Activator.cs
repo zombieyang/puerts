@@ -10,8 +10,8 @@ namespace Puerts.Editor.PluginManagement
     {
         NodeJS,
         QuickJS,
-        V8_Debug,
         V8,
+        V8_Debug,
         None
     }
 
@@ -159,16 +159,16 @@ namespace Puerts.Editor.PluginManagement
                 if (pluginImporter.GetCompatibleWithAnyPlatform())
                 {
                     pluginImporter.SetCompatibleWithAnyPlatform(false);
-    #if UNITY_2019_1_OR_NEWER
+#if UNITY_2019_1_OR_NEWER
                     pluginImporter.isPreloaded = false;
-    #endif
+#endif
                     AssetChanged = true;
                 }
                 AssetChanged |= pluginImporter.GetCompatibleWithEditor() != false;
                 pluginImporter.SetCompatibleWithEditor(false);
-    #if UNITY_2019_1_OR_NEWER
+#if UNITY_2019_1_OR_NEWER
                 pluginImporter.isPreloaded = false;
-    #endif
+#endif
 
                 if (AssetChanged)
                 {
@@ -181,16 +181,16 @@ namespace Puerts.Editor.PluginManagement
                 if (pluginImporter.GetCompatibleWithAnyPlatform())
                 {
                     pluginImporter.SetCompatibleWithAnyPlatform(false);
-    #if UNITY_2019_1_OR_NEWER
+#if UNITY_2019_1_OR_NEWER
                     pluginImporter.isPreloaded = false;
-    #endif
+#endif
                     AssetChanged = true;
                 }
                 AssetChanged |= pluginImporter.GetCompatibleWithEditor() != true;
                 pluginImporter.SetCompatibleWithEditor(true);
-    #if UNITY_2019_1_OR_NEWER
+#if UNITY_2019_1_OR_NEWER
                 pluginImporter.isPreloaded = true;
-    #endif
+#endif
 
                 if (AssetChanged)
                 {
@@ -364,10 +364,10 @@ namespace Puerts.Editor.PluginManagement
             var isX86 = architecture == "x86";
             var isX64 = architecture == "x86_64";
 
-    #if !UNITY_2019_2_OR_NEWER
+#if !UNITY_2019_2_OR_NEWER
             pluginImporter.SetPlatformData(UnityEditor.BuildTarget.StandaloneLinux, "CPU", isLinux && isX86 ? "x86" : "None");
             pluginImporter.SetPlatformData(UnityEditor.BuildTarget.StandaloneLinuxUniversal, "CPU", !isLinux ? "None" : isX86 ? "x86" : isX64 ? "x86_64" : "None");
-    #endif
+#endif
             pluginImporter.SetPlatformData(UnityEditor.BuildTarget.StandaloneLinux64, "CPU", isLinux && isX64 ? "x86_64" : "None");
             pluginImporter.SetPlatformData(UnityEditor.BuildTarget.StandaloneWindows, "CPU", isWindows && isX86 ? "AnyCPU" : "None");
             pluginImporter.SetPlatformData(UnityEditor.BuildTarget.StandaloneWindows64, "CPU", isWindows && isX64 ? "AnyCPU" : "None");
@@ -383,14 +383,32 @@ namespace Puerts.Editor.PluginManagement
 
             return path.Substring(indexOfPluginFolder + PuertsPluginFolder.Length + 1).Split('/');
         }
+        
         public static List<UnityEditor.PluginImporter> getPuertsPluginImporters(UnityEditor.BuildTarget[] targetPlatforms)
-
         {
-
             UnityEditor.PluginImporter[] pluginImporters = UnityEditor.PluginImporter.GetAllImporters();
 
-            List<UnityEditor.PluginImporter> puertsPlugins = new List<UnityEditor.PluginImporter>();
             string searchingPath = "com.tencent.puerts.core/Plugins";
+            // search for puerts.dll and find the Plugins directory
+            foreach (var pluginImporter in pluginImporters)
+            {
+                if (
+                    pluginImporter.assetPath.Contains("puerts.dll") ||
+                    pluginImporter.assetPath.Contains("puerts.bundle") || 
+                    pluginImporter.assetPath.Contains("libpuerts.dylib") || 
+                    pluginImporter.assetPath.Contains("libpuerts.so") || 
+                    pluginImporter.assetPath.Contains("libpuerts.a")
+                )
+                {
+                    searchingPath = pluginImporter.assetPath.Substring(
+                        0, pluginImporter.assetPath.IndexOf("Plugins") + 7
+                    );
+                    break;
+                }
+            }
+
+
+            List<UnityEditor.PluginImporter> puertsPlugins = new List<UnityEditor.PluginImporter>();
 
 
             foreach (var pluginImporter in pluginImporters)
@@ -465,7 +483,7 @@ namespace Puerts.Editor.PluginManagement
         public static void disableAllPuertsPlugin()
         {
             Activator.deactivateAllPlugins();
-            EditorBackEndTypeSetting.setCurEditorEngineType(BackendType.None);
+            SetStoragedBackendType(BackendType.None);
             updateMenuItemState(BackendType.None);
         }
         /// <summary>
@@ -512,9 +530,9 @@ namespace Puerts.Editor.PluginManagement
 
                 if (isChanged)
                 {
-    #if UNITY_2019_1_OR_NEWER
+#if UNITY_2019_1_OR_NEWER
                     pluginImporter.isPreloaded = false;
-    #endif
+#endif
                     pluginImporter.SaveAndReimport();
                 }
 
@@ -524,7 +542,7 @@ namespace Puerts.Editor.PluginManagement
         /// <summary>
         /// 所有puerts插件在编辑器平台禁用
         /// </summary>
-        private static void deactivateEditorPlugins()
+        private static void deactivateEditorPlugins() {
             updateMenuItemState(BackendType.None);
         }
         [UnityEditor.MenuItem(MENU_PATH + "NodeJS", false)]
@@ -537,15 +555,15 @@ namespace Puerts.Editor.PluginManagement
         {
             activatePluginByEngineType(BackendType.QuickJS);
         }
-        [UnityEditor.MenuItem(MENU_PATH + "V8_Debug")]
-        public static void ActivateV8_Debug()
-        {
-            activatePluginByEngineType(BackendType.V8_Debug);
-        }
         [UnityEditor.MenuItem(MENU_PATH + "V8")]
         public static void ActivateV8()
         {
             activatePluginByEngineType(BackendType.V8);
+        }
+        [UnityEditor.MenuItem(MENU_PATH + "V8_Debug")]
+        public static void ActivateV8_Debug()
+        {
+            activatePluginByEngineType(BackendType.V8_Debug);
         }
     }
 }

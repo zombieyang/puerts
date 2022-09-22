@@ -23,23 +23,23 @@ namespace Puerts.Editor.PluginManagement
         /// <summary>
         /// 可设置激活的插件类型，默认V8,然后根据发布的是 development Debug还是Release而设置
         /// </summary>
-        public PuertsBackEndType activateType = PuertsBackEndType.None;
+        public BackendType activateType = BackendType.None;
         public void OnPreprocessBuildInternal(UnityEditor.BuildTarget target, string path)
         {
             //激活插件
-            PuertsPluginActivator.deactivateAllPlugins();
-            if (this.activateType == PuertsBackEndType.None)
+            Activator.deactivateAllPlugins();
+            if (this.activateType == BackendType.None)
             {
                 var isDevBuild = UnityEditor.EditorUserBuildSettings.development;
-                this.activateType = isDevBuild ? PuertsBackEndType.V8_Debug : PuertsBackEndType.V8;
+                this.activateType = isDevBuild ? BackendType.V8_Debug : BackendType.V8;
             }
-            PuertsPluginActivator.activatePluginsForDeployment(target, this.activateType, true);
+            Activator.activatePluginsForDeployment(target, this.activateType, true);
         }
         public static string GetIp { get; } = Dns.GetHostEntry(Dns.GetHostName()).AddressList.FirstOrDefault(p => p.AddressFamily.ToString() == "InterNetwork")?.ToString();
         public void OnPostprocessBuildInternal(UnityEditor.BuildTarget target, string path)
         {
 
-            PuertsPluginActivator.activatePluginsForDeployment(target, this.activateType, false);
+            Activator.activatePluginsForDeployment(target, this.activateType, false);
         }
 
     #if UNITY_2018_1_OR_NEWER
