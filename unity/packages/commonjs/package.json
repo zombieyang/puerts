@@ -3,7 +3,11 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
+    "postinstall": "node install.js com.tencent.puerts.commonjs upm"
   },
   "author": "zombieyang",
-  "license": "BSD-3 Clause"
+  "license": "BSD-3 Clause",
+  "dependencies": {
+    "openupm-cli": "^1.15.4"
+  }
 }
