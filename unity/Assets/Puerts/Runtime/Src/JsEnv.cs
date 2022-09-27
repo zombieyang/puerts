@@ -235,7 +235,6 @@ namespace Puerts
                 return String.Format(@"
                     let require = null;
                     if ((global.puer || global.puerts).genRequire) {{
-                        CS.System.Console.WriteLine(''+import.meta.url);
                         require = puer.genRequire(import.meta.url);
                     }}
                     else if (global.require) {{ // nodejs
