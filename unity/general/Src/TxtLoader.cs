@@ -2,6 +2,7 @@ using System.IO;
 using System.Reflection;
 using System.Collections.Generic;
 using Puerts;
+using System.Linq;
 
 public class TxtLoader : ILoader
 {
@@ -14,30 +15,32 @@ public class TxtLoader : ILoader
             appendix
         );
     }
-
-    private string root = PathToBinDir("../../../Assets/Puerts/Runtime/Resources");
-    private string editorRoot = PathToBinDir("../../../Assets/Puerts/Editor/Resources");
+    private List<string> ResourcesPaths = new List<string> {
+        PathToBinDir("../../../Assets/Puerts/Runtime/Resources"),
+        PathToBinDir("../../../Assets/Puerts/Editor/Resources"),
+        PathToBinDir("../../../packages/commonjs/upm/Runtime/Resources"),
+    };
 
     public bool FileExists(string filepath)
     {
-        return mockFileContent.ContainsKey(filepath) ||
-            File.Exists(Path.Combine(root, filepath)) ||
-            File.Exists(Path.Combine(editorRoot, filepath));
+        return mockFileContent.ContainsKey(filepath) || ResourcesPaths
+                   .Where((root) => File.Exists(Path.Combine(root, filepath)))
+                   .ToArray().Length > 0;
     }
 
     public string ReadFile(string filepath, out string debugpath)
     {
-        debugpath = Path.Combine(root, filepath);
-        if (File.Exists(Path.Combine(editorRoot, filepath)))
-        {
-            debugpath = Path.Combine(editorRoot, filepath);
-        }
-
         string mockContent;
         if (mockFileContent.TryGetValue(filepath, out mockContent))
         {
+            debugpath = filepath;
             return mockContent;
         }
+
+        string rootpath = ResourcesPaths.Where((root) => File.Exists(Path.Combine(root, filepath)))
+            .ToArray()[0];
+        debugpath = Path.Combine(rootpath, filepath);
+        
 
         using (StreamReader reader = new StreamReader(debugpath))
         {

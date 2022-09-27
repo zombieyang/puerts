@@ -22,6 +22,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="..\..\..\packages\commonjs\upm\Runtime\CommonJS.cs">
+      <Link>Src\CommonJS.cs</Link>
+    </Compile>
     <Compile Include="..\..\Src\TxtLoader.cs">
       <Link>Src\TxtLoader.cs</Link>
     </Compile>

@@ -229,8 +229,27 @@ namespace Puerts
             {
                 return null;
             }
+            if (identifer.Length < 4 || !identifer.EndsWith(".mjs"))
+            {
+                pathForDebug = "";
+                return String.Format(@"
+                    let require = null;
+                    if ((global.puer || global.puerts).genRequire) {{
+                        CS.System.Console.WriteLine(''+import.meta.url);
+                        require = puer.genRequire(import.meta.url);
+                    }}
+                    else if (global.require) {{ // nodejs
+                        require = global.require('node:module').createRequire(import.meta.url);
 
-            return loader.ReadFile(identifer, out pathForDebug);
+                    }}
+
+                    export default require('{0}');
+                ", identifer);
+            } 
+            else 
+            {
+                return loader.ReadFile(identifer, out pathForDebug);
+            }
         }
 
         /**
