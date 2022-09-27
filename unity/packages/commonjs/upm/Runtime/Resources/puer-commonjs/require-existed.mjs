@@ -1,0 +1,1 @@
+export default !!(globalThis.puerts && globalThis.puerts.genRequire);
