@@ -37,7 +37,7 @@ namespace Puerts.Editor
                 Utils.filters = null;
             }
 
-            [MenuItem(PUERTS_MENU_PREFIX + "/Generate index.d.ts", false, 1)]
+            [MenuItem(PUERTS_MENU_PREFIX + "/Generate index.d.ts (global.CS style)", false, 1)]
             public static void GenerateDTS()
             {
                 var start = DateTime.Now;
@@ -51,14 +51,14 @@ namespace Puerts.Editor
                 Utils.filters = null;
             }
 
-            [MenuItem(PUERTS_MENU_PREFIX + "/Generate index.d.ts compatible(unstable)", false, 1)]
-            public static void GenerateDTS()
+            [MenuItem(PUERTS_MENU_PREFIX + "/Generate index.d.ts (require('csharp') style)", false, 1)]
+            public static void GenerateDTSOldStyle()
             {
                 var start = DateTime.Now;
                 var saveTo = Configure.GetCodeOutputDirectory();
                 Directory.CreateDirectory(saveTo);
                 Directory.CreateDirectory(Path.Combine(saveTo, "Typing/csharp"));
-                FileExporter.ExportDTS(saveTo);
+                FileExporter.ExportDTS(saveTo, null, true);
                 Debug.Log("finished! use " + (DateTime.Now - start).TotalMilliseconds + " ms");
                 AssetDatabase.Refresh();
 
