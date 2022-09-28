@@ -18,6 +18,7 @@ namespace Puerts.UnitTest.JSTypeTest
         {
             var jsEnv = new JsEnv(new TxtLoader());
             var ret = jsEnv.Eval<string>(@"
+                const CS = require('csharp');
                 let jsObj = {'a': 1};
                 let obj = new CS.Puerts.UnitTest.JsObjectTest();
                 JSON.stringify(obj.passThroughJSObject(jsObj))

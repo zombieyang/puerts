@@ -189,7 +189,6 @@ public:
 #else
     std::map<std::string, v8::UniquePersistent<v8::Module>> PathToModuleMap;
 #endif
-
     std::map<int, std::string> ScriptIdToPathMap;
     
 private:

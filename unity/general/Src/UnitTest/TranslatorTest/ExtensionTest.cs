@@ -16,8 +16,10 @@ namespace Puerts.UnitTest.UnitTest.TranslatorTest
         {
             var jsEnv = new JsEnv(new TxtLoader());
             var res = jsEnv.Eval<int>(@"
+                const CS = require('csharp');
+                const PUERTS = require('puerts');
                 let obj = new CS.Puerts.UnitTest.BaseClass();
-                puerts.$extension(CS.Puerts.UnitTest.BaseClass, CS.Puerts.UnitTest.BaseClassExtension);
+                PUERTS.$extension(CS.Puerts.UnitTest.BaseClass, CS.Puerts.UnitTest.BaseClassExtension);
                 let res = obj.PrimitiveExtension();
                 res;
             ");
@@ -30,8 +32,10 @@ namespace Puerts.UnitTest.UnitTest.TranslatorTest
         {
             var jsEnv = new JsEnv(new TxtLoader());
             var res = jsEnv.Eval<string>(@"
+                const CS = require('csharp');
+                const PUERTS = require('puerts');
                 let obj = new CS.Puerts.UnitTest.BaseClass();
-                puerts.$extension(CS.Puerts.UnitTest.BaseClass, CS.Puerts.UnitTest.BaseClassExtension);
+                PUERTS.$extension(CS.Puerts.UnitTest.BaseClass, CS.Puerts.UnitTest.BaseClassExtension);
                 let res = obj.PlainExtension();
                 res;
             ");
@@ -44,8 +48,10 @@ namespace Puerts.UnitTest.UnitTest.TranslatorTest
         {
             var jsEnv = new JsEnv(new TxtLoader());
             var res = jsEnv.Eval<BaseClass>(@"
+                const CS = require('csharp');
+                const PUERTS = require('puerts');
                 let obj = new CS.Puerts.UnitTest.BaseClass();
-                puerts.$extension(CS.Puerts.UnitTest.BaseClass, CS.Puerts.UnitTest.BaseClassExtension);
+                PUERTS.$extension(CS.Puerts.UnitTest.BaseClass, CS.Puerts.UnitTest.BaseClassExtension);
                 let res = obj.Extension();
                 res;
             ");
@@ -57,8 +63,10 @@ namespace Puerts.UnitTest.UnitTest.TranslatorTest
         {
             var jsEnv = new JsEnv(new TxtLoader());
             var res = jsEnv.Eval<BaseClass>(@"
+                const CS = require('csharp');
+                const PUERTS = require('puerts');
                 let obj = new CS.Puerts.UnitTest.BaseClass();
-                puerts.$extension(CS.Puerts.UnitTest.BaseClass, CS.Puerts.UnitTest.BaseClassExtension);
+                PUERTS.$extension(CS.Puerts.UnitTest.BaseClass, CS.Puerts.UnitTest.BaseClassExtension);
                 let res = obj.Extension1('123');
                 res;
             ");
@@ -71,9 +79,11 @@ namespace Puerts.UnitTest.UnitTest.TranslatorTest
         {
             var jsEnv = new JsEnv(new TxtLoader());
             var res = jsEnv.Eval<string>(@"
+                const CS = require('csharp');
+                const PUERTS = require('puerts');
                 let obj = new CS.Puerts.UnitTest.BaseClass();
                 let obj1 = new CS.Puerts.UnitTest.BaseClass1();
-                puerts.$extension(CS.Puerts.UnitTest.BaseClass, CS.Puerts.UnitTest.BaseClassExtension);
+                PUERTS.$extension(CS.Puerts.UnitTest.BaseClass, CS.Puerts.UnitTest.BaseClassExtension);
                 let res = obj.Extension2(obj1);
                 res;
             ");
@@ -86,8 +96,10 @@ namespace Puerts.UnitTest.UnitTest.TranslatorTest
         {
             var jsEnv = new JsEnv(new TxtLoader());
             var res = jsEnv.Eval<BaseClass>(@"
+                const CS = require('csharp');
+                const PUERTS = require('puerts');
                 let obj = new CS.Puerts.UnitTest.DerivedClass();
-                puerts.$extension(CS.Puerts.UnitTest.BaseClass, CS.Puerts.UnitTest.BaseClassExtension);
+                PUERTS.$extension(CS.Puerts.UnitTest.BaseClass, CS.Puerts.UnitTest.BaseClassExtension);
                 let res = obj.Extension();
                 res;
             ");
@@ -100,9 +112,11 @@ namespace Puerts.UnitTest.UnitTest.TranslatorTest
         {
             var jsEnv = new JsEnv(new TxtLoader());
             var res = jsEnv.Eval<string>(@"
+                const CS = require('csharp');
+                const PUERTS = require('puerts');
                 let obj = new CS.Puerts.UnitTest.DerivedClass();
                 let obj1 = new CS.Puerts.UnitTest.BaseClass1();
-                puerts.$extension(CS.Puerts.UnitTest.BaseClass, CS.Puerts.UnitTest.BaseClassExtension);
+                PUERTS.$extension(CS.Puerts.UnitTest.BaseClass, CS.Puerts.UnitTest.BaseClassExtension);
                 let res = obj.Extension2(obj1);
                 res;
             ");
@@ -115,9 +129,11 @@ namespace Puerts.UnitTest.UnitTest.TranslatorTest
         {
             var jsEnv = new JsEnv(new TxtLoader());
             var res = jsEnv.Eval<string>(@"
+                const CS = require('csharp');
+                const PUERTS = require('puerts');
                 let obj = new CS.Puerts.UnitTest.DerivedClass();
                 let obj1 = new CS.Puerts.UnitTest.DerivedClass1();
-                puerts.$extension(CS.Puerts.UnitTest.BaseClass, CS.Puerts.UnitTest.BaseClassExtension);
+                PUERTS.$extension(CS.Puerts.UnitTest.BaseClass, CS.Puerts.UnitTest.BaseClassExtension);
                 let res = obj.Extension2(obj1);
                 res;
             ");
