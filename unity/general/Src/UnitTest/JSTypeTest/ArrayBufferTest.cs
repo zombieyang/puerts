@@ -44,6 +44,7 @@ namespace Puerts.UnitTest.JSTypeTest
             var jsEnv = new JsEnv(new TxtLoader());
 
             int ret = jsEnv.Eval<int>(@"
+                const CS = puer.require('csharp');
                 let obj = new CS.Puerts.UnitTest.JSTypeTest.ArrayBufferClass();
                 let ab = obj.AB;
                 let arr = new Uint8Array(ab);
@@ -61,6 +62,7 @@ namespace Puerts.UnitTest.JSTypeTest
             var jsEnv = new JsEnv(new TxtLoader());
 
             int ret = jsEnv.Eval<int>(@"
+                const CS = puer.require('csharp');
                 let obj = new CS.Puerts.UnitTest.JSTypeTest.ArrayBufferClass();
                 let ab = obj.AB;
                 let arr = new Uint8Array(ab,1);
@@ -81,6 +83,7 @@ namespace Puerts.UnitTest.JSTypeTest
             var jsEnv = new JsEnv(new TxtLoader());
 
             int ret = jsEnv.Eval<int>(@"
+                const CS = puer.require('csharp');
                 let obj = new CS.Puerts.UnitTest.JSTypeTest.ArrayBufferClass();
                 let ab = obj.AB;
                 let arr = new Uint8Array(ab,1);
@@ -98,6 +101,7 @@ namespace Puerts.UnitTest.JSTypeTest
             var jsEnv = new JsEnv(new TxtLoader());
 
             int ret = jsEnv.Eval<int>(@"
+                const CS = puer.require('csharp');
                 let obj = new CS.Puerts.UnitTest.JSTypeTest.ArrayBufferClass();
                 let ab = obj.AB;
                 let arr = new Uint8Array(ab,1);
@@ -115,6 +119,7 @@ namespace Puerts.UnitTest.JSTypeTest
             var jsEnv = new JsEnv(new TxtLoader());
 
             int ret = jsEnv.Eval<int>(@"
+                const CS = puer.require('csharp');
                 let obj = new CS.Puerts.UnitTest.JSTypeTest.ArrayBufferClass();
                 let arr = new Uint16Array([1,2,3]);
                 let ab = obj.GetMe(arr);
@@ -133,6 +138,7 @@ namespace Puerts.UnitTest.JSTypeTest
             var jsEnv = new JsEnv(new TxtLoader());
 
             ArrayBufferClass ret = jsEnv.Eval<ArrayBufferClass>(@"
+                const CS = puer.require('csharp');
                 let obj = new CS.Puerts.UnitTest.JSTypeTest.ArrayBufferClass();
                 let arr = new Uint8Array(obj.AB);
                 arr[1] = 100;
@@ -197,6 +203,8 @@ namespace Puerts.UnitTest.JSTypeTest
 
             Func<Puerts.ArrayBuffer, int, Puerts.ArrayBuffer> callback = jsEnv.Eval<Func<Puerts.ArrayBuffer, int, Puerts.ArrayBuffer>>(@"
                 (function() {
+                    const CS = puer.require('csharp');
+                
                     return function(data, length) {
                         return data.slice(0, length - 1)
                     };

@@ -76,10 +76,11 @@ namespace puerts {
     )
     {
         v8::Isolate* Isolate = Context->GetIsolate();
-        auto* JsEngine = FV8Utils::IsolateData<JSEngine>(Isolate);
+        JSEngine* JsEngine = FV8Utils::IsolateData<JSEngine>(Isolate);
         
         v8::String::Utf8Value Specifier_utf8(Isolate, Specifier);
         std::string Specifier_std(*Specifier_utf8, Specifier_utf8.length());
+        size_t Specifier_length = Specifier_std.length();
 
         const auto referIter = JsEngine->ScriptIdToPathMap.find(Referrer->ScriptId()); 
         if (referIter != JsEngine->ScriptIdToPathMap.end())
@@ -99,9 +100,9 @@ namespace puerts {
         const char* Code = JsEngine->ModuleResolver(Specifier_std.c_str(), JsEngine->Idx, pathForDebug);
         if (Code == nullptr) 
         {
-            const std::string ErrorMessage = std::string("module not found ") + Specifier_std;
+            std::string ErrorMessage = std::string("module not found") + Specifier_std;
             Isolate->ThrowException(v8::Exception::Error(FV8Utils::V8String(Isolate, ErrorMessage.c_str())));
-            return v8::MaybeLocal<v8::Module> {};
+            return v8::MaybeLocal<v8::Module>();
         }
         v8::ScriptOrigin Origin(FV8Utils::V8String(Isolate, (const char*)pathForDebug),
                             v8::Integer::New(Isolate, 0),                      // line offset
@@ -123,8 +124,9 @@ namespace puerts {
                 .ToLocal(&Module)) 
         {
             JsEngine->SetLastException(TryCatch.Exception());
-            return v8::MaybeLocal<v8::Module> {};
+            return v8::MaybeLocal<v8::Module>();
         }
+
         JsEngine->ScriptIdToPathMap[Module->ScriptId()] = Specifier_std;
         JsEngine->PathToModuleMap[Specifier_std] = v8::UniquePersistent<v8::Module>(Isolate, Module);
         return Module;
@@ -203,7 +205,7 @@ namespace puerts {
         const char* Code = JsEngine->ModuleResolver(name_std.c_str(), JsEngine->Idx, pathForDebug);
         if (Code == nullptr) 
         {
-            std::string ErrorMessage = std::string("module not found ") + name_std;
+            std::string ErrorMessage = std::string("module not found") + name_std;
             JSValue ex = JS_NewStringLen(ctx, ErrorMessage.c_str(), ErrorMessage.length());
             JS_Throw(ctx, ex);
             return nullptr;

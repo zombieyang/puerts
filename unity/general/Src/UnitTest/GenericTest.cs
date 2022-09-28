@@ -30,8 +30,10 @@ namespace Puerts.UnitTest
         {
             var jsEnv = new JsEnv(new TxtLoader());
             var res = jsEnv.Eval<int>(@"
+                const CS = puer.require('csharp');
+                const PUERTS = global.puer;
                 let obj = new CS.Puerts.UnitTest.DerivedClass();
-                let List = puerts.$generic(CS.System.Collections.Generic.List$1,CS.System.Int32);
+                let List = PUERTS.$generic(CS.System.Collections.Generic.List$1,CS.System.Int32);
                 let ls = new List();
                 ls.Add(1);
                 ls.Add(2);
@@ -50,8 +52,10 @@ namespace Puerts.UnitTest
             {
                 var jsEnv = new JsEnv(new TxtLoader());
                 jsEnv.Eval(@"
+                    const CS = puer.require('csharp');
+                    const PUERTS = global.puer;
                     let obj = new CS.Puerts.UnitTest.DerivedClass();
-                    let List = puerts.$generic(CS.System.Collections.Generic.List$1, CS.System.Int32);
+                    let List = PUERTS.$generic(CS.System.Collections.Generic.List$1, CS.System.Int32);
                     let ls = new List();
                     ls.Add(1);
                     ls.Add(2);
@@ -69,6 +73,7 @@ namespace Puerts.UnitTest
             {
                 jsEnv.Eval<string>(@"
                     (function() {
+                        const CS = puer.require('csharp');
                         const func = puerts.$genericMethod(CS.Puerts.UnitTest, 'StaticGenericMethod', CS.System.Int32);
                         return func();
                     })();
@@ -90,6 +95,7 @@ namespace Puerts.UnitTest
             {
                 jsEnv.Eval<string>(@"
                     (function() {
+                        const CS = puer.require('csharp');
                         const func = puerts.$genericMethod(CS.Puerts.UnitTest.GenericTestClass, 'StaticGenericMethod', 3);
                         return func();
                     })();
@@ -111,6 +117,7 @@ namespace Puerts.UnitTest
                 var jsEnv = new JsEnv(new TxtLoader());
                 string genericTypeName1 = jsEnv.Eval<string>(@"
                     (function() {
+                        const CS = puer.require('csharp');
                         const func = puerts.$genericMethod(CS.Puerts.UnitTest.GenericTestClass, 'StaticGenericMethod', CS.System.Int32);
                         return func('hello');
                     })();
@@ -125,6 +132,7 @@ namespace Puerts.UnitTest
             var jsEnv = new JsEnv(new TxtLoader());
             string genericTypeName1 = jsEnv.Eval<string>(@"
                 (function() {
+                    const CS = puer.require('csharp');
                     const func = puerts.$genericMethod(CS.Puerts.UnitTest.GenericTestClass, 'StaticGenericMethod', CS.System.Int32);
                     return func();
                 })();
@@ -139,6 +147,7 @@ namespace Puerts.UnitTest
             var jsEnv = new JsEnv(new TxtLoader());
             string genericTypeName1 = jsEnv.Eval<string>(@"
                 (function() {
+                    const CS = puer.require('csharp');
                     const func = puerts.$genericMethod(CS.Puerts.UnitTest.GenericTestClass, 'StaticGenericMethod', CS.System.Int32);
                     return func(3);
                 })();
@@ -153,6 +162,7 @@ namespace Puerts.UnitTest
             var jsEnv = new JsEnv(new TxtLoader());
             string genericTypeName1 = jsEnv.Eval<string>(@"
                 (function() {
+                    const CS = puer.require('csharp');
                     const testobj = new CS.Puerts.UnitTest.GenericTestClass();
                     testobj.stringProp = 'world';
                     const func = puerts.$genericMethod(CS.Puerts.UnitTest.GenericTestClass, 'InstanceGenericMethod', CS.System.Int32);

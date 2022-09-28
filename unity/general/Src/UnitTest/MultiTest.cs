@@ -70,7 +70,7 @@ namespace Puerts.UnitTest
         //     {
         //         var env = new JsEnv(new TxtLoader());
         //         env.Eval(@"
-        //             const CS = require('csharp');
+        //             const CS = puer.require('csharp');
         //             setInterval(()=> {
         //                 CS.System.Console.WriteLine(2 + ' : ' + CS.PuertsTest.Randomer.GetRandomAbility().Name);
         //             }, 100)
@@ -82,7 +82,7 @@ namespace Puerts.UnitTest
         //     });
         //     task.Start();
         //     jsEnv.Eval(@"
-        //         const CS = require('csharp');
+        //         const CS = puer.require('csharp');
         //         setInterval(()=> {
         //             CS.System.Console.WriteLine(1 + ' : ' + CS.PuertsTest.Randomer.GetRandomCharacter().Name);
         //         }, 100)
@@ -100,6 +100,7 @@ namespace Puerts.UnitTest
 
             jsEnv1.Eval(@"
                 (function() {
+                    const CS = puer.require('csharp');
                     const A = CS.Puerts.UnitTest.MultiEnvTestA;
                     const B = CS.Puerts.UnitTest.MultiEnvTestB;
 
@@ -113,6 +114,7 @@ namespace Puerts.UnitTest
             ");
             jsEnv2.Eval(@"
                 (function() {
+                    const CS = puer.require('csharp');
                     const A = CS.Puerts.UnitTest.MultiEnvTestA;
                     const B = CS.Puerts.UnitTest.MultiEnvTestB;
 
@@ -134,6 +136,7 @@ namespace Puerts.UnitTest
             
             jsEnv1.Eval(@"
                 (function() {
+                    const CS = puer.require('csharp');
                     const A = CS.Puerts.UnitTest.MultiEnvTestA;
                     const B = CS.Puerts.UnitTest.MultiEnvTestB;
 

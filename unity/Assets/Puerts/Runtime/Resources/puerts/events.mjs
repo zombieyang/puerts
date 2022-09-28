@@ -94,6 +94,6 @@ function spliceOne(list, index) {
     list.pop();
 }
 
-puer.on = on;
-puer.off = off;
-puer.emit = emit;
+puerts.on = on;
+puerts.off = off;
+puerts.emit = emit;

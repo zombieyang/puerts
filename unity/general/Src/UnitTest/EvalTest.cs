@@ -163,42 +163,12 @@ namespace Puerts.UnitTest
             jsEnv.Dispose();
         }
         [Test]
-        public void ESModuleImportCSharp()
-        {
-            var loader = new TxtLoader();
-            loader.AddMockFileContent("whatever.mjs", @"
-                const func = function() { return CS.System.String.Join(' ', 'hello', 'world') }
-                export { func };
-            ");
-            var jsEnv = new JsEnv(loader);
-            Func<string> func = jsEnv.ExecuteModule<Func<string>>("whatever.mjs", "func");
-
-            Assert.True(func() == "hello world");
-
-            jsEnv.Dispose();
-        }
-        [Test]
-        public void ESModuleImportRelative()
-        {
-            var loader = new TxtLoader();
-            loader.AddMockFileContent("a/entry.mjs", @"
-                import { str } from '../b/whatever.mjs'; 
-                export { str };
-            ");
-            loader.AddMockFileContent("b/whatever.mjs", @"export const str = 'hello'");
-            var jsEnv = new JsEnv(loader);
-            string ret = jsEnv.ExecuteModule<string>("a/entry.mjs", "str");
-
-            Assert.True(ret == "hello");
-
-            jsEnv.Dispose();
-        }
-        [Test]
         public void ESModuleImportCircular()
         {
             var loader = new TxtLoader();
             loader.AddMockFileContent("module1.mjs", @"
                 import module2 from './module2.mjs';
+                const CS = puer.require('csharp');
                 CS.System.Console.WriteLine('module1 loading');
 
                 function callMe(msg)
@@ -219,6 +189,7 @@ namespace Puerts.UnitTest
             ");
             loader.AddMockFileContent("module2.mjs", @"
                 import module1 from './module1.mjs';
+                const CS = puer.require('csharp');
                 CS.System.Console.WriteLine('module2 loading');
 
                 function callMe(msg)
@@ -267,12 +238,13 @@ namespace Puerts.UnitTest
             string res = jsEnv.ExecuteModule<string>("main.mjs", "default");
             Assert.True(res == "M2Test M2");
             jsEnv.Dispose();
-        }/*
+        }
         [Test]
         public void ESModuleImportCSharpNamespace()
         {
             var loader = new TxtLoader();
             loader.AddMockFileContent("whatever.mjs", @"
+                import csharp from 'csharp';
                 const func = function() { return csharp.System.String.Join(' ', 'hello', 'world') }
                 export { func };
             ");
@@ -283,6 +255,6 @@ namespace Puerts.UnitTest
             Assert.True(ns.GetType() == typeof(JSObject));
 
             jsEnv.Dispose();
-        }*/
+        }
     }
 }

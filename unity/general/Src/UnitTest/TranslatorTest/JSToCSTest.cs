@@ -21,6 +21,7 @@ namespace Puerts.UnitTest.TranslatorTest
             var jsEnv = new JsEnv(new TxtLoader());
 
             int ret = jsEnv.Eval<int>(@"
+                const CS = puer.require('csharp');
                 let obj = new CS.Puerts.UnitTest.DerivedClass();
                 obj.Id(100);
             ");
@@ -37,6 +38,7 @@ namespace Puerts.UnitTest.TranslatorTest
             var jsEnv = new JsEnv(new TxtLoader());
 
             int ret = jsEnv.Eval<int>(@"
+                const CS = puer.require('csharp');
                 let obj = new CS.Puerts.UnitTest.DerivedClass.Inner();
                 obj.Add(obj.A, 1);
             ");
@@ -52,6 +54,7 @@ namespace Puerts.UnitTest.TranslatorTest
             var jsEnv = new JsEnv(new TxtLoader());
 
             bool ret = jsEnv.Eval<bool>(@"
+                const CS = puer.require('csharp');
                 let obj = new CS.Puerts.UnitTest.DerivedClass();
                 obj.IsStringNull(null);
             ");
@@ -66,6 +69,7 @@ namespace Puerts.UnitTest.TranslatorTest
         {
             var jsEnv = new JsEnv(new TxtLoader());
             bool res = jsEnv.Eval<bool>(@"
+                const CS = puer.require('csharp');
                 CS.Puerts.UnitTest.ParentParent.doSth();
                 CS.Puerts.UnitTest.SonClass.doSth();
                 true
@@ -79,6 +83,7 @@ namespace Puerts.UnitTest.TranslatorTest
             var jsEnv = new JsEnv(new TxtLoader());
 
             var ret = jsEnv.Eval<string>(@"
+                const CS = puer.require('csharp');
                 let obj = new CS.Puerts.UnitTest.ArrayTest();
                 let sum = 0;
                 for (var i = 0; i < 10; i++) {
@@ -119,6 +124,7 @@ namespace Puerts.UnitTest.TranslatorTest
             {
                 var jsEnv1 = new JsEnv(new TxtLoader());
                 jsEnv1.Eval(@"
+                    const CS = puer.require('csharp');
                     let obj = new CS.Puerts.UnitTest.DerivedClass();
                     obj.Long(1);
                 ");
@@ -126,6 +132,7 @@ namespace Puerts.UnitTest.TranslatorTest
 
             var jsEnv = new JsEnv(new TxtLoader());
             var ret = jsEnv.Eval<long>(@"
+                    const CS = puer.require('csharp');
                     let obj = new CS.Puerts.UnitTest.DerivedClass();
                     obj.Long(1n);
                 ");
@@ -146,9 +153,11 @@ namespace Puerts.UnitTest.TranslatorTest
             var jsEnv = new JsEnv(new TxtLoader());
 
             int ret = jsEnv.Eval<int>(@"
-                let res = puerts.$ref(0);
+                const CS = puer.require('csharp');
+                const PUERTS = global.puer;
+                let res = PUERTS.$ref(0);
                 CS.Puerts.UnitTest.DerivedClass.Inner.Sub(10,5,res);
-                puerts.$unref (res);
+                PUERTS.$unref (res);
             ");
 
             jsEnv.Dispose();
@@ -162,6 +171,7 @@ namespace Puerts.UnitTest.TranslatorTest
             var jsEnv = new JsEnv(new TxtLoader());
 
             string ret = jsEnv.Eval<string>(@"
+                const CS = puer.require('csharp');
                 let obj = new CS.Puerts.UnitTest.DerivedClass();
                 let ret = obj.TestVirt(3,'gyx');
                 ret;
@@ -178,6 +188,7 @@ namespace Puerts.UnitTest.TranslatorTest
             var jsEnv = new JsEnv(new TxtLoader());
 
             string ret = jsEnv.Eval<string>(@"
+                const CS = puer.require('csharp');
                 let obj = new CS.Puerts.UnitTest.DerivedClass();
                 let ret = obj.TestBaseVirt();
                 ret;
@@ -193,12 +204,14 @@ namespace Puerts.UnitTest.TranslatorTest
         {
             var jsEnv = new JsEnv(new TxtLoader());
             string ret = jsEnv.Eval<string>(@"
+                const CS = puer.require('csharp');
+                const PUERTS = global.puer;
                 let iSubObj = new CS.Puerts.UnitTest.ISubA();
-                let iSubObj1 = puerts.$ref(new CS.Puerts.UnitTest.ISubA());
-                let iSubObj2 = puerts.$ref(new CS.Puerts.UnitTest.ISubA());
+                let iSubObj1 = PUERTS.$ref(new CS.Puerts.UnitTest.ISubA());
+                let iSubObj2 = PUERTS.$ref(new CS.Puerts.UnitTest.ISubA());
                 let deriveObj = new CS.Puerts.UnitTest.DerivedClass();
                 deriveObj.OutRefFunc(iSubObj,iSubObj1,iSubObj2);
-                let res = iSubObj.TestDerivedObj(deriveObj,3,'gyx') + iSubObj.TestArr(iSubObj.a8) + iSubObj.running + puerts.$unref(iSubObj1).cmpTarget;
+                let res = iSubObj.TestDerivedObj(deriveObj,3,'gyx') + iSubObj.TestArr(iSubObj.a8) + iSubObj.running + PUERTS.$unref(iSubObj1).cmpTarget;
                 res;
             ");
             jsEnv.Dispose();
@@ -210,11 +223,13 @@ namespace Puerts.UnitTest.TranslatorTest
         {
             var jsEnv = new JsEnv(new TxtLoader());
             string name = jsEnv.Eval<string>(@"
+                const CS = puer.require('csharp');
+                const PUERTS = global.puer;
                 let obj = new CS.Puerts.UnitTest.C();
-                let name = puerts.$ref ('gyx');
-                let res = puerts.$ref ('');
+                let name = PUERTS.$ref ('gyx');
+                let res =  PUERTS.$ref ('');
                 obj.TestRef(name,res);
-                puerts.$unref (name) + puerts.$unref(res);
+                PUERTS.$unref (name) + PUERTS.$unref(res);
             ");
             jsEnv.Dispose();
             Assert.AreEqual(name, "annagyx23");
@@ -226,8 +241,10 @@ namespace Puerts.UnitTest.TranslatorTest
         {
             var jsEnv = new JsEnv(new TxtLoader());
             string res = jsEnv.Eval<string>(@"
+                const CS = puer.require('csharp');
+                const PUERTS = global.puer;
                 let obj = new CS.Puerts.UnitTest.DerivedClass();
-                let res =  puerts.$ref ('');
+                let res =  PUERTS.$ref ('');
                 obj.OutString(res);
                 res.value;
             ");
@@ -241,6 +258,7 @@ namespace Puerts.UnitTest.TranslatorTest
         {
             var jsEnv = new JsEnv(new TxtLoader());
             string res = jsEnv.Eval<string>(@"
+                const CS = puer.require('csharp');
                 let s = new CS.Puerts.UnitTest.S(22,'haha');
                 let obj = new CS.Puerts.UnitTest.DerivedClass();
                 let res = s.TestParamObj(obj);
@@ -255,6 +273,7 @@ namespace Puerts.UnitTest.TranslatorTest
         {
             var jsEnv = new JsEnv(new TxtLoader());
             var age = jsEnv.Eval<int>(@"
+                const CS = puer.require('csharp');
                 let s = new CS.Puerts.UnitTest.S(22,'gyx');
                 let obj = new CS.Puerts.UnitTest.DerivedClass();
                 let res = obj.PrintStruct(s);
@@ -269,6 +288,7 @@ namespace Puerts.UnitTest.TranslatorTest
         {
             var jsEnv = new JsEnv(new TxtLoader());
             string res = jsEnv.Eval<string>(@"
+                const CS = puer.require('csharp');
                 let s = new CS.Puerts.UnitTest.S();
                 s
             ");
@@ -281,10 +301,12 @@ namespace Puerts.UnitTest.TranslatorTest
         {
             var jsEnv = new JsEnv(new TxtLoader());
             var age = jsEnv.Eval<int>(@"
-                let s = puerts.$ref(new CS.Puerts.UnitTest.S(22,'gyx'));
+                const CS = puer.require('csharp');
+                const PUERTS = global.puer;
+                let s = PUERTS.$ref(new CS.Puerts.UnitTest.S(22,'gyx'));
                 let obj = new CS.Puerts.UnitTest.DerivedClass();
                 obj.PrintStructRef(s);
-                puerts.$unref(s).Age;
+                PUERTS.$unref(s).Age;
             ");
             jsEnv.Dispose();
             Assert.AreEqual(age, 20);
@@ -295,6 +317,7 @@ namespace Puerts.UnitTest.TranslatorTest
         {
             var jsEnv = new JsEnv(new TxtLoader());
             string res = jsEnv.Eval<string>(@"
+                const CS = puer.require('csharp');
                 let obj = new CS.Puerts.UnitTest.DerivedClass();
                 let i = '1';
                 let j = '2';
@@ -310,6 +333,8 @@ namespace Puerts.UnitTest.TranslatorTest
         {
             var jsEnv = new JsEnv(new TxtLoader());
             var res = jsEnv.Eval<string>(@"
+                const CS = puer.require('csharp');
+                const PUERTS = global.puer;
                 let obj = new CS.Puerts.UnitTest.EventTest();
                 let dele = new CS.Puerts.UnitTest.MyCallBack((str) => { return str; });
                 obj.myCallBack = CS.System.Delegate.Combine(obj.myCallBack, dele);
@@ -327,11 +352,13 @@ namespace Puerts.UnitTest.TranslatorTest
         {
             var jsEnv = new JsEnv(new TxtLoader());
             string res = jsEnv.Eval<string>(@"
+                const CS = puer.require('csharp');
+                const PUERTS = global.puer;
                 let obj = new CS.Puerts.UnitTest.DerivedClass();
-                let t = puerts.$ref(false);
-                let c = puerts.$ref(false);
-                let f = puerts.$ref(false);
-                let e = puerts.$ref(false);
+                let t = PUERTS.$ref(false);
+                let c = PUERTS.$ref(false);
+                let f = PUERTS.$ref(false);
+                let e = PUERTS.$ref(false);
                 let res = obj.TryCatchFinally(true, t, c, f, e);
                 res;
             ");
@@ -344,10 +371,12 @@ namespace Puerts.UnitTest.TranslatorTest
         {
             var jsEnv = new JsEnv(new TxtLoader());
             string res = jsEnv.Eval<string>(@"
+                const CS = puer.require('csharp');
+                const PUERTS = global.puer;
                 let obj = new CS.Puerts.UnitTest.DerivedClass();
-                let f1 = puerts.$ref(false);
-                let f2 = puerts.$ref(false);
-                let f3 = puerts.$ref(false);
+                let f1 = PUERTS.$ref(false);
+                let f2 = PUERTS.$ref(false);
+                let f3 = PUERTS.$ref(false);
                 let res = obj.CatchByNextLevel(f1,f2, f3);
                 res;
             ");
@@ -360,6 +389,7 @@ namespace Puerts.UnitTest.TranslatorTest
         {
             var jsEnv = new JsEnv(new TxtLoader());
             string res = jsEnv.Eval<string>(@"
+                const CS = puer.require('csharp');
                 let obj = new CS.Puerts.UnitTest.DerivedClass();
                 let res = obj.TestDefaultParam();
                 res;
@@ -375,6 +405,7 @@ namespace Puerts.UnitTest.TranslatorTest
 
             var jsEnv = new JsEnv(new TxtLoader());
             var res = jsEnv.Eval<string>(@"
+                const CS = puer.require('csharp');
                 let obj = new CS.Puerts.UnitTest.DerivedClass();
                 let iobj = new CS.Puerts.UnitTest.ISubA();
                 let res;
@@ -390,8 +421,10 @@ namespace Puerts.UnitTest.TranslatorTest
         {
             var jsEnv = new JsEnv(new TxtLoader());
             int res = jsEnv.Eval<int>(@"
+                const CS = puer.require('csharp');
+                const PUERTS = global.puer;
                 let obj = new CS.Puerts.UnitTest.ISubA();
-                let arrayInt = CS.System.Array.CreateInstance(puerts.$typeof(CS.System.Int32), 3);
+                let arrayInt = CS.System.Array.CreateInstance(PUERTS.$typeof(CS.System.Int32), 3);
                 arrayInt.set_Item(0, 111);
                 arrayInt.set_Item(1, 222);
                 arrayInt.set_Item(2, 333);
@@ -407,6 +440,7 @@ namespace Puerts.UnitTest.TranslatorTest
         {
             var jsEnv = new JsEnv(new TxtLoader());
             var res = jsEnv.Eval<int>(@"
+                const CS = puer.require('csharp');
                 let obj = new CS.Puerts.UnitTest.DerivedClass();
                 let j;
                 let res ;
@@ -421,6 +455,7 @@ namespace Puerts.UnitTest.TranslatorTest
         {
             var jsEnv = new JsEnv(new TxtLoader());
             var res = jsEnv.Eval<int>(@"
+                const CS = puer.require('csharp');
                 let obj = new CS.Puerts.UnitTest.DerivedClass();
                 let res;
                 try {res = obj.TestInt(null);} catch(e){ res = -1;}
@@ -435,6 +470,7 @@ namespace Puerts.UnitTest.TranslatorTest
         {
             var jsEnv = new JsEnv(new TxtLoader());
             var res = jsEnv.Eval<string>(@"
+                const CS = puer.require('csharp');
                 let obj = new CS.Puerts.UnitTest.DerivedClass();
                 let s;
                 let res;
@@ -450,6 +486,7 @@ namespace Puerts.UnitTest.TranslatorTest
         {
             var jsEnv = new JsEnv(new TxtLoader());
             var res = jsEnv.Eval<string>(@"
+                const CS = puer.require('csharp');
                 let obj = new CS.Puerts.UnitTest.DerivedClass();
                 let res;
                 try { res = obj.TestString(null);} catch(e){ res = 'null';}
@@ -464,6 +501,7 @@ namespace Puerts.UnitTest.TranslatorTest
         {
             var jsEnv = new JsEnv(new TxtLoader());
             var res = jsEnv.Eval<int>(@"
+                const CS = puer.require('csharp');
                 let obj = new CS.Puerts.UnitTest.DerivedClass();
                 let s;
                 let res;
@@ -480,6 +518,7 @@ namespace Puerts.UnitTest.TranslatorTest
         {
             var jsEnv = new JsEnv(new TxtLoader());
             var res = jsEnv.Eval<string>(@"
+                const CS = puer.require('csharp');
                 let obj = new CS.Puerts.UnitTest.DerivedClass();
                 let t;
                 let res;
@@ -497,6 +536,7 @@ namespace Puerts.UnitTest.TranslatorTest
             {
                 var jsEnv = new JsEnv(new TxtLoader());
                 jsEnv.Eval(@"
+                    const CS = puer.require('csharp');
                     let obj = new CS.Puerts.UnitTest.DerivedClass();
                     let res;
                     res = obj.TestTime(null);"
@@ -512,6 +552,7 @@ namespace Puerts.UnitTest.TranslatorTest
             {
                 var jsEnv = new JsEnv(new TxtLoader());
                 jsEnv.Eval(@"
+                    const CS = puer.require('csharp');
                     let obj = new CS.Puerts.UnitTest.DerivedClass();
                     let res;
                     res = obj.TestArrayBuffer(res);"
@@ -528,6 +569,7 @@ namespace Puerts.UnitTest.TranslatorTest
             {
                 var jsEnv = new JsEnv(new TxtLoader());
                 jsEnv.Eval(@"
+                    const CS = puer.require('csharp');
                     let obj = new CS.Puerts.UnitTest.DerivedClass();
                     let res;
                     res = obj.TestArrayBuffer(null);"
@@ -556,6 +598,7 @@ namespace Puerts.UnitTest.TranslatorTest
             Assert.True(Puerts.UnitTest.ReadonlyStaticTest.ReadonlyStaticField == 1);
             Assert.True(Puerts.UnitTest.ReadonlyStaticTest.StaticField == 3);
             var ret = jsEnv.Eval<bool>(@"
+                const CS = puer.require('csharp');
                 CS.Puerts.UnitTest.ReadonlyStaticTest.ReadonlyStaticField = 2;
                 CS.Puerts.UnitTest.ReadonlyStaticTest.StaticField = 4;
                 typeof Object.getOwnPropertyDescriptor(CS.Puerts.UnitTest.ReadonlyStaticTest, 'ReadonlyStaticField').get == 'undefined' &&
@@ -573,6 +616,7 @@ namespace Puerts.UnitTest.TranslatorTest
         {
             var jsEnv = new JsEnv(new TxtLoader());
             var res = jsEnv.Eval<int>(@"
+                const CS = puer.require('csharp');
                 let obj1 = new CS.Puerts.UnitTest.BaseClass();
                 let obj2 = new CS.Puerts.UnitTest.BaseClass();
                 obj1.baseIntField = 11;
@@ -589,6 +633,7 @@ namespace Puerts.UnitTest.TranslatorTest
         {
             var jsEnv = new JsEnv(new TxtLoader());
             var res = jsEnv.Eval<string>(@"
+                const CS = puer.require('csharp');
                 let obj1 = new CS.Puerts.UnitTest.BaseClass();
                 let obj2 = new CS.Puerts.UnitTest.BaseClass();
                 obj1.baseIntField = 11;
@@ -608,6 +653,7 @@ namespace Puerts.UnitTest.TranslatorTest
         {
             var jsEnv = new JsEnv(new TxtLoader());
             var res = jsEnv.Eval<int>(@"
+                const CS = puer.require('csharp');
                 let obj1 = new CS.Puerts.UnitTest.BaseClass();
                 obj1.set_Item(0,111);
                 obj1.set_Item(1,222);
@@ -622,6 +668,7 @@ namespace Puerts.UnitTest.TranslatorTest
         {
             var jsEnv = new JsEnv(new TxtLoader());
             jsEnv.Eval(@"
+                const CS = puer.require('csharp');
                 let obj = new CS.Puerts.UnitTest.Reentrant();
                 function dosomething(){}
                 obj.Callback = () => {

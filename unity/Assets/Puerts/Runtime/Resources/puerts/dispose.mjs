@@ -1,14 +1,14 @@
 var global = global || globalThis || (function () { return this; }());
 
 export default function resetAllFunctionWhenDisposed() {
-    global.puer.disposed = true;
+    global.puerts.disposed = true;
     
     const PuerIsDisposed = function() { throw new Error('puerts has disposed'); }
 
-    puer.loadType = PuerIsDisposed
-    puer.getNestedTypes = PuerIsDisposed
+    puerts.loadType = PuerIsDisposed
+    puerts.getNestedTypes = PuerIsDisposed
     try {
-        setToGoodbyeFuncRecursive(CS);
+        setToGoodbyeFuncRecursive(require('csharp'));
     } catch(e) {}
 
     function setToGoodbyeFuncRecursive(obj) {
@@ -37,7 +37,7 @@ export default function resetAllFunctionWhenDisposed() {
                     }
                 })
             }
-            if (obj[key] instanceof puer.__$NamespaceType) {
+            if (obj[key] instanceof puerts.__$NamespaceType) {
                 Object.defineProperty(obj, key, {
                     get: PuerIsDisposed,
                     set: PuerIsDisposed

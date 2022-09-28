@@ -44,7 +44,7 @@ function unhandledRejection(promise, reason) {
     if (promiseInfo === undefined) {
         return;
     }
-    if (!puer.emit('unhandledRejection', promiseInfo.reason, promise)) {
+    if (!puerts.emit('unhandledRejection', promiseInfo.reason, promise)) {
         unhandledRejectionWarning(reason);
     }
 }
