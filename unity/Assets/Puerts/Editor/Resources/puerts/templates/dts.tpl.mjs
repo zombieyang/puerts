@@ -10,9 +10,10 @@
  * 
  * TODO 待node.js版本成熟之后直接接入typescript formatter，现在先用手动指定indent的方式
  * @param {DTS.TypingGenInfo} data 
+ * @param {boolean} esmMode will only generate default export for d.ts.
  * @returns 
  */
-export default function TypingTemplate(data) {
+ export default function TypingTemplate(data, esmMode) {
     
     let ret = '';
     function _es6tplJoin(str, ...values) {
@@ -47,22 +48,22 @@ export default function TypingTemplate(data) {
     }
 
     tt`
-declare namespace CS {
+declare module 'csharp' {
     //keep type incompatibility / 此属性保持类型不兼容
     const __keep_incompatibility: unique symbol;
-
-    interface $Ref<T> {
-        value: T
-    }
-    namespace System {
-        interface Array$1<T> extends System.Array {
-            get_Item(index: number):T;
-            
-            set_Item(index: number, value: T):void;
+    namespace CSharp {
+        interface $Ref<T> {
+            value: T
         }
-    }
-    ${data.TaskDef}
-    `
+        namespace System {
+            interface Array$1<T> extends System.Array {
+                get_Item(index: number):T;
+                
+                set_Item(index: number, value: T):void;
+            }
+        }
+        ${data.TaskDef}
+        `
 
     toJsArray(data.NamespaceInfos).forEach(ns=> {
         // namespace start;
@@ -72,7 +73,7 @@ declare namespace CS {
 
         toJsArray(ns.Types).forEach(type=> {
             // type start
-            t.indent = 8;
+            t.indent = 12;
             // the comment of the type
             t`
             ${type.Document}
@@ -104,7 +105,7 @@ declare namespace CS {
                     // class or interface.
                     t`{
                     `;
-                    t.indent = 12;
+                    t.indent = 16;
 
                     //keep type incompatibility / 此属性保持类型不兼容
                     if (!type.IsInterface) {
@@ -149,7 +150,7 @@ declare namespace CS {
                         `
                     });
                     // methods end
-                    t.indent = 8;
+                    t.indent = 12;
                     t`
                     }
                     `
@@ -157,14 +158,14 @@ declare namespace CS {
 
                 // extension methods start
                 if (type.ExtensionMethods.Length > 0 && !type.IsEnum) {
-                    t.indent = 8;
+                    t.indent = 12;
                     t`
                     ${type.Document}
                     interface ${type.Name} {
                     `
                     
                     toJsArray(type.ExtensionMethods).forEach(method=>{
-                        t.indent = 12;
+                        t.indent = 16;
                         
                         t`
                         ${method.Document}
@@ -174,7 +175,7 @@ declare namespace CS {
                         `
                     });
 
-                    t.indent = 8;
+                    t.indent = 12;
                     t`
                     }
                     `;
@@ -184,7 +185,7 @@ declare namespace CS {
                 
             } else {
                 // if the type is Puerts.JSObject, declare an alias for any;
-                t.indent = 8;
+                t.indent = 12;
                 t`type JSObject = any;`;
 
             }
@@ -192,13 +193,28 @@ declare namespace CS {
 
         // namespace end
         if (ns.Name) {
-            t.indent = 4;
+            t.indent = 8;
             t`
             }
             `
         }
 
     })
+    
+    // module end
+    t.indent = 4;
+    if (!esmMode) {
+        t`
+        }
+        export = CSharp;
+        `
+    } else {
+        
+        t`
+        }
+        export default CSharp;
+        `
+    }
     
     t.indent = 0;
     t`
@@ -256,7 +272,7 @@ function typeDeclaration(type, level1) {
     }
     var interfaces = type.interfaces ? toJsArray(type.interfaces) : [];
     if (level1 && !type.IsDelegate && !type.IsEnum && interfaces.length) {
-        result += ((type.IsInterface ? " extends " : " implements ") + interfaces.map(itface=> typeDeclaration(itface)).join(', '))
+        result += ((type.IsInterface ? " extends " : " implements ") + interfaces.map(itf=> typeDeclaration(itf)).join(', '))
     }
     if (!level1 && type.Namespace) {
         result = type.Namespace + "." + result;
