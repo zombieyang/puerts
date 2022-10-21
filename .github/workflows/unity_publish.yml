@@ -197,9 +197,9 @@ jobs:
             
             > difference between Node.js/Quickjs/V8: [wiki](https://github.com/Tencent/puerts/wiki/%5BUnity%5D-Release%E9%87%8C%E5%90%84%E4%B8%AAPlugin%E7%9A%84%E5%8C%BA%E5%88%AB)
           files: |
-            asset_name: PuerTS_V8_${{ github.event.inputs.tag_name }}.tgz
-            asset_name: PuerTS_Nodejs_${{ github.event.inputs.tag_name }}.tgz
-            asset_name: PuerTS_Quickjs_${{ github.event.inputs.tag_name }}.tgz
+            PuerTS_V8_${{ github.event.inputs.tag_name }}.tgz
+            PuerTS_Nodejs_${{ github.event.inputs.tag_name }}.tgz
+            PuerTS_Quickjs_${{ github.event.inputs.tag_name }}.tgz
           
       # - name: Trigger demo/upm repository update
       #   run: |
