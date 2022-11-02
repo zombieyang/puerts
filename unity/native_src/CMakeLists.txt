@@ -156,7 +156,7 @@ elseif ( ANDROID )
         # definition
         target_compile_definitions (puerts PRIVATE PLATFORM_ANDROID_ARM)
 
-    else ()
+    elseif (ANDROID_ABI STREQUAL "arm64-v8a")
         # link
         foreach(LIB_FILE_NAME IN LISTS LIB_FILE_NAMES)
             target_link_libraries(puerts
@@ -167,6 +167,17 @@ elseif ( ANDROID )
         
         # definition
         target_compile_definitions (puerts PRIVATE PLATFORM_ANDROID_ARM64)
+    else ()
+        # link
+        foreach(LIB_FILE_NAME IN LISTS LIB_FILE_NAMES)
+            target_link_libraries(puerts
+                ${ENGINE_ROOT}/Lib/Android/x86_64/${LIB_FILE_NAME}
+            )
+        endforeach()
+
+        # definition
+        target_compile_definitions (puerts PRIVATE PLATFORM_ANDROID_x64)
+
     endif ()
 
     #set_target_properties( puerts PROPERTIES LINK_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/android_version.script)

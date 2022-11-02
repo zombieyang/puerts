@@ -30,3 +30,4 @@ function build() {
 
 build android-18 armeabi-v7a arm-linux-androideabi-4.9
 build android-18 arm64-v8a  arm-linux-androideabi-clang
+build android-18 x86_64 x86_64-4.9

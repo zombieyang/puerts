@@ -51,6 +51,8 @@
 #include "Blob/Android/armv7a/SnapshotBlob.h"
 #elif defined(PLATFORM_ANDROID_ARM64)
 #include "Blob/Android/arm64/SnapshotBlob.h"
+#elif defined(PLATFORM_ANDROID_x64)
+#include "Blob/Android/x64/SnapshotBlob.h"
 #elif defined(PLATFORM_MAC)
 #include "Blob/macOS/SnapshotBlob.h"
 #elif defined(PLATFORM_IOS)
