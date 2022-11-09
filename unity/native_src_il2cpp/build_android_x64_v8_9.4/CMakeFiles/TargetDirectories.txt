@@ -1,0 +1,7 @@
+/Volumes/ZMB/_CODE_/puerts@stable/puerts/unity/native_src_il2cpp/build_android_x64_v8_9.4/CMakeFiles/install/local.dir
+/Volumes/ZMB/_CODE_/puerts@stable/puerts/unity/native_src_il2cpp/build_android_x64_v8_9.4/CMakeFiles/install/strip.dir
+/Volumes/ZMB/_CODE_/puerts@stable/puerts/unity/native_src_il2cpp/build_android_x64_v8_9.4/CMakeFiles/install.dir
+/Volumes/ZMB/_CODE_/puerts@stable/puerts/unity/native_src_il2cpp/build_android_x64_v8_9.4/CMakeFiles/list_install_components.dir
+/Volumes/ZMB/_CODE_/puerts@stable/puerts/unity/native_src_il2cpp/build_android_x64_v8_9.4/CMakeFiles/rebuild_cache.dir
+/Volumes/ZMB/_CODE_/puerts@stable/puerts/unity/native_src_il2cpp/build_android_x64_v8_9.4/CMakeFiles/edit_cache.dir
+/Volumes/ZMB/_CODE_/puerts@stable/puerts/unity/native_src_il2cpp/build_android_x64_v8_9.4/CMakeFiles/puerts_il2cpp.dir
