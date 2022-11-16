@@ -14,7 +14,7 @@
 
 #include <map>
 #include <unordered_map>
-#include "JSClassRegister.h"
+#include "pes/JSClassRegister.h"
 #include "ObjectCacheNode.h"
 #include "ObjectMapper.h"
 

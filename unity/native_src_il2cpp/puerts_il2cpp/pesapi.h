@@ -192,6 +192,8 @@ PESAPI_EXTERN pesapi_value pesapi_call_function(
 
 PESAPI_EXTERN pesapi_value pesapi_eval(pesapi_env env, const uint8_t* code, size_t code_size, const char* path);
 
+PESAPI_EXTERN pesapi_value pesapi_execute_module(pesapi_env env, const char* path);
+
 PESAPI_EXTERN pesapi_type_info pesapi_alloc_type_infos(size_t count);
 
 PESAPI_EXTERN void pesapi_set_type_info(

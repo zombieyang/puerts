@@ -13,7 +13,7 @@
 #include "PropertyTranslator.h"
 #include "StructWrapper.h"
 #endif
-#include "JSClassRegister.h"
+#include "pes/JSClassRegister.h"
 
 #pragma warning(push, 0)
 #include "v8.h"

@@ -12,7 +12,7 @@
 #include "CoreMinimal.h"
 #include "UObject/Package.h"
 #else
-#include "JSClassRegister.h"
+#include "pes/JSClassRegister.h"
 #endif
 
 #pragma warning(push, 0)

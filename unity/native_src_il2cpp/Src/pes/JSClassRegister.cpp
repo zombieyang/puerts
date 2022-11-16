@@ -6,7 +6,7 @@
  * which is part of this source code package.
  */
 
-#include "JSClassRegister.h"
+#include "pes/JSClassRegister.h"
 #if USING_IN_UNREAL_ENGINE
 #include "UObject/Class.h"
 #endif

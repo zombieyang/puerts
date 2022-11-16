@@ -27,10 +27,10 @@
 #endif
 
 #include "CppObjectMapper.h"
-#include "DataTransfer.h"
+#include "pes/DataTransfer.h"
 #include "pesapi.h"
-#include "JSClassRegister.h"
 #include "Binding.hpp"   
+#include "pes/JSClassRegister.h"
 #include <stdarg.h>
 
 #define USE_OUTSIZE_UNITY 1

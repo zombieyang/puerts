@@ -47,11 +47,11 @@ set ( PUERTS_INC
 
 set ( PUERTS_SRC
     Src/Puerts.cpp
-    Src/PesapiV8Impl.cpp
-    Src/PesapiAddonLoad.cpp
     Src/CppObjectMapper.cpp
-    Src/DataTransfer.cpp
-    Src/JSClassRegister.cpp
+    Src/pes/PesapiV8Impl.cpp
+    Src/pes/PesapiAddonLoad.cpp
+    Src/pes/DataTransfer.cpp
+    Src/pes/JSClassRegister.cpp
 )
 
 
