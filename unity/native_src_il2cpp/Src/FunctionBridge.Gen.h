@@ -409,7 +409,7 @@ static bool w_vtPi4(void* method, MethodPointer methodPointer, const v8::Functio
     return true;
 }
 
-static bool w_vtPO(void* method, MethodPointer methodPointer, const v8::FunctionCallbackInfo<v8::Value>& Info, bool checkArgument, void** typeInfos) {
+static bool w_vtPo(void* method, MethodPointer methodPointer, const v8::FunctionCallbackInfo<v8::Value>& Info, bool checkArgument, void** typeInfos) {
     v8::Isolate* Isolate = Info.GetIsolate();
     v8::Local<v8::Context> Context = Isolate->GetCurrentContext();
     
@@ -499,7 +499,7 @@ static WrapFuncInfo g_wrapFuncInfos[] = {
     {"os", w_os},
     {"ots", w_ots},
     {"vtPi4", w_vtPi4},
-    {"vtPO", w_vtPO},
+    {"vtPo", w_vtPo},
     {"sT", w_sT},
     {"st", w_st},
     {"vO", w_vO},
