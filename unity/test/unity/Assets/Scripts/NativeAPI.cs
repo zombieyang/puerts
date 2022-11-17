@@ -229,6 +229,7 @@ namespace PuertsIl2cpp
                 }
 
             }
+            UnityEngine.Debug.Log("GetMethodSignature:" + methodBase.DeclaringType + "." + methodBase.Name + " - " + signature);
             return signature;
         }
 
