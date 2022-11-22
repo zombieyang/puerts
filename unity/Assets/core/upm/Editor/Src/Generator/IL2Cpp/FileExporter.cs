@@ -72,6 +72,11 @@ namespace PuertsIl2cpp.Editor
                             where type.IsPublic
                             select type;
 
+                // var tarr = types.ToArray();
+                // for (var i = 0; i < tarr.Length; i++) {
+                //     UnityEngine.Debug.Log(tarr[i]);
+                // }
+
                 const BindingFlags flag = BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public;
 
                 var typeExcludeDelegate = types

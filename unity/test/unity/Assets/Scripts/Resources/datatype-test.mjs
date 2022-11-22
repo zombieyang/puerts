@@ -9,13 +9,13 @@ const outRef = [null];
 
 Debug.Log('1');
 // JSFunction
-const oFunc = testHelper.functionTestStartValue
-const rFunc = testHelper.JSFunctionTestPipeLine(oFunc, function (func) {
-    // assertAndPrint("JSGetFunctionFromCS", func() == 3);
-    testHelper.functionTestEndValue = () => 3;
-    return testHelper.functionTestEndValue;
-});
-assertAndPrint("JSGetFunctionReturnFromCS", rFunc() == 3);
+// const oFunc = testHelper.functionTestStartValue
+// const rFunc = testHelper.JSFunctionTestPipeLine(oFunc, function (func) {
+//     // assertAndPrint("JSGetFunctionFromCS", func() == 3);
+//     testHelper.functionTestEndValue = () => 3;
+//     return testHelper.functionTestEndValue;
+// });
+// assertAndPrint("JSGetFunctionReturnFromCS", rFunc() == 3);
 
 // Number
 const oNum = testHelper.numberTestStartValue;
@@ -97,10 +97,10 @@ assertAndPrint("JSGetNativeObjectOutArgFromCS", outRef[0] == oNativeObject);
 assertAndPrint("JSGetNativeObjectReturnFromCS", rNativeObject == oNativeObject);
 
 // JSObject
-// const oJSObject = { "puerts": "niubi" };
-// const rJSObject = testHelper.JSObjectTestPipeLine(oJSObject, function(obj) {
-//     assertAndPrint("JSGetJSObjectArgFromCS", obj == oJSObject);
-//     return oJSObject
-// });
-// // assertAndPrint("JSGetJSObjectOutArgFromCS", outRef[0] == oJSObject);
-// assertAndPrint("JSGetJSObjectReturnFromCS", rJSObject == oJSObject);
+const oJSObject = { "puerts": "niubi" };
+const rJSObject = testHelper.JSObjectTestPipeLine(oJSObject, function(obj) {
+    assertAndPrint("JSGetJSObjectArgFromCS", obj == oJSObject);
+    return oJSObject
+});
+// assertAndPrint("JSGetJSObjectOutArgFromCS", outRef[0] == oJSObject);
+assertAndPrint("JSGetJSObjectReturnFromCS", rJSObject == oJSObject);

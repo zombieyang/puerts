@@ -236,11 +236,21 @@ namespace PuertsTest
         {
         }
 
+        public delegate void a(string identifer, out string content);
+        public delegate JSObject c(string s);
+        public c PreventStrip() {
+            return (string s) => null;
+        }
+
         void Start()
         {
+            PreventStrip();
+
             var jsEnv = new JsEnv();
             var helper = new TestHelper(jsEnv);
             TestHelper.instance = helper;
+            // string ret = jsEnv.ExecuteModule<string>("main.mjs", "default");
+            // UnityEngine.Debug.Log("ExecuteModule Result: " + ret);
             var JSContent = Resources.Load<TextAsset>("datatype-test").text;
             jsEnv.Eval(JSContent);
             // Action<TestHelper> doTest = jsEnv.Eval<Action<TestHelper>>(JSContent);
