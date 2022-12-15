@@ -582,18 +582,18 @@ handle_underlying:
             auto ptr = pesapi_get_native_object_ptr(env, jsval);
             if (!ptr)
             {
-                if ((klass == g_typeofPersistentObjectInfo || klass == il2cpp_defaults.object_class) && pesapi_is_object(env, jsval))
+                if ((Class::IsAssignableFrom(g_typeofPersistentObjectInfo, klass) || klass == il2cpp_defaults.object_class) && pesapi_is_object(env, jsval))
                 {
-                    Il2CppClass* delegateInfoClass = g_typeofPersistentObjectInfo;
+                    Il2CppClass* delegateInfoClass = klass == il2cpp_defaults.object_class ? g_typeofPersistentObjectInfo : klass;
                     
                     RuntimeObject* ret = (RuntimeObject*)g_unityExports.GetRuntimeObjectFromPersistentObject(env, jsval);
                     if (ret == nullptr) 
                     {
                         ret = il2cpp::vm::Object::New(delegateInfoClass);
 
-                        const MethodInfo* ctor = il2cpp_class_get_method_from_name(delegateInfoClass, ".ctor", 0);
-                        typedef void (*NativeCtorPtr)(Il2CppObject* ___this, const Il2CppReflectionMethod* method);
-                        ((NativeCtorPtr)ctor->methodPointer)(ret, Reflection::GetMethodObject(ctor, delegateInfoClass));
+                        const MethodInfo* ctor = il2cpp_class_get_method_from_name(delegateInfoClass, ".ctor", 1);
+                        typedef void (*NativeCtorPtr)(Il2CppObject* ___this, void*);
+                        ((NativeCtorPtr)ctor->methodPointer)(ret, (void*)ret);
                         
                         PersistentObjectInfo* objectInfo = reinterpret_cast<PersistentObjectInfo*>(ret + 1);
                         g_unityExports.SetPersistentObject(env, jsval, objectInfo);

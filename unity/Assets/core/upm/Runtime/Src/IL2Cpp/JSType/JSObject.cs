@@ -23,6 +23,11 @@ namespace Puerts
         long placeHold5;
         long placeHold6;
         long placeHold7;
+        
+        [UnityEngine.Scripting.Preserve]
+        public JSObject(IntPtr nativeJsEnv) {
+            UnityEngine.Debug.Log("JSObject Constructor: " + nativeJsEnv);
+        }
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         void releaseScriptObject()
@@ -33,6 +38,13 @@ namespace Puerts
         ~JSObject()
         {
             releaseScriptObject();
+        }
+    }
+
+    public class ArrayBuffer : JSObject {
+        [UnityEngine.Scripting.Preserve]
+        public ArrayBuffer(IntPtr nativeJsEnv) : base(nativeJsEnv) {
+            UnityEngine.Debug.Log("ArrayBuffer Constructor: " + nativeJsEnv);
         }
     }
 }
