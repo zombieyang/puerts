@@ -131,7 +131,7 @@ namespace PuertsIl2cpp.Editor
                 var bridgeInfos = delegateInvokes
                     .Select(m => new SignatureInfo
                     {
-                        Signature = PuertsIl2cpp.TypeUtils.GetMethodSignature(m, true),
+                        Signature = PuertsIl2cpp.TypeUtils.GetMethodSignature(m, null, true),
                         CsName = m.ToString(),
                         ReturnSignature = PuertsIl2cpp.TypeUtils.GetTypeSignature(m.ReturnType),
                         ThisSignature = null,
@@ -145,7 +145,7 @@ namespace PuertsIl2cpp.Editor
                     .Select(m  => { 
                         var isExtensionMethod = m.IsDefined(typeof(ExtensionAttribute));
                         return new SignatureInfo {
-                            Signature = PuertsIl2cpp.TypeUtils.GetMethodSignature(m, false, isExtensionMethod),
+                            Signature = PuertsIl2cpp.TypeUtils.GetMethodSignature(m, null, false, isExtensionMethod),
                             CsName = m.ToString(),
                             ReturnSignature = PuertsIl2cpp.TypeUtils.GetTypeSignature(m.ReturnType),
                             ThisSignature = PuertsIl2cpp.TypeUtils.GetThisSignature(m, isExtensionMethod),

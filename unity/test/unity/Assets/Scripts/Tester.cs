@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Collections;
 using System;
 using NUnit.Framework;
+using Puerts;
 
 public class Tester : MonoBehaviour {
 
@@ -19,22 +20,54 @@ public class Tester : MonoBehaviour {
 
         string MockConsoleContent = "";
         IsTesting = true;
+        
+        JsEnv env = new JsEnv();
+        string result = env.Eval<string>(@"
+            const ZombieTest = puer.loadType(jsEnv.GetTypeByString('ZombieTest'));
+            const ZombieTest2 = puer.loadType(jsEnv.GetTypeByString('ZombieTest2'));
+            const zt = new ZombieTest;
+            const zt2 = new ZombieTest2;
 
-        StartCoroutine(
-            RunTest(
-                (string name) => {
-                    MockConsoleContent += $"Passed: TestCase {name}\n";
-                    UnityEngine.Debug.Log($"Passed: TestCase {name}\n");
-                    m_ContentText.text = MockConsoleContent;
-                },
-                (string name, Exception e) => {
-                    MockConsoleContent += $"Failed: TestCase {name} msg: {e.Message}\n";
-                    UnityEngine.Debug.LogError($"Failed: TestCase {name}\n");
-                    UnityEngine.Debug.LogError(e);
-                    m_ContentText.text = MockConsoleContent;
-                }
-            )
-        );
+            let ret = '';
+            let start = null;
+
+            for (let i = 0; i < 100; i++) {
+                zt2.Add();
+            }
+            start = Date.now();
+            for (let i = 0; i < 1000000; i++) {
+                zt2.Add();
+            }
+            ret += ('zt testcase 2: ' + (Date.now() - start));
+
+            for (let i = 0; i < 100; i++) {
+                zt.Add();
+            }
+            start = Date.now();
+            for (let i = 0; i < 1000000; i++) {
+                zt.Add();
+            }
+            ret += ('zt testcase 1: ' + (Date.now() - start)) + '\n';
+        ");
+        MockConsoleContent += $"ZombieTest2.Add(1) result:{result}";
+        m_ContentText.text = MockConsoleContent;
+        UnityEngine.Debug.Log(result);
+
+        // StartCoroutine(
+        //     RunTest(
+        //         (string name) => {
+        //             MockConsoleContent += $"Passed: TestCase {name}\n";
+        //             UnityEngine.Debug.Log($"Passed: TestCase {name}\n");
+        //             m_ContentText.text = MockConsoleContent;
+        //         },
+        //         (string name, Exception e) => {
+        //             MockConsoleContent += $"Failed: TestCase {name} msg: {e.Message}\n";
+        //             UnityEngine.Debug.LogError($"Failed: TestCase {name}\n");
+        //             UnityEngine.Debug.LogError(e);
+        //             m_ContentText.text = MockConsoleContent;
+        //         }
+        //     )
+        // );
     }
 
     private IEnumerator RunTest(Action<string> OnSuccess, Action<string, Exception> OnFail)

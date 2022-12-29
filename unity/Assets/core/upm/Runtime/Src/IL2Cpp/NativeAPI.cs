@@ -8,10 +8,40 @@
 #if EXPERIMENTAL_IL2CPP_PUERTS && ENABLE_IL2CPP
 
 using System;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
 using System.Reflection;
 using System.Collections.Generic;
+
+[UnityEngine.Scripting.Preserve]
+public class ZombieTest_Wrapper
+{
+    [UnityEngine.Scripting.Preserve]
+    public static int Add(ZombieTest self) 
+    {
+        return self.Add();
+    }
+}
+
+[UnityEngine.Scripting.Preserve]
+public class ZombieTest 
+{
+    [UnityEngine.Scripting.Preserve]
+    public int Add(int a = 1, int b = 8)
+    {
+        return a + b;
+    }
+}
+[UnityEngine.Scripting.Preserve]
+public class ZombieTest2
+{
+    [UnityEngine.Scripting.Preserve]
+    public int Add(int a = 1, int b = 8)
+    {
+        return a + b;
+    }
+}
 
 namespace PuertsIl2cpp
 {
@@ -124,7 +154,7 @@ namespace PuertsIl2cpp
                 var typeId = GetTypeId(type);
                 //UnityEngine.Debug.Log(string.Format("{0} typeId is {1}", type, typeId));
                 var superTypeId = (isDelegate || type == typeof(object) || type.BaseType == null) ? IntPtr.Zero : GetTypeId(type.BaseType);
-                typeInfo = CreateCSharpTypeInfo(type.ToString(), typeId, superTypeId, typeId, type.IsValueType, isDelegate, isDelegate ? TypeUtils.GetMethodSignature(type.GetMethod("Invoke"), true) : "");
+                typeInfo = CreateCSharpTypeInfo(type.ToString(), typeId, superTypeId, typeId, type.IsValueType, isDelegate, isDelegate ? TypeUtils.GetMethodSignature(type.GetMethod("Invoke"), null, true) : "");
                 if (typeInfo == IntPtr.Zero)
                 {
                     throw new Exception(string.Format("create TypeInfo for {0} fail", type));
@@ -162,17 +192,43 @@ namespace PuertsIl2cpp
                     {
                         List<Type> usedTypes = TypeUtils.GetUsedTypes(method, isExtensionMethod);
                         //UnityEngine.Debug.Log(string.Format("add method {0}, usedTypes count: {1}", method, usedTypes.Count));
-                        var wrapData = AddMethod(typeInfo, TypeUtils.GetMethodSignature(method, false, isExtensionMethod), name, !isExtensionMethod && method.IsStatic, isGeter, isSetter, GetMethodInfoPointer(method), GetMethodPointer(method), usedTypes.Count);
+                        var wrapData = AddMethod(typeInfo, TypeUtils.GetMethodSignature(method, null, false, isExtensionMethod), name, !isExtensionMethod && method.IsStatic, isGeter, isSetter, GetMethodInfoPointer(method), GetMethodPointer(method), usedTypes.Count);
                         if (wrapData == IntPtr.Zero)
                         {
                             if (throwIfMemberFail)
                             {
-                                throw new Exception(string.Format("add method for {0}:{1} fail, signature:{2}", type, method, TypeUtils.GetMethodSignature(method, false, isExtensionMethod)));
+                                throw new Exception(string.Format("add method for {0}:{1} fail, signature:{2}", type, method, TypeUtils.GetMethodSignature(method, null, false, isExtensionMethod)));
                             }
                             else
                             {
 #if WARNING_IF_MEMBERFAIL
-                                UnityEngine.Debug.LogWarning(string.Format("add method for {0}:{1} fail, signature:{2}", type, method, TypeUtils.GetMethodSignature(method, false, isExtensionMethod)));
+                                UnityEngine.Debug.LogWarning(string.Format("add method for {0}:{1} fail, signature:{2}", type, method, TypeUtils.GetMethodSignature(method, null, false, isExtensionMethod)));
+#endif
+                                return;
+                            }
+                        }
+                        for (int i = 0; i < usedTypes.Count; ++i)
+                        {
+                            var usedTypeId = GetTypeId(usedTypes[i]);
+                            //UnityEngine.Debug.Log(string.Format("set used type for method {0}: {1}={2}, typeId:{3}", method, i, usedTypes[i], usedTypeId));
+                            SetTypeInfo(wrapData, i, usedTypeId);
+                        }
+                    };
+                    Action<string, MethodInfo, ParameterInfo[], MethodInfo, bool> AddMethodWithDefaultParamToType = (string name, MethodInfo method, ParameterInfo[] pinfos, MethodInfo wrapperMethod, bool isExtensionMethod) => 
+                    {
+                        List<Type> usedTypes = TypeUtils.GetUsedTypes(method, isExtensionMethod);
+
+                        var wrapData = AddMethod(typeInfo, TypeUtils.GetMethodSignature(method, pinfos, false, isExtensionMethod), name, !isExtensionMethod && method.IsStatic, false, false, GetMethodInfoPointer(wrapperMethod), GetMethodPointer(wrapperMethod), usedTypes.Count);
+                        if (wrapData == IntPtr.Zero)
+                        {
+                            if (throwIfMemberFail)
+                            {
+                                throw new Exception(string.Format("add method for {0}:{1} fail, signature:{2}", type, method, TypeUtils.GetMethodSignature(method, pinfos, false, isExtensionMethod)));
+                            }
+                            else
+                            {
+#if WARNING_IF_MEMBERFAIL
+                                UnityEngine.Debug.LogWarning(string.Format("add method for {0}:{1} fail, signature:{2}", type, method, TypeUtils.GetMethodSignature(method, pinfos, false, isExtensionMethod)));
 #endif
                                 return;
                             }
@@ -190,6 +246,22 @@ namespace PuertsIl2cpp
                         foreach (var method in methods)
                         {
                             AddMethodToType(method.Name, method as MethodInfo, false, false, false);
+                            // handle defaultParam as another overload
+                            var pinfos = method.GetParameters();
+                            for (int i = pinfos.Length - 1; i >= 0; i--) 
+                            {
+                                if (pinfos[i].HasDefaultValue) 
+                                {
+                                    if (type == typeof(ZombieTest)) 
+                                    {
+                                        AddMethodWithDefaultParamToType(method.Name, method as MethodInfo, pinfos.Take(i).ToArray(), typeof(ZombieTest_Wrapper).GetMethod("Add"), false);
+                                    }
+                                    else 
+                                    {
+                                        AddMethodWithDefaultParamToType(method.Name, method as MethodInfo, pinfos, method as MethodInfo, false);
+                                    }
+                                }
+                            }
                         }
                     }
 					
@@ -199,6 +271,15 @@ namespace PuertsIl2cpp
                         foreach (var method in extensionMethods)
                         {
                             AddMethodToType(method.Name, method as MethodInfo, false, false, true);
+                            // handle defaultParam as another overload
+                            var pinfos = method.GetParameters();
+                            for (int i = pinfos.Length - 1; i >= 0; i--) 
+                            {
+                                if (pinfos[i].HasDefaultValue) 
+                                {
+                                    AddMethodWithDefaultParamToType(method.Name, method as MethodInfo, pinfos.Take(i).ToArray(), method as MethodInfo, false);
+                                }
+                            }
                         }
                     }
 

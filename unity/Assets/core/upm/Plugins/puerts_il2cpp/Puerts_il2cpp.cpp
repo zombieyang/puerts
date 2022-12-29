@@ -8,6 +8,7 @@
 #include "vm/Object.h"
 #include "vm/Array.h"
 #include "vm/Runtime.h"
+#include "vm/Parameter.h"
 #include "vm/Reflection.h"
 #include "vm/MetadataCache.h"
 #include "vm/Field.h"
@@ -183,7 +184,7 @@ static void MethodCallback(pesapi_callback_info info) {
             }
             ++wrapDatas;
         }
-        pesapi_throw_by_string(info, "invalid arguments"); 
+        pesapi_throw_by_string(info, "invalid arguments for method"); 
     } 
     catch (Il2CppExceptionWrapper& exception)
     {
@@ -203,6 +204,14 @@ static void MethodCallback(pesapi_callback_info info) {
             pesapi_throw_by_string(info, str.c_str());
         }
     }
+}
+
+int GetParamDefaultValue(const MethodInfo* method, int32_t index)
+{
+    bool b;
+    Il2CppObject* obj = Parameter::GetDefaultParameterValueObject(method, &method->parameters[index], &b);    
+    void* ptr = Object::Unbox(obj);
+    return (int32_t)(*((int16_t*) ptr));
 }
 
 void GetFieldValue(void *ptr, FieldInfo *field, size_t offset, void *value)
@@ -288,7 +297,7 @@ static void* CtorCallback(pesapi_callback_info info)
                 return Ptr;
             }
         }
-        pesapi_throw_by_string(info, "invalid arguments");
+        pesapi_throw_by_string(info, "invalid arguments for constructor");
         
     } 
     catch (Il2CppExceptionWrapper& exception)
@@ -750,6 +759,7 @@ puerts::UnityExports* GetUnityExports()
     g_unityExports.GetReturnType = &GetReturnType;
     g_unityExports.GetParameterType = &GetParameterType;
     g_unityExports.SizeOfRuntimeObject = sizeof(RuntimeObject);
+    g_unityExports.GetParamDefaultValue = &GetParamDefaultValue;
     return &g_unityExports;
 }
 

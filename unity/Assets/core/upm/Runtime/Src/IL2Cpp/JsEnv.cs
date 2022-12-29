@@ -96,7 +96,7 @@ namespace Puerts
             PuertsIl2cpp.ExtensionMethodInfo.LoadExtensionMethod();
             ExecuteModule("puerts/init_il2cpp.mjs");
             ExecuteModule("puerts/log.mjs");
-            ExecuteModule("puerts/csharp.mjs");
+            // ExecuteModule("puerts/csharp.mjs");
             ExecuteModule("puerts/events.mjs");
         }
 

@@ -7,6 +7,7 @@ namespace puerts
 
 typedef void (*MethodPointer)();
 typedef void* (*ObjectAllocateFunc)(const void* type);
+typedef int (*GetParamDefaultValueFunc)(const void* MethodInfo, int32_t index);
 typedef void (*ValueTypeDeallocateFunc)(void* ptr);
 typedef void* (*DelegateAllocateFunc)(const void* type, MethodPointer methodPointer, struct PersistentObjectInfo** outDelegateInfo);
 typedef void (*FieldOperationFunc)(void *obj, void *fieldInfo, size_t offset, void *value);
@@ -49,6 +50,7 @@ typedef v8::Value* (*GetPersistentObjectFunc)(v8::Context* env, const Persistent
     
 #define MethodPointer Il2CppMethodPointer
 typedef void* (*ObjectAllocateFunc)(Il2CppClass *klass);
+typedef int (*GetParamDefaultValueFunc)(const MethodInfo* MethodInfo, int32_t index);
 typedef void (*ValueTypeDeallocateFunc)(void* ptr);
 typedef void PersistentObjectInfo;
 typedef void* (*DelegateAllocateFunc)(Il2CppClass* klass, MethodPointer methodPointer, PersistentObjectInfo** outDelegateInfo);
@@ -143,6 +145,7 @@ struct UnityExports
     ThrowInvalidOperationExceptionFunc ThrowInvalidOperationException = nullptr;
     GetReturnTypeFunc GetReturnType = nullptr;
     GetParameterTypeFunc GetParameterType = nullptr;
+    GetParamDefaultValueFunc GetParamDefaultValue = nullptr;
     int SizeOfRuntimeObject = 0;
     //plugin api
     
