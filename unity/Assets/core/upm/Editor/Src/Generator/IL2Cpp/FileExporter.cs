@@ -61,9 +61,58 @@ namespace PuertsIl2cpp.Editor
                 public List<SignatureInfo> FieldWrapperInfos;
             }
 
+            class MethodWrapInfo
+            {
+                public MethodInfo MethodInfo;
+                public ConstructorInfo ConstructorInfo;
+                public bool IsConstructor;
+                public ParameterInfo[] ParameterInfos;
+            }
+
             public static Type GetUnrefParameterType(ParameterInfo parameterInfo)
             {
                 return (parameterInfo.ParameterType.IsByRef || parameterInfo.ParameterType.IsPointer) ? parameterInfo.ParameterType.GetElementType() : parameterInfo.ParameterType;
+            }
+
+            public static void GenMethodWithDefaultValue(string saveTo)
+            {
+                var types = from assembly in AppDomain.CurrentDomain.GetAssemblies()
+                            // where assembly.FullName.Contains("puerts") || assembly.FullName.Contains("Assembly-CSharp") || assembly.FullName.Contains("Unity")
+                            where !(assembly.ManifestModule is System.Reflection.Emit.ModuleBuilder)
+                            from type in assembly.GetTypes()
+                            where type.IsPublic
+                            select type;
+
+                const BindingFlags flag = BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public;
+                const BindingFlags flagForPuer = BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
+                
+                var typeExcludeDelegate = types
+                    .Where(t => !typeof(MulticastDelegate).IsAssignableFrom(t));
+
+                var ctorToWrap = typeExcludeDelegate
+                    .SelectMany(t => t.GetConstructors(t.FullName.Contains("Puer") ? flagForPuer : flag))
+                    .Where(m=> !Utils.IsNotSupportedMember(m))
+                    .ToArray();
+
+                var methodToWrap = typeExcludeDelegate
+                    .SelectMany(t => t.GetMethods(t.FullName.Contains("Puer") ? flagForPuer : flag))
+                    .Where(m=> !Utils.IsNotSupportedMember(m))
+                    .ToArray();
+
+                using (var jsEnv = new Puerts.JsEnv())
+                {
+                    jsEnv.UsingFunc<MethodInfo[], ConstructorInfo[], Dictionary<string, string>>();
+                    Dictionary<string, string> wrapperContents = jsEnv.ExecuteModule<Func<MethodInfo[], ConstructorInfo[], Dictionary<string, string>>>("puerts/templates/methodwrapper.tpl.mjs", "GenByMethodInfoAndConstructorInfo")(methodToWrap, ctorToWrap);
+
+                    foreach (KeyValuePair<string, string> wrapper in wrapperContents)
+                    {
+                        using (StreamWriter textWriter = new StreamWriter(Path.Combine(saveTo, wrapper.Key), false, Encoding.UTF8))
+                        {
+                            textWriter.Write(wrapper.Value);
+                            textWriter.Flush();
+                        }
+                    }
+                }
             }
 
             public static void GenCPPWrap(string saveTo)
