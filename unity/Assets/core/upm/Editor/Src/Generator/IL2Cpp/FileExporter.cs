@@ -39,6 +39,19 @@ namespace PuertsIl2cpp.Editor
                 }
                 return ret;
             }
+            private static bool IsTypeExcluded(Type type) {
+                string Namespace = type.Namespace != null ? type.Namespace : "";
+                return type == typeof(System.IO.Stream) || 
+                    type == typeof(System.IO.Compression.GZipStream) || 
+                    type == typeof(System.AppDomain) ||
+                    type.FullName.Contains("System.Memory") || 
+                    type.FullName.Contains("System.ReadOnlyMemory") ||
+                    Namespace.Contains("System.CodeDom") ||
+                    Namespace == "System.Reflection.Emit" ||
+                    Namespace == "System.Diagnostics" || 
+                    // Namespace.Contains("System.AppDomain") || 
+                    Namespace.Contains("System.Configuration");
+            }
 
             public static List<string> GetValueTypeFieldSignatures(Type type)
             {
@@ -105,7 +118,7 @@ namespace PuertsIl2cpp.Editor
                             where !IsAssemblyExcluded(Path.GetFileName(assembly.Location), true)
                             from type in assembly.GetExportedTypes() 
                             where type.IsPublic
-                            where !(type == typeof(System.IO.Stream) || type == typeof(System.IO.Compression.GZipStream) || type.FullName.Contains("System.Memory") || type.FullName.Contains("System.ReadOnlyMemory"))
+                            where !IsTypeExcluded(type)
                             select type;
 
                 var assemblies = AppDomain.CurrentDomain.GetAssemblies();
