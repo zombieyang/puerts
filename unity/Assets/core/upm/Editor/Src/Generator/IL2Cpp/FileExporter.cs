@@ -27,7 +27,8 @@ namespace PuertsIl2cpp.Editor
                 "Unity.Timeline.Editor.dll",
                 "Unity.Analytics.Tracker.dll",
                 "Unity.Analytics.Editor.dll",
-                "System.Numerics.dll"
+                "System.Numerics.dll",
+                "nunit.framework.dll"
             };
             private static bool IsAssemblyExcluded(string assemblyLocation, bool excludePuerts = false) {
                 bool ret = excludeAssemblys.Contains(assemblyLocation) || assemblyLocation.Contains("UnityEditor");

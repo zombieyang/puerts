@@ -16,7 +16,6 @@ public class Tester : MonoBehaviour {
     public bool IsTesting = false;
 
     void Start() {
-
         string MockConsoleContent = "";
         IsTesting = true;
 

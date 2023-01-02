@@ -6,10 +6,15 @@ class WrapperInfo {
         this.methodInfo = methodInfo;
         this.constructorInfo = constructorInfo;
         this.parameterInfos = parameterInfos;
+
+        this.sign = `${this.constructorInfo ? 'ctor' : this.methodInfo.Name}(${
+            parameterInfos.map(p => p.ParameterType).join(',')
+        })`
     }
 }
 
 const DictStrStr = puer.$generic(CS.System.Collections.Generic.Dictionary$2, CS.System.String, CS.System.String);
+const typeof_ParamArrayAttribute = puer.$typeof(CS.System.ParamArrayAttribute);
 export function GenByMethodInfoAndConstructorInfo(mis, cis) {
     const misJSArr = listToJsArray(mis)
     const cisJSArr = listToJsArray(cis)
@@ -18,27 +23,52 @@ export function GenByMethodInfoAndConstructorInfo(mis, cis) {
     misJSArr.forEach(mi => {
         const pis = mi.GetParameters();
         for (let i = pis.Length - 1; i >= 0; i--) {
-            if (!pis.get_Item(i).HasDefaultValue) break;
+            const pi = pis.get_Item(i);
+            if (!pi.IsOptional && !pi.IsDefined(typeof_ParamArrayAttribute, false)) break;
 
-            const typeWrapInfos = infoMap.get(mi.DeclaringType) || [];
-            typeWrapInfos.push(new WrapperInfo(mi, null, listToJsArray(pis, {take: i})));
+            const typeWrapInfos = infoMap.get(mi.DeclaringType) || {};
+            const wi = new WrapperInfo(mi, null, listToJsArray(pis, {take: i}));
+            if (!(wi.sign in typeWrapInfos)) {
+                typeWrapInfos[wi.sign] = wi;
+            } else {
+                console.log('ambigious: ', wi.sign);
+                typeWrapInfos[wi.sign] = null;
+            }
             infoMap.set(mi.DeclaringType, typeWrapInfos);
         }
     })
     cisJSArr.forEach(ci => {
         const pis = ci.GetParameters();
         for (let i = pis.Length - 1; i >= 0; i--) {
-            if (!pis.get_Item(i).HasDefaultValue) break;
+            const pi = pis.get_Item(i);
+            if (!pi.IsOptional && !pi.IsDefined(typeof_ParamArrayAttribute, false)) break;
 
-            const typeWrapInfos = infoMap.get(ci.DeclaringType) || [];
-            typeWrapInfos.push(new WrapperInfo(null, ci, listToJsArray(pis, {take: i})));
+            const typeWrapInfos = infoMap.get(ci.DeclaringType) || {};
+            const wi = new WrapperInfo(null, ci, listToJsArray(pis, {take: i}));
+            if (!(wi.sign in typeWrapInfos)) {
+                typeWrapInfos[wi.sign] = wi;
+            } else {
+                console.log('ambigious: ', wi.sign);
+                typeWrapInfos[wi.sign] = null;
+            }
             infoMap.set(ci.DeclaringType, typeWrapInfos);
         }
     });
 
     const dict = new DictStrStr();
     for (let type of infoMap.keys()) {
-        dict.Add(getWrapperName(type) + "_PuerDVAdaptor.cs", renderAdaptor(type, infoMap.get(type)));
+        const wis = infoMap.get(type);
+        Object.keys(wis).forEach(key=> {
+            if (wis[key] == null) {
+                delete wis[key];
+            }
+        })
+        if (Object.keys(wis).length == 0) {
+            infoMap.delete(type);
+        } else {
+            infoMap.set(type, wis);
+            dict.Add(getWrapperName(type) + "_PuerDVAdaptor.cs", renderAdaptor(type, infoMap.get(type)));
+        }
     }
 
     dict.Add("DefaultValueAdaptors.cs", renderRegister(infoMap.keys()))
@@ -66,13 +96,13 @@ namespace PuertsStaticWrap
 }`
 }
 
-function renderAdaptor(type, wrapperInfoArr) {
+function renderAdaptor(type, wrapperInfoKV) {
     const isGenericType = type.IsGenericType;
 
     return t`namespace PuertsStaticWrap {
     // ${CS.System.IO.Path.GetFileName(type.Assembly.Location)}
     public static class ${getWrapperName(type)}_PuerDVAdaptor {
-    ${FOR(wrapperInfoArr, item=> {
+    ${FOR(Object.values(wrapperInfoKV), item=> {
         if (item.constructorInfo) {
             return `
         public static ${item.constructorInfo.DeclaringType.GetFriendlyName()} ctor${isGenericType ? `<${listToJsArray(type.GetGenericArguments()).map(ga=> ga.Name).join(', ')}>` : ''} (
