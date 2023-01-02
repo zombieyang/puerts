@@ -1,4 +1,4 @@
-import { FOR, default as t, IF, ENDIF, ELSE } from "./tte.mjs"
+import { FOR, default as t, IF, ENDIF, ELSE } from "./lib/tte.mjs"
 
 function listToJsArray(csArr) {
     let arr = [];
@@ -311,8 +311,8 @@ static bool w_${wrapperInfo.Signature}(void* method, MethodPointer methodPointer
     v8::Isolate* isolate = info.GetIsolate();
     v8::Local<v8::Context> context = isolate->GetCurrentContext();
 
+    if ( ${genArgsLenCheck(parameterSignatures)}) return false;
     if (checkJSArgument) {
-        if ( ${genArgsLenCheck(parameterSignatures)}) return false;
         ${FOR(parameterSignatures, (x, i) => t`
         ${CODE_SNIPPETS.checkJSArg(x, i)}
         `)}
