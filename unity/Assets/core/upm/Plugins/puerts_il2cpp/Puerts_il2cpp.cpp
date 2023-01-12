@@ -914,7 +914,7 @@ handle_underlying:
     #endif
             case IL2CPP_TYPE_I8:
             {
-                if (pesapi_is_int32(env, jsValue))
+                if (pesapi_is_double(env, jsValue))
                 {
                     data.i8 = (uint32_t) pesapi_get_value_uint32(env, jsValue);
                     hasValue = true;
@@ -931,7 +931,7 @@ handle_underlying:
     #endif
             case IL2CPP_TYPE_U8:
             {
-                if (pesapi_is_uint32(env, jsValue))
+                if (pesapi_is_double(env, jsValue))
                 {
                     data.u8 = (uint64_t) pesapi_get_value_uint32(env, jsValue);
                     hasValue = true;
