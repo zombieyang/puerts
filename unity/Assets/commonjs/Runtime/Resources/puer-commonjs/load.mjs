@@ -74,4 +74,4 @@ function searchModule(dir, requiredModule) {
     }
 }
 
-puerts.searchModule = searchModule;
+puer.searchModule = searchModule;
