@@ -119,25 +119,25 @@ jobs:
       - uses: actions/download-artifact@v1
         with:
           name: Unity_Plugins (v8_9.4_Release)
-          path: V8/Puerts/Plugins/
+          path: V8/upm/Plugins/
           
       - uses: actions/download-artifact@v1
         with:
           name: Unity_Plugins (quickjs_Release)
-          path: Quickjs/Puerts/Plugins/
+          path: Quickjs/upm/Plugins/
 
       - uses: actions/download-artifact@v1
         with:
           name: Unity_Plugins (nodejs_16_Release)
-          path: Nodejs/Puerts/Plugins/
+          path: Nodejs/upm/Plugins/
           
       - name: Create Release Asset
         run: |
           cp $GITHUB_WORKSPACE/LICENSE $GITHUB_WORKSPACE/unity/Assets/core/upm
           ls -l $GITHUB_WORKSPACE/unity/Assets/core/upm
-          cd V8/ && cp -r $GITHUB_WORKSPACE/unity/Assets/core/upm . && tar cvfz ../PuerTS_V8_${{ github.event.inputs.tag_name }}.tgz Puerts && cd -
-          cd Quickjs/ && cp -r $GITHUB_WORKSPACE/unity/Assets/core/upm . && tar cvfz ../PuerTS_Quickjs_${{ github.event.inputs.tag_name }}.tgz Puerts && cd -
-          cd Nodejs/ && cp -r $GITHUB_WORKSPACE/unity/Assets/core/upm . && tar cvfz ../PuerTS_Nodejs_${{ github.event.inputs.tag_name }}.tgz Puerts && cd -
+          cd V8/ && cp -r $GITHUB_WORKSPACE/unity/Assets/core/upm . && tar cvfz ../PuerTS_V8_${{ github.event.inputs.tag_name }}.tgz upm && cd -
+          cd Quickjs/ && cp -r $GITHUB_WORKSPACE/unity/Assets/core/upm . && tar cvfz ../PuerTS_Quickjs_${{ github.event.inputs.tag_name }}.tgz upm && cd -
+          cd Nodejs/ && cp -r $GITHUB_WORKSPACE/unity/Assets/core/upm . && tar cvfz ../PuerTS_Nodejs_${{ github.event.inputs.tag_name }}.tgz upm && cd -
           
       - name: Create Release
         id: create_release
