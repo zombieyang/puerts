@@ -137,6 +137,7 @@ namespace puerts
         v8::MaybeLocal<v8::Module> _ResolveModule(
             v8::Local<v8::Context> Context,
             v8::Local<v8::String> Specifier,
+            v8::Local<v8::FixedArray> import_assertions,
             v8::Local<v8::Module> Referrer,
             bool& isFromCache
         )
@@ -178,18 +179,19 @@ namespace puerts
                 return v8::MaybeLocal<v8::Module> {};
             }
             v8::Local<v8::String> Code = v8::Local<v8::String>::Cast(maybeRet.ToLocalChecked());
-
-            v8::ScriptOrigin Origin(Specifier,
-                                v8::Integer::New(Isolate, 0),                      // line offset
-                                v8::Integer::New(Isolate, 0),                    // column offset
-                                v8::True(Isolate),                    // is cross origin
-                                v8::Local<v8::Integer>(),                 // script id
-                                v8::Local<v8::Value>(),                   // source map URL
-                                v8::False(Isolate),                   // is opaque (?)
-                                v8::False(Isolate),                   // is WASM
-                                v8::True(Isolate),                    // is ES Module
-                                v8::PrimitiveArray::New(Isolate, 10));
-
+            
+            v8::ScriptOrigin Origin(Isolate, Specifier,
+                            0,                      // line offset
+                            0,                    // column offset
+                            true,                    // is cross origin
+                            0,                 // script id
+                            v8::Local<v8::Value>(),                   // source map URL
+                            false,                   // is opaque (?)
+                            false,                   // is WASM
+                            true,                    // is ES Module
+                            v8::PrimitiveArray::New(Isolate, 10)
+            );
+            
             v8::ScriptCompiler::CompileOptions options;
 
             v8::ScriptCompiler::Source Source(Code, Origin);
@@ -206,11 +208,12 @@ namespace puerts
         v8::MaybeLocal<v8::Module> ResolveModule(
             v8::Local<v8::Context> Context,
             v8::Local<v8::String> Specifier,
+            v8::Local<v8::FixedArray> import_assertions,
             v8::Local<v8::Module> Referrer
         )
         {
             bool isFromCache = false;
-            return _ResolveModule(Context, Specifier, Referrer, isFromCache);
+            return _ResolveModule(Context, Specifier, import_assertions, Referrer, isFromCache);
         }
 
         bool LinkModule(
@@ -220,18 +223,20 @@ namespace puerts
         {
             v8::Isolate* Isolate = Context->GetIsolate();
 
-            for (int i = 0, length = RefModule->GetModuleRequestsLength(); i < length; i++)
+            for (int i = 0, length = RefModule->GetModuleRequests()->Length(); i < length; i++)
             {
-                v8::Local<v8::String> Specifier_v8 = RefModule->GetModuleRequest(i);
-
+                v8::Local<v8::ModuleRequest> module_request =
+                    RefModule->GetModuleRequests()->Get(Context, i).As<v8::ModuleRequest>();
+                v8::Local<v8::String> Specifier_v8 = module_request->GetSpecifier();
+                
                 bool isFromCache = false;
-                v8::MaybeLocal<v8::Module> MaybeModule = _ResolveModule(Context, Specifier_v8, RefModule, isFromCache);
+                v8::MaybeLocal<v8::Module> MaybeModule = _ResolveModule(Context, Specifier_v8, v8::Local<v8::FixedArray>(), RefModule, isFromCache);
                 if (MaybeModule.IsEmpty())
                 {
                     return false;
                 }
                 if (!isFromCache) 
-                {
+                { 
                     if (!LinkModule(Context, MaybeModule.ToLocalChecked())) 
                     {
                         return false;

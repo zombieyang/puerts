@@ -40,7 +40,11 @@ namespace puerts
 
         v8::Local<v8::String> Source = Info[0]->ToString(Context).ToLocalChecked();
         v8::Local<v8::String> Name = Info[1]->ToString(Context).ToLocalChecked();
+#if WITH_V8_10
+        v8::ScriptOrigin Origin(Isolate, Name);
+#else
         v8::ScriptOrigin Origin(Name);
+#endif
         auto Script = v8::Script::Compile(Context, Source, &Origin);
         if (Script.IsEmpty())
         {
@@ -184,22 +188,16 @@ namespace puerts
             v8::V8::Initialize();
         }
 
-        std::string Flags = "--no-harmony-top-level-await --stack_size=856";
-#if PUERTS_DEBUG
-        Flags += " --expose-gc";
-#if PLATFORM_MAC
-        Flags += " --jitless --no-expose-wasm";
-#endif
-#endif
+        std::string Flags = "--stack_size=856";
 #if PLATFORM_IOS
         Flags += " --jitless --no-expose-wasm";
 #endif
         v8::V8::SetFlagsFromString(Flags.c_str(), static_cast<int>(Flags.size()));
 
-        v8::StartupData SnapshotBlob;
-        SnapshotBlob.data = (const char *)SnapshotBlobCode;
-        SnapshotBlob.raw_size = sizeof(SnapshotBlobCode);
-        v8::V8::SetSnapshotDataBlob(&SnapshotBlob);
+        // v8::StartupData SnapshotBlob;
+        // SnapshotBlob.data = (const char *)SnapshotBlobCode;
+        // SnapshotBlob.raw_size = sizeof(SnapshotBlobCode);
+        // v8::V8::SetSnapshotDataBlob(&SnapshotBlob);
 
         // 初始化Isolate和DefaultContext
         CreateParams = new v8::Isolate::CreateParams();

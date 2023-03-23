@@ -629,7 +629,7 @@ pesapi_value pesapi_eval(pesapi_env env, const uint8_t* code, size_t code_size, 
     memcpy(buff.data(), code, code_size);
     buff[code_size] = '\0';
     v8::Local<v8::String> source = v8::String::NewFromUtf8(isolate, buff.data(), v8::NewStringType::kNormal).ToLocalChecked();
-    v8::ScriptOrigin origin(url);
+    v8::ScriptOrigin origin(isolate, url);
 
     auto CompiledScript = v8::Script::Compile(context, source, &origin);
     if (CompiledScript.IsEmpty())

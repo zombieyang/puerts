@@ -70,6 +70,9 @@ namespace puerts {
     v8::MaybeLocal<v8::Module> _ResolveModule(
         v8::Local<v8::Context> Context,
         v8::Local<v8::String> Specifier,
+#if WITH_V8_10
+        v8::Local<v8::FixedArray> import_assertions,
+#endif
         v8::Local<v8::Module> Referrer,
         bool& isFromCache
     )
@@ -80,7 +83,11 @@ namespace puerts {
         v8::String::Utf8Value Specifier_utf8(Isolate, Specifier);
         std::string Specifier_std(*Specifier_utf8, Specifier_utf8.length());
 
+#if !WITH_V8_10
+        const auto referIter = JsEngine->ScriptIdToPathMap.find(Referrer->GetIdentityHash()); 
+#else
         const auto referIter = JsEngine->ScriptIdToPathMap.find(Referrer->ScriptId()); 
+#endif
         if (referIter != JsEngine->ScriptIdToPathMap.end())
         {
             std::string referPath_std = referIter->second;
@@ -102,16 +109,31 @@ namespace puerts {
             Isolate->ThrowException(v8::Exception::Error(FV8Utils::V8String(Isolate, ErrorMessage.c_str())));
             return v8::MaybeLocal<v8::Module> {};
         }
+#if WITH_V8_10
+        v8::ScriptOrigin Origin(Isolate, FV8Utils::V8String(Isolate, (const char*)pathForDebug),
+            0,                      // line offset
+            0,                    // column offset
+            true,                    // is cross origin
+            0,                 // script id
+            v8::Local<v8::Value>(),                   // source map URL
+            false,                   // is opaque (?)
+            false,                   // is WASM
+            true,                    // is ES Module
+            v8::PrimitiveArray::New(Isolate, 10)
+        );
+#else
         v8::ScriptOrigin Origin(FV8Utils::V8String(Isolate, (const char*)pathForDebug),
-                            v8::Integer::New(Isolate, 0),                      // line offset
-                            v8::Integer::New(Isolate, 0),                    // column offset
-                            v8::True(Isolate),                    // is cross origin
-                            v8::Local<v8::Integer>(),                 // script id
-                            v8::Local<v8::Value>(),                   // source map URL
-                            v8::False(Isolate),                   // is opaque (?)
-                            v8::False(Isolate),                   // is WASM
-                            v8::True(Isolate),                    // is ES Module
-                            v8::PrimitiveArray::New(Isolate, 10));
+            v8::Integer::New(Isolate, 0),                      // line offset
+            v8::Integer::New(Isolate, 0),                    // column offset
+            v8::True(Isolate),                    // is cross origin
+            v8::Local<v8::Integer>(),                 // script id
+            v8::Local<v8::Value>(),                   // source map URL
+            v8::False(Isolate),                   // is opaque (?)
+            v8::False(Isolate),                   // is WASM
+            v8::True(Isolate),                    // is ES Module
+            v8::PrimitiveArray::New(Isolate, 10)
+        );
+#endif
         v8::TryCatch TryCatch(Isolate);
 
         v8::ScriptCompiler::CompileOptions options;
@@ -124,18 +146,33 @@ namespace puerts {
             JsEngine->SetLastException(TryCatch.Exception());
             return v8::MaybeLocal<v8::Module> {};
         }
+#if !WITH_V8_10
+        JsEngine->ScriptIdToPathMap[Module->GetIdentityHash()] = Specifier_std;
+#else
         JsEngine->ScriptIdToPathMap[Module->ScriptId()] = Specifier_std;
+#endif
         JsEngine->PathToModuleMap[Specifier_std] = v8::UniquePersistent<v8::Module>(Isolate, Module);
         return Module;
     }
     v8::MaybeLocal<v8::Module> ResolveModule(
         v8::Local<v8::Context> Context,
         v8::Local<v8::String> Specifier,
+#if WITH_V8_10
+        v8::Local<v8::FixedArray> import_assertions,
+#endif
         v8::Local<v8::Module> Referrer
     )
     {
         bool isFromCache = false;
-        return _ResolveModule(Context, Specifier, Referrer, isFromCache);
+        return _ResolveModule(
+            Context, 
+            Specifier, 
+#if WITH_V8_10
+            import_assertions, 
+#endif
+            Referrer, 
+            isFromCache
+        );
     }
 
     bool LinkModule(
@@ -146,12 +183,24 @@ namespace puerts {
         v8::Isolate* Isolate = Context->GetIsolate();
         JSEngine* JsEngine = FV8Utils::IsolateData<JSEngine>(Isolate);
 
+#if WITH_V8_10
+        for (int i = 0, length = RefModule->GetModuleRequests()->Length(); i < length; i++)
+        {  
+            v8::Local<v8::ModuleRequest> module_request =
+                RefModule->GetModuleRequests()->Get(Context, i).As<v8::ModuleRequest>();
+            v8::Local<v8::String> Specifier_v8 = module_request->GetSpecifier();
+#else
         for (int i = 0, length = RefModule->GetModuleRequestsLength(); i < length; i++)
         {
             v8::Local<v8::String> Specifier_v8 = RefModule->GetModuleRequest(i);
-
+#endif
             bool isFromCache = false;
-            v8::MaybeLocal<v8::Module> MaybeModule = _ResolveModule(Context, Specifier_v8, RefModule, isFromCache);
+#if !WITH_V8_10
+        v8::MaybeLocal<v8::Module> MaybeModule = _ResolveModule(Context, Specifier_v8, RefModule, isFromCache);
+#else
+        v8::MaybeLocal<v8::Module> MaybeModule = _ResolveModule(Context, Specifier_v8, v8::Local<v8::FixedArray>(), RefModule, isFromCache);
+#endif
+
             if (MaybeModule.IsEmpty())
             {
                 return false;
@@ -173,7 +222,11 @@ namespace puerts {
         v8::Isolate* Isolate = Context->GetIsolate();
         auto* JsEngine = FV8Utils::IsolateData<JSEngine>(Isolate);
 
+#if !WITH_V8_10
+        auto iter = JsEngine->ScriptIdToPathMap.find(Module->GetIdentityHash());
+#else
         auto iter = JsEngine->ScriptIdToPathMap.find(Module->ScriptId());
+#endif
         if (iter != JsEngine->ScriptIdToPathMap.end()) 
         {
             meta->CreateDataProperty(
@@ -242,22 +295,41 @@ namespace puerts {
         v8::TryCatch TryCatch(Isolate);
         
 #if !WITH_QUICKJS
+#if WITH_V8_10
+        v8::ScriptOrigin Origin(Isolate, FV8Utils::V8String(Isolate, ""),
+            0,                      // line offset
+            0,                    // column offset
+            true,                    // is cross origin
+            0,                 // script id
+            v8::Local<v8::Value>(),                   // source map URL
+            false,                   // is opaque (?)
+            false,                   // is WASM
+            true,                    // is ES Module
+            v8::PrimitiveArray::New(Isolate, 10)
+        );
+#else
         v8::ScriptOrigin Origin(FV8Utils::V8String(Isolate, ""),
-                            v8::Integer::New(Isolate, 0),                      // line offset
-                            v8::Integer::New(Isolate, 0),                    // column offset
-                            v8::True(Isolate),                    // is cross origin
-                            v8::Local<v8::Integer>(),                 // script id
-                            v8::Local<v8::Value>(),                   // source map URL
-                            v8::False(Isolate),                   // is opaque (?)
-                            v8::False(Isolate),                   // is WASM
-                            v8::True(Isolate),                    // is ES Module
-                            v8::PrimitiveArray::New(Isolate, 10));
+            v8::Integer::New(Isolate, 0),                      // line offset
+            v8::Integer::New(Isolate, 0),                    // column offset
+            v8::True(Isolate),                    // is cross origin
+            v8::Local<v8::Integer>(),                 // script id
+            v8::Local<v8::Value>(),                   // source map URL
+            v8::False(Isolate),                   // is opaque (?)
+            v8::False(Isolate),                   // is WASM
+            v8::True(Isolate),                    // is ES Module
+            v8::PrimitiveArray::New(Isolate, 10)
+        );
+#endif
         
         v8::ScriptCompiler::Source Source(FV8Utils::V8String(Isolate, ""), Origin);
         v8::Local<v8::Module> EntryModule = v8::ScriptCompiler::CompileModule(Isolate, &Source, v8::ScriptCompiler::kNoCompileOptions)
                 .ToLocalChecked();
                 
+#if !WITH_V8_10
         v8::MaybeLocal<v8::Module> Module = ResolveModule(Context, FV8Utils::V8String(Isolate, Path), EntryModule);
+#else
+        v8::MaybeLocal<v8::Module> Module = ResolveModule(Context, FV8Utils::V8String(Isolate, Path), v8::Local<v8::FixedArray>(), EntryModule);
+#endif
 
         if (Module.IsEmpty())
         {
@@ -374,7 +446,11 @@ namespace puerts {
 
         v8::Local<v8::String> Url = FV8Utils::V8String(Isolate, Path == nullptr ? "" : Path);
         v8::Local<v8::String> Source = FV8Utils::V8String(Isolate, Code);
+#if WITH_V8_10
+        v8::ScriptOrigin Origin(Isolate, Url);
+#else
         v8::ScriptOrigin Origin(Url);
+#endif
         v8::TryCatch TryCatch(Isolate);
 
         auto CompiledScript = v8::Script::Compile(Context, Source, &Origin);

@@ -61,7 +61,7 @@ program
         } else {
             switch (quickcommand[0]) {
                 case 'v':
-                    backend = 'v8_9.4'; break;
+                    backend = 'v8'; break;
                 case 'n':
                     backend = 'nodejs_16'; break;
                 case 'q':

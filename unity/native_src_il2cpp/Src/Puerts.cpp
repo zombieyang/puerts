@@ -27,7 +27,7 @@
 #elif defined(PLATFORM_ANDROID_ARM64)
 #include "Blob/Android/arm64/SnapshotBlob.h"
 #elif defined(PLATFORM_MAC_ARM64)
-#include "Blob/macOS_arm64/SnapshotBlob.h"
+// #include "Blob/macOS_arm64/SnapshotBlob.h"
 #elif defined(PLATFORM_MAC)
 #include "Blob/macOS/SnapshotBlob.h"
 #elif defined(PLATFORM_IOS)
@@ -717,10 +717,10 @@ struct JSEnv
 
         MainIsolate->SetMicrotasksPolicy(v8::MicrotasksPolicy::kAuto);
 #else
-        v8::StartupData SnapshotBlob;
-        SnapshotBlob.data = (const char *)SnapshotBlobCode;
-        SnapshotBlob.raw_size = sizeof(SnapshotBlobCode);
-        v8::V8::SetSnapshotDataBlob(&SnapshotBlob);
+        // v8::StartupData SnapshotBlob;
+        // SnapshotBlob.data = (const char *)SnapshotBlobCode;
+        // SnapshotBlob.raw_size = sizeof(SnapshotBlobCode);
+        // v8::V8::SetSnapshotDataBlob(&SnapshotBlob);
 
         // 初始化Isolate和DefaultContext
         CreateParams = new v8::Isolate::CreateParams();
@@ -810,22 +810,22 @@ struct JSEnv
             v8::Local<v8::String> Specifier_v8 = info[0]->ToString(Context).ToLocalChecked();
 
             auto emptyStrV8 = v8::String::NewFromUtf8(Isolate, "", v8::NewStringType::kNormal).ToLocalChecked();
-            v8::ScriptOrigin origin(emptyStrV8,
-                            v8::Integer::New(Isolate, 0),                      // line offset
-                            v8::Integer::New(Isolate, 0),                    // column offset
-                            v8::True(Isolate),                    // is cross origin
-                            v8::Local<v8::Integer>(),                 // script id
+            v8::ScriptOrigin origin(Isolate, emptyStrV8,
+                            0,                      // line offset
+                            0,                    // column offset
+                            true,                    // is cross origin
+                            0,                 // script id
                             v8::Local<v8::Value>(),                   // source map URL
-                            v8::False(Isolate),                   // is opaque (?)
-                            v8::False(Isolate),                   // is WASM
-                            v8::True(Isolate),                    // is ES Module
+                            false,                   // is opaque (?)
+                            false,                   // is WASM
+                            true,                    // is ES Module
                             v8::PrimitiveArray::New(Isolate, 10)
             );
             v8::ScriptCompiler::Source source(emptyStrV8, origin);
             v8::Local<v8::Module> entryModule = v8::ScriptCompiler::CompileModule(Isolate, &source, v8::ScriptCompiler::kNoCompileOptions)
                     .ToLocalChecked();
 
-            v8::MaybeLocal<v8::Module> mod = puerts::esmodule::ResolveModule(Context, Specifier_v8, entryModule);
+            v8::MaybeLocal<v8::Module> mod = puerts::esmodule::ResolveModule(Context, Specifier_v8, v8::Local<v8::FixedArray>(), entryModule);
             if (mod.IsEmpty())
             {
                 // TODO

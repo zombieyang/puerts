@@ -27,33 +27,33 @@
 #include "node.h"
 #include "uv.h"
 #pragma warning(pop)
-#else
+// #elif !WITH_V8_10
 
-#if defined(PLATFORM_WINDOWS)
+// #if defined(PLATFORM_WINDOWS)
 
-#if _WIN64
-#include "Blob/Win64/SnapshotBlob.h"
-#else
-#include "Blob/Win32/SnapshotBlob.h"
-#endif
+// #if _WIN64
+// #include "Blob/Win64/SnapshotBlob.h"
+// #else
+// #include "Blob/Win32/SnapshotBlob.h"
+// #endif
 
-#elif defined(PLATFORM_ANDROID_ARM)
-#include "Blob/Android/armv7a/SnapshotBlob.h"
-#elif defined(PLATFORM_ANDROID_ARM64)
-#include "Blob/Android/arm64/SnapshotBlob.h"
-#elif defined(PLATFORM_ANDROID_x64)
-#include "Blob/Android/x64/SnapshotBlob.h"
-#elif defined(PLATFORM_MAC_ARM64)
-#include "Blob/macOS_arm64/SnapshotBlob.h"
-#elif defined(PLATFORM_MAC)
-#include "Blob/macOS/SnapshotBlob.h"
-#elif defined(PLATFORM_IOS)
-#include "Blob/iOS/arm64/SnapshotBlob.h"
-#elif defined(PLATFORM_IOS_SIMULATOR)
-#include "Blob/iOS/x64/SnapshotBlob.h"
-#elif defined(PLATFORM_LINUX)
-#include "Blob/Linux/SnapshotBlob.h"
-#endif
+// #elif defined(PLATFORM_ANDROID_ARM)
+// #include "Blob/Android/armv7a/SnapshotBlob.h"
+// #elif defined(PLATFORM_ANDROID_ARM64)
+// #include "Blob/Android/arm64/SnapshotBlob.h"
+// #elif defined(PLATFORM_ANDROID_x64)
+// #include "Blob/Android/x64/SnapshotBlob.h"
+// #elif defined(PLATFORM_MAC_ARM64)
+// #include "Blob/macOS_arm64/SnapshotBlob.h"
+// #elif defined(PLATFORM_MAC)
+// #include "Blob/macOS/SnapshotBlob.h"
+// #elif defined(PLATFORM_IOS)
+// #include "Blob/iOS/arm64/SnapshotBlob.h"
+// #elif defined(PLATFORM_IOS_SIMULATOR)
+// #include "Blob/iOS/x64/SnapshotBlob.h"
+// #elif defined(PLATFORM_LINUX)
+// #include "Blob/Linux/SnapshotBlob.h"
+// #endif
 
 #endif
 

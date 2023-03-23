@@ -26,17 +26,6 @@
                         "/Lib/macOS_arm64/libquickjs.a"
                     ]
                 },
-                "android": {
-                    "armv7": [
-                        "/Lib/Android/armeabi-v7a/libquickjs.a"
-                    ],
-                    "arm64": [
-                        "/Lib/Android/arm64-v8a/libquickjs.a"
-                    ],
-                    "x64": [
-                        "/Lib/Android/x86_64/libquickjs.a"
-                    ]
-                },
                 "linux": {
                     "x64": [
                         "/Lib/Linux/libquickjs.a"
@@ -50,6 +39,17 @@
                     ],
                     "x64": [
                         "/Lib/Win64/*.dll"
+                    ]
+                },
+                "android": {
+                    "armv7": [
+                        "/Lib/Android/armeabi-v7a/libquickjs.a"
+                    ],
+                    "arm64": [
+                        "/Lib/Android/arm64-v8a/libquickjs.a"
+                    ],
+                    "x64": [
+                        "/Lib/Android/x86_64/libquickjs.a"
                     ]
                 },
                 "ios": {
@@ -86,6 +86,29 @@
                     ],
                     "x64": [
                         "/Lib/Win64/libnode.lib"
+                    ]
+                },
+                "osx": {
+                    "x64": [
+                        "/lib/macOS/libnode.93.dylib"
+                    ],
+                    "arm64": [
+                        "/lib/macOS_arm64/libnode.93.dylib"
+                    ]
+                },
+                "linux": {
+                    "x64": [
+                        "/lib/Linux/libnode.so.93"
+                    ]
+                }
+            },
+            "copy-libraries": {
+                "win": {
+                    "ia32": [
+                        "/lib/Win32/libnode.dll"
+                    ],
+                    "x64": [
+                        "/lib/Win64/libnode.dll"
                     ]
                 },
                 "android": {
@@ -157,30 +180,6 @@
                         "/lib/macOS_arm64/libnode.93.dylib"
                     ]
                 },
-                "linux": {
-                    "x64": [
-                        "/lib/Linux/libnode.so.93"
-                    ]
-                }
-            },
-            "copy-libraries": {
-                "win": {
-                    "ia32": [
-                        "/lib/Win32/libnode.dll"
-                    ],
-                    "x64": [
-                        "/lib/Win64/libnode.dll"
-                    ]
-                },
-                "android": {},
-                "osx": {
-                    "x64": [
-                        "/lib/macOS/libnode.93.dylib"
-                    ],
-                    "arm64": [
-                        "/lib/macOS_arm64/libnode.93.dylib"
-                    ]
-                },
                 "ios": {
                     "arm64": [
                         "/lib/iOS/*.a"
@@ -195,6 +194,104 @@
         }
     },
     "v8_9.4": {
+        "url": "https://github.com/puerts/backend-v8/releases/download/V8_9.4.146.24_1115/v8_bin_9.4.146.24.tgz",
+        "config": {
+            "include": [
+                "/Inc"
+            ],
+            "link-libraries": {
+                "win": {
+                    "ia32": [
+                        "/Lib/Win32/wee8.lib"
+                    ],
+                    "x64": [
+                        "/Lib/Win64/wee8.lib"
+                    ]
+                },
+                "osx": {
+                    "x64": [
+                        "/Lib/macOS/libwee8.a"
+                    ],
+                    "arm64": [
+                        "/Lib/macOS_arm64/libwee8.a"
+                    ]
+                },
+                "linux": {
+                    "x64": [
+                        "/Lib/Linux/libwee8.a"
+                    ]
+                }
+            },
+            "copy-libraries": {
+                "android": {
+                    "armv7": [
+                        "/Lib/Android/armeabi-v7a/libwee8.a"
+                    ],
+                    "arm64": [
+                        "/Lib/Android/arm64-v8a/libwee8.a"
+                    ],
+                    "x64": [
+                        "/Lib/Android/x64/libwee8.a"
+                    ]
+                },
+                "ios": {
+                    "arm64": [
+                        "/Lib/iOS/arm64/libwee8.a"
+                    ]
+                }
+            }
+        }
+    },
+    "v8": {
+        "url": "https://github.com/puerts/backend-v8/releases/download/V8_9.4.146.24_1115/v8_bin_9.4.146.24.tgz",
+        "config": {
+            "include": [
+                "/Inc"
+            ],
+            "link-libraries": {
+                "win": {
+                    "ia32": [
+                        "/Lib/Win32/wee8.lib"
+                    ],
+                    "x64": [
+                        "/Lib/Win64/wee8.lib"
+                    ]
+                },
+                "osx": {
+                    "x64": [
+                        "/Lib/macOS/libwee8.a"
+                    ],
+                    "arm64": [
+                        "/Lib/macOS_arm64/libwee8.a"
+                    ]
+                },
+                "linux": {
+                    "x64": [
+                        "/Lib/Linux/libwee8.a"
+                    ]
+                }
+            },
+            "copy-libraries": {
+                "android": {
+                    "armv7": [
+                        "/Lib/Android/armeabi-v7a/libwee8.a"
+                    ],
+                    "arm64": [
+                        "/Lib/Android/arm64-v8a/libwee8.a"
+                    ],
+                    "x64": [
+                        "/Lib/Android/x64/libwee8.a"
+                    ]
+                },
+                "ios": {
+                    "arm64": [
+                        "/Lib/iOS/arm64/libwee8.a"
+                    ]
+                }
+            }
+        }
+    },
+    "v8_10.2": {
         "url": "https://github.com/puerts/backend-v8/releases/download/V8_9.4.146.24_1115/v8_bin_9.4.146.24.tgz",
         "config": {
             "include": [
