@@ -43,6 +43,11 @@ namespace Puerts.UnitTest
         {
             return TestEnum.B;
         }
+        
+        public TestStruct? NullableTestFunction() {
+            TestStruct? to = null;
+            return to;
+        }
     }
     public class TestHelper
     {
@@ -517,6 +522,20 @@ namespace Puerts.UnitTest
                 })()
             ");
             Assert.AreEqual("213 1 213", ret);
+            jsEnv.Tick();
+        }
+        [Test]
+        public void NullableTest()
+        {
+            var jsEnv = UnitTestEnv.GetEnv();
+            var ret = jsEnv.Eval<string>(@"
+                (function() {
+                    const helper = new CS.Puerts.UnitTest.CrossLangTestHelper();
+                    const ret = helper.NullableTestFunction();
+                    return !!ret
+                })()
+            ");
+            Assert.AreEqual("false", ret);
             jsEnv.Tick();
         }
     }
