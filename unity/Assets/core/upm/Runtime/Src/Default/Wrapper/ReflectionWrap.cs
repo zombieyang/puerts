@@ -27,7 +27,7 @@ namespace Puerts
 
         public IntPtr[] NativePtrs;
 
-        public JSCallInfo(IntPtr isolate, IntPtr info, IntPtr self, int len)
+        public JSCallInfo(IntPtr isolate, IntPtr info, IntPtr self, int len, int argsStart = 0)
         {
             Isolate = isolate;
             Info = info;
@@ -40,7 +40,7 @@ namespace Puerts
 
             for(int i = 0; i < Length; i++)
             {
-                var nativeValuePtr = PuertsDLL.GetArgumentValue(info, i);
+                var nativeValuePtr = PuertsDLL.GetArgumentValue(info, i + argsStart);
                 NativePtrs[i] = nativeValuePtr;
                 var type = PuertsDLL.GetJsValueType(isolate, nativeValuePtr, false);
                 JsTypes[i] = type;
@@ -310,6 +310,25 @@ namespace Puerts
             try
             {
                 object target = methodInfo.IsStatic ? null : jsEnv.GeneralGetterManager.GetSelf(jsEnv.Idx, jsCallInfo.Self);
+                object[] args = parameters.GetArguments(jsCallInfo);
+                if (this.extensionMethod)
+                {
+                    args = new object[] { jsEnv.GeneralGetterManager.GetSelf(jsEnv.Idx, jsCallInfo.Self) }.Concat(args).ToArray();
+                }
+                object ret = methodInfo.Invoke(target, args);
+                parameters.FillByRefParameters(jsCallInfo);
+                resultSetter(jsEnv.Idx, jsCallInfo.Isolate, NativeValueApi.SetValueToResult, jsCallInfo.Info, ret);
+            }
+            finally
+            {
+                parameters.ClearArguments();
+            }
+        }
+        
+        public void InvokeWithTarget(JSCallInfo jsCallInfo, object target)
+        {
+            try
+            {
                 object[] args = parameters.GetArguments(jsCallInfo);
                 if (this.extensionMethod)
                 {

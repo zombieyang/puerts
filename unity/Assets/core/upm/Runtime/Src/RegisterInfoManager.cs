@@ -58,7 +58,7 @@ namespace Puerts
         internal class RegisterInfoManager
         {
             Dictionary<Type, Func<RegisterInfo>> RegisterInfoGetters = new Dictionary<Type, Func<RegisterInfo>>();
-            protected BindingMode _DefaultBindingMode = BindingMode.FastBinding;
+            protected BindingMode _DefaultBindingMode = BindingMode.DontBinding;
             public BindingMode DefaultBindingMode 
             {
                 get

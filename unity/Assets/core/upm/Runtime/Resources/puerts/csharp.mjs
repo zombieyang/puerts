@@ -235,3 +235,137 @@ puer.$extension = (cls, extension) => {
     typeof console != 'undefined' && console.warn(`deprecated! if you already generate static wrap for ${cls} and ${extension}, you are no need to invoke $extension`); 
     return doExtension(cls, extension)
 };
+
+(function() {
+    const csDynamicBinderBridge = CS.Puerts.DynamicBinderBridge;
+
+    var MemberTypes = {
+        Invalid: 0,
+        Constructor: 1,
+        Event: 2,
+        Field: 4,
+        Method: 8,
+        Property: 16,
+        TypeInfo: 32,
+        Custom: 64,
+        NestedType: 128,
+        All: 191
+    }
+
+    const ENABLE_LOG = true;
+
+    function add_reflection_api(
+        js_class, api_name, is_static, member_types, level = 0,
+    ) {
+        const tryLevel = level;
+        function add_reflection_api_log(info, is_error = false) {
+            if (!ENABLE_LOG) return;
+            const class_name = js_class.name.split(',')[0];
+            const log_func = is_error ? global.console.error :  global.console.log;
+            log_func(`[reflection_api] ${class_name}::${api_name} ${is_static ? 'static' : 'instance'} ${info}\n ${new Error().stack}`);
+        }
+
+        while (level > 0) {
+            js_class = Object.getPrototypeOf(js_class.prototype).constructor;
+            level = level - 1;
+        }
+        if (js_class === CS.System.Object) {
+            add_reflection_api_log(`register api failed! tried parent search level: ${tryLevel}`, true);
+            return false;
+        }
+        const cs_type = puerts.$typeof(js_class);
+        const target = is_static ? js_class : js_class.prototype;
+        const member_type = csDynamicBinderBridge.DynamicGetMemberType(null, cs_type, api_name, is_static);
+        add_reflection_api_log(`get member type: ${MemberTypes[member_type]}`);
+        if (member_type === 0) {
+            // return null will search parent
+            return null;
+        }
+        const member_type_matched = (member_type & member_types) > 0;
+        if (!member_type_matched) {
+            add_reflection_api_log(`register api failed! tried parent search level: ${tryLevel}, member filter: ${member_types}`, true);
+            return false;
+        }
+        if (member_type === MemberTypes.Field || member_type === MemberTypes.Property) {
+            const getter_setter = function (val = undefined) {
+                if (typeof val !== 'undefined') {
+                    add_reflection_api_log('called setter');
+                    return csDynamicBinderBridge.DynamicSetStatic(is_static ? null : this, cs_type, api_name, val);
+                }
+                add_reflection_api_log('called getter');
+                return csDynamicBinderBridge.DynamicGetStatic(is_static ? null : this, cs_type, api_name);
+            };
+            Object.defineProperty(target, api_name, {
+                get: getter_setter,
+                set: getter_setter,
+            });
+            add_reflection_api_log('register api success');
+            return true;
+        } 
+        if (member_type === MemberTypes.Method) {
+            Object.defineProperty(target, api_name, {
+                value(...args) {
+                    add_reflection_api_log('called function');
+                    return csDynamicBinderBridge.DynamicInvokeStatic(is_static ? null : this, cs_type, api_name, ...args);
+                },
+            });
+            add_reflection_api_log('register api success');
+            return true;
+        }
+        // return null will search parent
+        return null;
+    }
+
+    function add_reflection_api_hierarchy(classOrObj, api_name, member_types) {
+        const is_static = Object.prototype.hasOwnProperty.call(classOrObj, '__p_innerType');
+        const js_class = is_static ? classOrObj : Object.getPrototypeOf(classOrObj).constructor;
+        let level = 0;
+        while (true) {
+            const result = add_reflection_api(js_class, api_name, is_static, member_types, level);
+            if (result !== null) {
+                if (result === false) {
+                    const target = is_static ? js_class : js_class.prototype;
+                    Reflect.defineProperty(target, api_name, { value: null });
+                }
+                return result;
+            }
+            level = level + 1;
+        }
+    }
+
+    Object.setPrototypeOf(CS.System.Object.prototype, new Proxy({}, {
+        get(t, p, r) {
+            if (typeof(p) === 'string' && add_reflection_api_hierarchy(r, p, MemberTypes.All)) {
+                return r[p];
+            }
+        },
+        set(t, p, v, r) {
+            if (typeof(p) === 'string' && add_reflection_api_hierarchy(r, p, MemberTypes.Field | MemberTypes.Property)) {
+                r[p] = v;
+                return true;
+            }
+            return Reflect.set(t, p, v, r);
+        },
+    }));
+
+    Object.setPrototypeOf(CS.System.Object, new Proxy({}, {
+        get(t, p, r) {
+            if (p === '__p_isEnum' || p === '__static_inherit__') {
+                return null;
+            }
+            if (typeof(p) === 'string' && add_reflection_api_hierarchy(r, p, MemberTypes.All)) {
+                return r[p];
+            }
+        },
+        set(t, p, v, r) {
+            if (p === '__static_inherit__' || p === '__puertsMetadata' || Object.prototype.hasOwnProperty.call(v, '__p_innerType') || r.__p_isEnum) {
+                return Reflect.set(t, p, v, r);
+            }
+            if (typeof(p) === 'string' && add_reflection_api_hierarchy(r, p, MemberTypes.Field | MemberTypes.Property)) {
+                r[p] = v;
+                return true;
+            }
+            return Reflect.set(t, p, v, r);
+        },
+    }));
+})()
