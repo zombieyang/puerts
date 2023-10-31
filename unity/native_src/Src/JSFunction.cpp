@@ -99,10 +99,10 @@ namespace puerts
         v8::Context::Scope ContextScope(Context);
 
         std::vector< v8::Local<v8::Value>> V8Args;
-        for (int i = 0; i < Arguments.size(); ++i)
+        for (auto & Argument : Arguments)
         {
-            V8Args.push_back(ToV8(Isolate, Context, Arguments[i]));
-            Arguments[i].Persistent.Reset();
+            V8Args.push_back(ToV8(Isolate, Context, Argument));
+            Argument.Persistent.Reset();
         }
         Arguments.clear();
         v8::TryCatch TryCatch(Isolate);

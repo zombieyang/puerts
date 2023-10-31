@@ -71,10 +71,6 @@ enum JSEngineBackend
 
 class JSEngine
 {
-private: 
-#if !WITH_QUICKJS
-    static void HostInitializeImportMetaObject(v8::Local<v8::Context> context, v8::Local<v8::Module> module, v8::Local<v8::Object> meta);
-#endif
 public:
     JSEngine(void* external_quickjs_runtime, void* external_quickjs_context);
 
@@ -172,14 +168,8 @@ private:
     std::mutex JSFunctionsMutex;
 
     std::mutex JSObjectsMutex;
-
-    JSFunction* ModuleExecutor = nullptr;
     
 public:
-    JSFunction* JSObjectValueGetter = nullptr;
-
-    JSFunction* GetModuleExecutor();
-
     v8::Local<v8::FunctionTemplate> ToTemplate(v8::Isolate* Isolate, bool IsStatic, CSharpFunctionCallback Callback, int64_t Data);
 };
 }

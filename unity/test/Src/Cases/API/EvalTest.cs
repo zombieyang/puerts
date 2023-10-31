@@ -369,5 +369,18 @@ namespace Puerts.UnitTest
             jsEnv.Tick();
             StringAssert.Contains("hello", jsEnv.Eval<string>("result_ESDynamicModuleImportRelative.toString()"));
         }
+
+        [Test]
+        public void AddModule()
+        {
+            var jsEnv = UnitTestEnv.GetEnv();
+            if (jsEnv.Backend is BackendQuickJS) return;
+            JSObject jso = jsEnv.Eval<JSObject>(@"
+                ({ default: 'success' })
+            ");
+            jsEnv.AddModule("add-module/main", jso);
+            JSObject jso2 = jsEnv.ExecuteModule("add-module/main");
+            Assert.AreEqual(jso2.Get<string>("default"), "success");
+        }
     }
 }

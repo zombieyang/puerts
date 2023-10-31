@@ -38,11 +38,17 @@ string (REPLACE ";" "$<SEMICOLON>${BACKEND_ROOT}" BACKEND_LIB_NAMES "${BACKEND_R
 string (REPLACE ";" "$<SEMICOLON>" BACKEND_DEFINITIONS "${BACKEND_DEFINITIONS}")
 
 set(ThirdParty ${PROJECT_SOURCE_DIR}/../../unreal/Puerts/ThirdParty)
+
+file(READ ../native_src/JsSrc/internal.mjs JS_CONTENT_MODULE)
+configure_file(
+    ${PROJECT_SOURCE_DIR}/../native_src/JsSrc/JS_internal.h.in ${PROJECT_SOURCE_DIR}/../native_src/JsInc_Gen/JS_internal.h @ONLY
+)
 include_directories(
     Inc
     ../Assets/core/upm/Plugins/puerts_il2cpp
     ${BACKEND_INC_NAMES}
     ${PROJECT_SOURCE_DIR}/../native_src/Inc
+    ${PROJECT_SOURCE_DIR}/../native_src/JsInc_Gen
     ${PROJECT_SOURCE_DIR}/../../unreal/Puerts/Source/JsEnv/Private
     ${ThirdParty}/Include/websocketpp
     ${ThirdParty}/Include/asio

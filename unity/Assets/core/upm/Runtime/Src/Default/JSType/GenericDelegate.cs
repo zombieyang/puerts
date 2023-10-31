@@ -363,6 +363,11 @@ namespace Puerts
             }
         }
 
+        public T Get<T>(string key) 
+        {
+            return jsEnv.JSObjectValueGetter.Func<GenericDelegate, string, T>(this, key);
+        }
+
         ~GenericDelegate() 
         {
             CheckLiveness(false);

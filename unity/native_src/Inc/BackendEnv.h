@@ -29,6 +29,50 @@
 
 namespace puerts
 {
+
+    namespace esmodule
+    {
+        void ExecuteModule(const v8::FunctionCallbackInfo<v8::Value>& info);
+
+        struct ModuleInfo
+        {
+#if WITH_QUICKJS
+            JSModuleDef *Module;
+#else
+            v8::Global<v8::Module> Module;
+#endif
+            v8::Global<v8::Object> Namespace;
+            std::string ModulePath;
+        };
+
+#if !WITH_QUICKJS
+
+        void CreateSyntheticModule(const v8::FunctionCallbackInfo<v8::Value>& info);
+
+        void HasSyntheticModule(const v8::FunctionCallbackInfo<v8::Value>& info);
+
+        v8::MaybeLocal<v8::Module> _ResolveModule(
+                v8::Local<v8::Context> Context,
+                v8::Local<v8::String> Specifier,
+                v8::Local<v8::Value> Referrer,
+                bool& isFromCache
+        );
+
+        v8::MaybeLocal<v8::Module> ResolveModule( v8::Local<v8::Context> Context, v8::Local<v8::String> Specifier, v8::Local<v8::Module> Referrer);
+
+        bool LinkModule(v8::Local<v8::Context> Context, v8::Local<v8::Module> RefModule);
+
+        v8::MaybeLocal<v8::Promise> DynamicImport(v8::Local<v8::Context> Context, v8::Local<v8::ScriptOrModule> Referrer, v8::Local<v8::String> Specifier);
+
+        void HostInitializeImportMetaObject(v8::Local<v8::Context> Context, v8::Local<v8::Module> Module, v8::Local<v8::Object> meta);
+
+#else
+        JSModuleDef* js_module_loader(JSContext* ctx, const char *name, void *opaque);
+
+        char* js_module_resolver(JSContext *ctx, const char *base_name, const char *name, void* opaque);
+#endif
+    }
+
     class BackendEnv 
     {
     private:
@@ -39,7 +83,7 @@ namespace puerts
     public:
         ~BackendEnv() {
             PathToModuleMap.clear();
-            ScriptIdToPathMap.clear();
+            HashToModuleInfo.clear();
         }
         BackendEnv()
         {
@@ -96,10 +140,12 @@ namespace puerts
 #else
         std::map<std::string, v8::UniquePersistent<v8::Module>> PathToModuleMap;
 #endif
-        std::map<int, std::string> ScriptIdToPathMap;
+        std::unordered_multimap<int, esmodule::ModuleInfo*> HashToModuleInfo;
 
         // PromiseCallback
         v8::UniquePersistent<v8::Function> JsPromiseRejectCallback;
+
+        v8::UniquePersistent<v8::Function> InternalJSFunctionLib;
         
         // Inspector
         V8Inspector* Inspector;
@@ -115,12 +161,14 @@ namespace puerts
         void FreeIsolate();
 
         void InitInject(v8::Isolate* Isolate, v8::Local<v8::Context> Context);
-        
+
+        bool GetInternalJSLib(v8::Isolate* Isolate, v8::Local<v8::Context> Context, v8::Local<v8::Function> InternalJSLibFactory);
+
         void CreateInspector(v8::Isolate* Isolate, const v8::Global<v8::Context>* ContextGlobal, int32_t Port);
 
         void DestroyInspector(v8::Isolate* Isolate, const v8::Global<v8::Context>* ContextGlobal);
 
-        bool InspectorTick();
+        bool InspectorTick() const;
 
         bool ClearModuleCache(v8::Isolate* Isolate, v8::Local<v8::Context> Context, const char* Path);
     };
@@ -132,29 +180,4 @@ namespace puerts
     }
 #endif
 
-    namespace esmodule 
-    {
-        void ExecuteModule(const v8::FunctionCallbackInfo<v8::Value>& info);
-
-#if !WITH_QUICKJS
-        v8::MaybeLocal<v8::Module> _ResolveModule(
-            v8::Local<v8::Context> Context,
-            v8::Local<v8::String> Specifier,
-            v8::Local<v8::Value> Referrer,
-            bool& isFromCache
-        );
-
-        v8::MaybeLocal<v8::Module> ResolveModule( v8::Local<v8::Context> Context, v8::Local<v8::String> Specifier, v8::Local<v8::Module> Referrer);
-
-        bool LinkModule(v8::Local<v8::Context> Context, v8::Local<v8::Module> RefModule);
-
-        v8::MaybeLocal<v8::Promise> DynamicImport(v8::Local<v8::Context> Context, v8::Local<v8::ScriptOrModule> Referrer, v8::Local<v8::String> Specifier); 
-
-        void HostInitializeImportMetaObject(v8::Local<v8::Context> Context, v8::Local<v8::Module> Module, v8::Local<v8::Object> meta);
-#else 
-        JSModuleDef* js_module_loader(JSContext* ctx, const char *name, void *opaque);
-
-        char* js_module_resolver(JSContext *ctx, const char *base_name, const char *name, void* opaque);
-#endif
-    }
 }

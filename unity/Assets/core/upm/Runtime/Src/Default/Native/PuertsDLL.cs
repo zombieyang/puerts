@@ -278,12 +278,18 @@ namespace Puerts
 
             return RegisterProperty(isolate, classID, name, isStatic, fn1, getterData, fn2, setterData, dontDelete);
         }
-        
+        //
+        // [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
+        // public static extern IntPtr GetJSObjectValueGetter(IntPtr isolate);
+        //
+        // [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
+        // public static extern IntPtr GetModuleExecutor(IntPtr isolate);
+        //
+        // [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
+        // public static extern IntPtr AddSyntheticModule(IntPtr isolate, string fullSpecifier, IntPtr moduleObject);
+
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr GetJSObjectValueGetter(IntPtr isolate);
-        
-        [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr GetModuleExecutor(IntPtr isolate);
+        public static extern IntPtr GetInternalJSFunctionLib(IntPtr isolate);
 
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
         public static extern void ReturnClass(IntPtr isolate, IntPtr info, int classID);

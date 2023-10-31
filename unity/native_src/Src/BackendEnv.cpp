@@ -297,6 +297,21 @@ void puerts::BackendEnv::FreeIsolate()
 #endif
 }
 
+#if !WITH_QUICKJS
+static std::unordered_multimap<int, puerts::esmodule::ModuleInfo*>::iterator FindModuleInfo(std::unordered_multimap<int, puerts::esmodule::ModuleInfo*> &Map, v8::Local<v8::Module> Module)
+{
+    auto Range = Map.equal_range(Module->GetIdentityHash());
+    for (auto It = Range.first; It != Range.second; ++It)
+    {
+        if (It->second->Module == Module)
+        {
+            return It;
+        }
+    }
+    return Map.end();
+}
+#endif
+
 void puerts::BackendEnv::LogicTick()
 {
 #if WITH_NODEJS
@@ -344,11 +359,49 @@ void puerts::BackendEnv::InitInject(v8::Isolate* Isolate, v8::Local<v8::Context>
     Isolate->SetHostImportModuleDynamicallyCallback(&puerts::esmodule::DynamicImport);
 #endif
 
-    Context->Global()->Set(Context, v8::String::NewFromUtf8(Isolate, "__tgjsSetPromiseRejectCallback").ToLocalChecked(), v8::FunctionTemplate::New(Isolate, &SetPromiseRejectCallback<puerts::BackendEnv>)->GetFunction(Context).ToLocalChecked()).Check();
-
 #if defined(WITH_NODEJS)
     StartPolling();
 #endif
+
+    Context->Global()->Set(Context, v8::String::NewFromUtf8(Isolate, "__tgjsSetPromiseRejectCallback").ToLocalChecked(), v8::FunctionTemplate::New(Isolate, &SetPromiseRejectCallback<puerts::BackendEnv>)->GetFunction(Context).ToLocalChecked()).Check();
+}
+
+bool puerts::BackendEnv::GetInternalJSLib(v8::Isolate* Isolate, v8::Local<v8::Context> Context, v8::Local<v8::Function> InternalJSLibFactory)
+{
+    v8::Local<v8::Object> LocalNativeFunctionLib = v8::Object::New(Isolate);
+    v8::Maybe<bool> setResult = LocalNativeFunctionLib->Set(
+            Context,
+            v8::String::NewFromUtf8(Isolate, "ModuleExecutor").ToLocalChecked(),
+            v8::FunctionTemplate::New(Isolate, puerts::esmodule::ExecuteModule)->GetFunction(Context).ToLocalChecked()
+    );
+    if (setResult.IsNothing()) { return false; }
+#if !WITH_QUICKJS
+    setResult = LocalNativeFunctionLib->Set(
+            Context,
+            v8::String::NewFromUtf8(Isolate, "CreateSyntheticModule").ToLocalChecked(),
+            v8::FunctionTemplate::New(Isolate, puerts::esmodule::CreateSyntheticModule)->GetFunction(Context).ToLocalChecked()
+    );
+    if (setResult.IsNothing()) { return false; }
+
+    setResult = LocalNativeFunctionLib->Set(
+            Context,
+            v8::String::NewFromUtf8(Isolate, "HasSyntheticModule").ToLocalChecked(),
+            v8::FunctionTemplate::New(Isolate, puerts::esmodule::HasSyntheticModule)->GetFunction(Context).ToLocalChecked()
+    );
+    if (setResult.IsNothing()) { return false; }
+#endif
+    std::vector< v8::Local<v8::Value>> V8Args { LocalNativeFunctionLib };
+
+    v8::MaybeLocal<v8::Value> MaybeInternalJSLib = InternalJSLibFactory->Call(
+        Context,
+        Context->Global(),
+        1,
+        V8Args.data()
+    );
+    if (MaybeInternalJSLib.IsEmpty()) { return false; }
+
+    InternalJSFunctionLib.Reset(Isolate, v8::Local<v8::Function>::Cast(MaybeInternalJSLib.ToLocalChecked()));
+    return true;
 }
 
 void puerts::BackendEnv::CreateInspector(v8::Isolate* Isolate, const v8::Global<v8::Context>* ContextGlobal, int32_t Port)
@@ -384,7 +437,7 @@ void puerts::BackendEnv::DestroyInspector(v8::Isolate* Isolate, const v8::Global
     }
 }
 
-bool puerts::BackendEnv::InspectorTick()
+bool puerts::BackendEnv::InspectorTick() const
 {
     if (Inspector != nullptr)
     {
@@ -396,12 +449,12 @@ bool puerts::BackendEnv::InspectorTick()
 bool puerts::BackendEnv::ClearModuleCache(v8::Isolate* Isolate, v8::Local<v8::Context> Context, const char* Path)
 {
     std::string key(Path);
-    if (key.size() == 0) 
+    if (key.empty())
     {
 #if !WITH_QUICKJS
-        for (auto Iter = PathToModuleMap.begin(); Iter != PathToModuleMap.end(); ++Iter)
+        for (auto & Iter : PathToModuleMap)
         {
-            Iter->second.Reset();
+            Iter.second.Reset();
         }
 #else
 #endif
@@ -437,7 +490,7 @@ static v8::MaybeLocal<v8::Value> CallResolver(
 {
     std::vector< v8::Local<v8::Value>> V8Args;
 
-    v8::Local<v8::Function> URLResolveFunction = v8::Local<v8::Function>::Cast(Context->Global()->Get(Context, v8::String::NewFromUtf8(Isolate, "__puer_resolve_module_url__").ToLocalChecked()).ToLocalChecked());
+    v8::Local<v8::Function> URLResolveFunction = v8::Local<v8::Function>::Cast(Context->Global()->Get(Context, v8::String::NewFromUtf8(Isolate, "__puer_js_resolve_module_url__").ToLocalChecked()).ToLocalChecked());
     V8Args.push_back(Specifier);
     V8Args.push_back(ReferrerName);
     v8::MaybeLocal<v8::Value> maybeRet = URLResolveFunction->Call(Context, Context->Global(), 2, V8Args.data());
@@ -455,13 +508,13 @@ static v8::MaybeLocal<v8::Value> CallRead(
 {
     std::vector< v8::Local<v8::Value>> V8Args;
 
-    v8::Local<v8::Function> ModuleReadFunction = v8::Local<v8::Function>::Cast(Context->Global()->Get(Context, v8::String::NewFromUtf8(Isolate, "__puer_resolve_module_content__").ToLocalChecked()).ToLocalChecked());
+    v8::Local<v8::Function> ModuleReadFunction = v8::Local<v8::Function>::Cast(Context->Global()->Get(Context, v8::String::NewFromUtf8(Isolate, "__puer_js_resolve_module_content__").ToLocalChecked()).ToLocalChecked());
 
     V8Args.push_back(URL);
 
 #if !WITH_QUICKJS
     v8::Local<v8::Array> pathForDebugRef = v8::Array::New(Isolate, 0);
-    V8Args.push_back(pathForDebugRef);
+    V8Args.emplace_back(pathForDebugRef);
     v8::MaybeLocal<v8::Value> maybeRet = ModuleReadFunction->Call(Context, Context->Global(), 2, V8Args.data());
 #else
     v8::MaybeLocal<v8::Value> maybeRet = ModuleReadFunction->Call(Context, Context->Global(), 1, V8Args.data());
@@ -630,6 +683,76 @@ void puerts::esmodule::ExecuteModule(const v8::FunctionCallbackInfo<v8::Value>& 
 }
 
 #if !WITH_QUICKJS
+void puerts::esmodule::HasSyntheticModule(const v8::FunctionCallbackInfo<v8::Value> &info)
+{
+    v8::Isolate* Isolate = info.GetIsolate();
+    BackendEnv* mm = BackendEnv::Get(Isolate);
+
+    v8::Local<v8::Context> Context = Isolate->GetCurrentContext();
+    // do not check arguments type here. JS checked it
+    v8::Local<v8::String> moduleName = v8::Local<v8::String>::Cast(info[0]);
+    v8::String::Utf8Value moduleName_utf8(Isolate, moduleName);
+    if (mm->PathToModuleMap.find(*moduleName_utf8) != mm->PathToModuleMap.end()) {
+        info.GetReturnValue().Set(v8::True(Isolate));
+
+    } else {
+        info.GetReturnValue().Set(v8::False(Isolate));
+    }
+
+}
+void puerts::esmodule::CreateSyntheticModule(const v8::FunctionCallbackInfo<v8::Value> &info)
+{
+    v8::Isolate* Isolate = info.GetIsolate();
+    BackendEnv* mm = BackendEnv::Get(Isolate);
+
+    v8::Local<v8::Context> Context = Isolate->GetCurrentContext();
+    // do not check arguments type here. JS checked it
+    v8::Local<v8::String> moduleName = v8::Local<v8::String>::Cast(info[0]);
+    v8::Local<v8::Array> Keys = v8::Local<v8::Array>::Cast(info[1]);
+    std::vector<v8::Local<v8::String>> Keys_std(Keys->Length());
+
+    for (int i = 0; i < Keys_std.size(); i++) {
+        Keys_std[i] = v8::Local<v8::String>::Cast(Keys->Get(Context, i).ToLocalChecked());
+    }
+    v8::Local<v8::Module> Module = v8::Module::CreateSyntheticModule(
+        info.GetIsolate(),
+        moduleName,
+        Keys_std,
+        [](v8::Local<v8::Context> ContextInner, v8::Local<v8::Module> Module) -> v8::MaybeLocal<v8::Value>
+        {
+            v8::Isolate* IsolateInner = ContextInner->GetIsolate();
+            BackendEnv* mm = BackendEnv::Get(IsolateInner);
+            auto iter = FindModuleInfo(mm->HashToModuleInfo, Module);
+
+            if (iter == mm->HashToModuleInfo.end()) {
+                return {};
+            }
+            v8::Local<v8::Object> Namespace = iter->second->Namespace.Get(IsolateInner);
+            auto KeysInner = Namespace->GetOwnPropertyNames(ContextInner).ToLocalChecked();
+            for (int i = 0; i < KeysInner->Length(); i++) {
+                v8::Local<v8::String> key = v8::Local<v8::String>::Cast(KeysInner->Get(ContextInner, i).ToLocalChecked());
+                auto ret = Module->SetSyntheticModuleExport(
+                        IsolateInner,
+                        key,
+                        Namespace->Get(ContextInner, key).ToLocalChecked()
+                );
+                if (ret.IsNothing()) {
+                    return {};
+                }
+            }
+            return { v8::True(IsolateInner) };
+        }
+    );
+
+    v8::String::Utf8Value moduleName_utf8(Isolate, moduleName);
+    auto moduleInfo = new esmodule::ModuleInfo {};
+    moduleInfo->ModulePath = *moduleName_utf8;
+    moduleInfo->Module.Reset(Isolate, Module);
+    moduleInfo->Namespace.Reset(Isolate, v8::Local<v8::Object>::Cast(info[2]));
+    mm->HashToModuleInfo.emplace(Module->GetIdentityHash(), moduleInfo);
+    mm->PathToModuleMap[*moduleName_utf8].Reset(Isolate, Module);
+}
+
 v8::MaybeLocal<v8::Module> puerts::esmodule::_ResolveModule(
     v8::Local<v8::Context> Context,
     v8::Local<v8::String> Specifier,
@@ -665,12 +788,12 @@ v8::MaybeLocal<v8::Module> puerts::esmodule::_ResolveModule(
     }
     v8::Local<v8::String> Code = v8::Local<v8::String>::Cast(maybeRet.ToLocalChecked());
 
-    v8::ScriptOrigin Origin(pathForDebug.size() == 0 ? 
+    v8::ScriptOrigin Origin(pathForDebug.empty() ?
         Specifier : 
         v8::String::NewFromUtf8(Isolate, pathForDebug.c_str()).ToLocalChecked(),
         v8::Integer::New(Isolate, 0),                      // line offset
         v8::Integer::New(Isolate, 0),                    // column offset
-        v8::True(Isolate),                    // is cross origin
+        v8::True(Isolate),                    // is crossOrigin
         v8::Local<v8::Integer>(),                 // script id
         v8::Local<v8::Value>(),                   // source map URL
         v8::False(Isolate),                   // is opaque (?)
@@ -689,11 +812,11 @@ v8::MaybeLocal<v8::Module> puerts::esmodule::_ResolveModule(
     {
         return v8::MaybeLocal<v8::Module> {};
     }
-#if V8_94_OR_NEWER
-    mm->ScriptIdToPathMap[Module->ScriptId()] = Specifier_std;
-#else 
-    mm->ScriptIdToPathMap[Module->GetIdentityHash()] = Specifier_std;
-#endif
+
+    auto info = new esmodule::ModuleInfo {};
+    info->ModulePath = Specifier_std;
+    info->Module.Reset(Isolate, Module);
+    mm->HashToModuleInfo.emplace(Module->GetIdentityHash(), info);
     mm->PathToModuleMap[Specifier_std] = v8::UniquePersistent<v8::Module>(Isolate, Module);
     return Module;
 }
@@ -705,14 +828,10 @@ v8::Local<v8::Value> GetModuleName(
 {
     puerts::BackendEnv* mm = puerts::BackendEnv::Get(Isolate);
     v8::Local<v8::Value> ReferrerName;
-#if V8_94_OR_NEWER
-    const auto referIter = mm->ScriptIdToPathMap.find(Referrer->ScriptId()); 
-#else 
-    const auto referIter = mm->ScriptIdToPathMap.find(Referrer->GetIdentityHash()); 
-#endif
-    if (referIter != mm->ScriptIdToPathMap.end())
+    auto referIter = FindModuleInfo(mm->HashToModuleInfo, Referrer);
+    if (referIter != mm->HashToModuleInfo.end())
     {
-        std::string referPath_std = referIter->second;
+        std::string referPath_std = referIter->second->ModulePath;
         ReferrerName = v8::String::NewFromUtf8(Isolate, referPath_std.c_str()).ToLocalChecked();
     }
     else
@@ -769,17 +888,14 @@ void puerts::esmodule::HostInitializeImportMetaObject(v8::Local<v8::Context> Con
     v8::Isolate* Isolate = Context->GetIsolate();
     BackendEnv* mm = BackendEnv::Get(Isolate);
 
-#if V8_94_OR_NEWER
-    auto iter = mm->ScriptIdToPathMap.find(Module->ScriptId());
-#else 
-    auto iter = mm->ScriptIdToPathMap.find(Module->GetIdentityHash());
-#endif
-    if (iter != mm->ScriptIdToPathMap.end()) 
+    auto iter = FindModuleInfo(mm->HashToModuleInfo, Module);
+
+    if (iter != mm->HashToModuleInfo.end())
     {
         meta->CreateDataProperty(
             Context, 
             v8::String::NewFromUtf8(Isolate, "url").ToLocalChecked(),
-            v8::String::NewFromUtf8(Isolate, ("puer:" + iter->second).c_str()).ToLocalChecked()
+            v8::String::NewFromUtf8(Isolate, ("puer:" + iter->second->ModulePath).c_str()).ToLocalChecked()
         ).ToChecked();
     }
 }

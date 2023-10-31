@@ -1,0 +1,4 @@
+namespace puerts
+{
+    static const char* ExecuteModuleJSCode = R"(@JS_CONTENT_MODULE@)";
+}

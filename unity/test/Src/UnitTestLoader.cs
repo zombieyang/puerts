@@ -18,17 +18,15 @@ namespace Puerts.UnitTest
             return !filepath.EndsWith(".cjs");
         }
 
-        /**
-        * 判断文件是否存在，并返回调整后文件标识符，供ReadFile使用。
-        * localFilePath为文件本地路径，调试器调试时会使用。
-        */
         [UnityEngine.Scripting.Preserve]
-        public string Resolve(string specifier, string referrer)
+        public string ResolveAndFind(string specifier, string referrer, out bool exists)
         {
             if (PathHelper.IsRelative(specifier))
             {
                 specifier = PathHelper.normalize(PathHelper.Dirname(referrer) + "/" + specifier);
             }
+
+            exists = true;
 
             string path = UnityEngine.Application.streamingAssetsPath + "/" + specifier;
             if (System.IO.File.Exists(path)) 
@@ -51,13 +49,23 @@ namespace Puerts.UnitTest
             {
                 return specifier + "/index.js";
             }
-            return null;
+
+            exists = false;
+            return specifier;
+        }
+
+        [UnityEngine.Scripting.Preserve]
+        public string Resolve(string specifier, string referrer)
+        {
+            return ResolveAndFind(specifier, referrer, out _);
         }
 
         [UnityEngine.Scripting.Preserve]
         public bool FileExists(string specifier)
         {
-            return !System.String.IsNullOrEmpty(Resolve(specifier, "."));
+            bool exists;
+            ResolveAndFind(specifier, ".", out exists);
+            return exists;
         }
 
         [UnityEngine.Scripting.Preserve]

@@ -20,8 +20,7 @@
 #include "Binding.hpp"   
 #include <stdarg.h>
 #include "BackendEnv.h"
-#include "ExecuteModuleJSCode.h"
-
+#include "JS_internal.h"
 #define USE_OUTSIZE_UNITY 1
 
 #include "UnityExports4Puerts.h"
@@ -282,16 +281,15 @@ static void* JsValueToCSRef(v8::Local<v8::Context> context, v8::Local<v8::Value>
     return GUnityExports.JsValueToCSRef(typeId, *context, *val);
 }
 
-static v8::Value* GetModuleExecutor(v8::Context* env)
+static v8::Value* GetInternalJSFunctionLib(v8::Context* env)
 {
     v8::Local<v8::Context> Context;
     memcpy(static_cast<void*>(&Context), &env, sizeof(env));
 
-    auto ret = pesapi_eval((pesapi_env) env, (const uint8_t*) ExecuteModuleJSCode, strlen(ExecuteModuleJSCode), "__puer_execute__.mjs");
-
     auto Isolate = Context->GetIsolate();
+    BackendEnv *mm = BackendEnv::Get(Isolate);
 
-    return *v8::FunctionTemplate::New(Isolate, puerts::esmodule::ExecuteModule)->GetFunction(Context).ToLocalChecked();
+    return *mm->InternalJSFunctionLib.Get(Isolate);
 }
 
 static void* GetJSObjectValue(const PersistentObjectInfo* objectInfo, const char* key, const void* Typeid)
@@ -771,7 +769,8 @@ struct JSEnv
 
         CppObjectMapper.UnInitialize(MainIsolate);
         BackendEnv.PathToModuleMap.clear();
-        BackendEnv.ScriptIdToPathMap.clear();
+        BackendEnv.HashToModuleInfo.clear();
+        BackendEnv.InternalJSFunctionLib.Reset();
         BackendEnv.JsPromiseRejectCallback.Reset();
         if (BackendEnv.Inspector)
         {
@@ -1131,7 +1130,7 @@ V8_EXPORT void ExchangeAPI(puerts::UnityExports * exports)
     exports->SetRuntimeObjectToPersistentObject = &puerts::SetRuntimeObjectToPersistentObject;
     exports->GetRuntimeObjectFromPersistentObject = &puerts::GetRuntimeObjectFromPersistentObject;
     exports->GetJSObjectValue = &puerts::GetJSObjectValue;
-    exports->GetModuleExecutor = &puerts::GetModuleExecutor;
+    exports->GetInternalJSFunctionLib = &puerts::GetInternalJSFunctionLib;
     puerts::GUnityExports = *exports;
 }
 

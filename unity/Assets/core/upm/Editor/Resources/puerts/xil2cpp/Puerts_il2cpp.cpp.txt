@@ -1695,14 +1695,14 @@ Il2CppObject* EvalInternal(intptr_t ptr, Il2CppArray * __code, Il2CppString* __p
     }
     return nullptr;
 }
-Il2CppObject* GetModuleExecutor(intptr_t ptr, Il2CppReflectionType* rtype)
+Il2CppObject* GetInternalJSFunctionLib(intptr_t ptr)
 {
     pesapi_env_holder env_holder = reinterpret_cast<pesapi_env_holder>(ptr);
 
     internal::AutoValueScope ValueScope(env_holder);
     auto env = pesapi_get_env_from_holder(env_holder);
     
-    pesapi_value func = g_unityExports.GetModuleExecutor(env);
+    pesapi_value func = g_unityExports.GetInternalJSFunctionLib(env);
     if (pesapi_has_caught(ValueScope.scope))
     {
         Exception::Raise(Exception::GetInvalidOperationException(pesapi_get_exception_as_string(ValueScope.scope, true)));
@@ -1735,7 +1735,7 @@ void InitialPuerts(pesapi_func_ptr* func_array)
     InternalCalls::Add("PuertsIl2cpp.NativeAPI::GetUnityExports()", (Il2CppMethodPointer)puerts::GetUnityExports);
     InternalCalls::Add("PuertsIl2cpp.NativeAPI::EvalInternal(System.IntPtr,System.Byte[],System.String,System.Type)", (Il2CppMethodPointer)puerts::EvalInternal);
     InternalCalls::Add("PuertsIl2cpp.NativeAPI::TypeIdToType(System.IntPtr)", (Il2CppMethodPointer)puerts::TypeIdToType);
-    InternalCalls::Add("PuertsIl2cpp.NativeAPI::GetModuleExecutor(System.IntPtr,System.Type)", (Il2CppMethodPointer)puerts::GetModuleExecutor);
+    InternalCalls::Add("PuertsIl2cpp.NativeAPI::GetInternalJSFunctionLib(System.IntPtr)", (Il2CppMethodPointer)puerts::GetInternalJSFunctionLib);
     InternalCalls::Add("Puerts.JSObject::releaseScriptObject()", (Il2CppMethodPointer)puerts::ReleaseScriptObject);
     InternalCalls::Add("Puerts.JSObject::GetJSObjectValue(System.String,System.Type)", (Il2CppMethodPointer)puerts::GetJSObjectValue);
     pesapi_init(func_array);

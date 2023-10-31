@@ -46,9 +46,16 @@ namespace Puerts
 
         internal readonly JSObjectFactory jsObjectFactory;
 
-        internal readonly GenericDelegate JSObjectValueGetter;
+        
+        internal readonly GenericDelegate InternalJSFunctionLib;
 
+        internal GenericDelegate JSObjectValueGetter
+        {
+            get { return InternalJSFunctionLib; }
+        }
         internal GenericDelegate ModuleExecutor;
+        internal GenericDelegate AddSyntheticModule;
+        
 
         internal IntPtr isolate;
 
@@ -101,7 +108,7 @@ namespace Puerts
             {
                 throw new InvalidProgramException("expect lib version " + libVersionExpect + ", but got " + libVersion);
             }
-            // PuertsDLL.SetLogCallback(LogCallback, LogWarningCallback, LogErrorCallback);
+            PuertsDLL.SetLogCallback(LogCallback, LogWarningCallback, LogErrorCallback);
             this.loader = loader;
             this.loaderCanCheckESM = loader is IModuleChecker;
             
@@ -186,13 +193,7 @@ namespace Puerts
             lock (this)
             {
 #endif
-            var ptr = PuertsDLL.GetJSObjectValueGetter(isolate);
-            if (ptr == IntPtr.Zero)
-            {
-                string exceptionInfo = PuertsDLL.GetLastExceptionInfo(isolate);
-                throw new Exception(exceptionInfo);
-            }
-            JSObjectValueGetter = new GenericDelegate(ptr, this);
+            InternalJSFunctionLib = genericDelegateFactory.ToGenericDelegate(PuertsDLL.GetInternalJSFunctionLib(Isolate));
 #if THREAD_SAFE
             }
 #endif
@@ -276,43 +277,33 @@ namespace Puerts
 
         /**
         * execute the module and get the result
-        * when exportee is null, get the module namespace
-        * when exportee is not null, get the specified member of the module namespace
         *
-        * example: JsEnv.ExecuteModule("main.mjs")
+        * deprecated. 
+        * because it is equals to ExecuteModule(xxx).Get<T>()
+        *
         */
         public T ExecuteModule<T>(string specifier, string exportee)
         {
-            if (exportee == "" && typeof(T) != typeof(JSObject)) {
-                throw new Exception("T must be Puerts.JSObject when getting the module namespace");
-            }
-            if (ModuleExecutor == null)
-            {
-                var ptr = PuertsDLL.GetModuleExecutor(isolate);
-                if (ptr == IntPtr.Zero)
-                {
-                    string exceptionInfo = PuertsDLL.GetLastExceptionInfo(isolate);
-                    throw new Exception(exceptionInfo);
-                }
-                ModuleExecutor = new GenericDelegate(ptr, this);
-            }
-            JSObject jso = ModuleExecutor.Func<string, JSObject>(specifier);
-            
-            return jso.Get<T>(exportee);
+            return ExecuteModule(specifier).Get<T>(exportee);
         }
         public JSObject ExecuteModule(string specifier)
         {
             if (ModuleExecutor == null)
             {
-                var ptr = PuertsDLL.GetModuleExecutor(isolate);
-                if (ptr == IntPtr.Zero)
-                {
-                    string exceptionInfo = PuertsDLL.GetLastExceptionInfo(isolate);
-                    throw new Exception(exceptionInfo);
-                }
-                ModuleExecutor = new GenericDelegate(ptr, this);
+                ModuleExecutor = InternalJSFunctionLib.Get<Func<GenericDelegate>>("getModuleExecutor")();
             }
             return ModuleExecutor.Func<string, JSObject>(specifier);
+        }
+        public void AddModule(string fullSpecifier, JSObject namespaze)
+        {
+            if (Backend is BackendQuickJS) throw new Exception("AddModule is not supported in quickjs backend yet.");
+
+            if (AddSyntheticModule == null)
+            {
+                AddSyntheticModule = InternalJSFunctionLib.Get<GenericDelegate>("addSyntheticModule");
+            }
+
+            AddSyntheticModule.Action<string, JSObject>(fullSpecifier, namespaze);
         }
 
         public void Eval(string chunk, string chunkName = "chunk")
@@ -757,32 +748,32 @@ namespace Puerts
         }
 #endif
 
-//         [MonoPInvokeCallback(typeof(LogCallback))]
-//         private static void LogCallback(string msg)
-//         {
-// #if PUERTS_GENERAL || (UNITY_WSA && !UNITY_EDITOR)
-// #else
-//             UnityEngine.Debug.Log(msg);
-// #endif
-//         }
+        [MonoPInvokeCallback(typeof(LogCallback))]
+        private static void LogCallback(string msg)
+        {
+#if PUERTS_GENERAL || (UNITY_WSA && !UNITY_EDITOR)
+#else
+            UnityEngine.Debug.Log(msg);
+#endif
+        }
 
-//         [MonoPInvokeCallback(typeof(LogCallback))]
-//         private static void LogWarningCallback(string msg)
-//         {
-// #if PUERTS_GENERAL || (UNITY_WSA && !UNITY_EDITOR)
-// #else
-//             UnityEngine.Debug.Log(msg);
-// #endif
-//         }
+        [MonoPInvokeCallback(typeof(LogCallback))]
+        private static void LogWarningCallback(string msg)
+        {
+#if PUERTS_GENERAL || (UNITY_WSA && !UNITY_EDITOR)
+#else
+            UnityEngine.Debug.Log(msg);
+#endif
+        }
 
-//         [MonoPInvokeCallback(typeof(LogCallback))]
-//         private static void LogErrorCallback(string msg)
-//         {
-// #if PUERTS_GENERAL || (UNITY_WSA && !UNITY_EDITOR)
-// #else
-//             UnityEngine.Debug.Log(msg);
-// #endif
-//         }
+        [MonoPInvokeCallback(typeof(LogCallback))]
+        private static void LogErrorCallback(string msg)
+        {
+#if PUERTS_GENERAL || (UNITY_WSA && !UNITY_EDITOR)
+#else
+            UnityEngine.Debug.Log(msg);
+#endif
+        }
 
         ~JsEnv()
         {

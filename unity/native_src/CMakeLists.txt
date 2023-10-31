@@ -36,11 +36,17 @@ string (REPLACE ";" "$<SEMICOLON>${BACKEND_ROOT}" BACKEND_INC_NAMES "${BACKEND_R
 string (REPLACE ";" "$<SEMICOLON>${BACKEND_ROOT}" BACKEND_LIB_NAMES "${BACKEND_ROOT}${BACKEND_LIB_NAMES}")
 string (REPLACE ";" "$<SEMICOLON>" BACKEND_DEFINITIONS "${BACKEND_DEFINITIONS}")
 
+file(READ ../native_src/JsSrc/internal.mjs JS_CONTENT_MODULE)
+configure_file(
+    ${PROJECT_SOURCE_DIR}/../native_src/JsSrc/JS_internal.h.in ${PROJECT_SOURCE_DIR}/../native_src/JsInc_Gen/JS_internal.h @ONLY
+)
+
 include_directories(
     ${PROJECT_SOURCE_DIR}
     ${ThirdParty}/Include/websocketpp
     ${ThirdParty}/Include/asio
     Inc
+    JsInc_Gen
     ${PROJECT_SOURCE_DIR}/../../unreal/Puerts/Source/JsEnv/Private
     ${BACKEND_INC_NAMES}
 )

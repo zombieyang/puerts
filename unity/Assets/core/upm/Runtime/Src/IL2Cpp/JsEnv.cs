@@ -33,7 +33,9 @@ namespace Puerts
 
         PuertsIl2cpp.ObjectPool objectPool = new PuertsIl2cpp.ObjectPool();
 
-        private Func<string, JSObject> moduleExecutor;
+        private JSObject InternalJSFunctionLib;
+        private Func<string, JSObject> ModuleExecutor;
+        private Action<string, JSObject> AddSyntheticModule;
 
         ILoader loader;
 
@@ -88,7 +90,8 @@ namespace Puerts
                 PuertsIl2cpp.NativeAPI.GetObjectPointer(objectPool));
 
             PuertsIl2cpp.NativeAPI.SetObjectToGlobal(nativeJsEnv, "jsEnv", PuertsIl2cpp.NativeAPI.GetObjectPointer(this));
-
+            InternalJSFunctionLib = PuertsIl2cpp.NativeAPI.GetInternalJSFunctionLib(nativePesapiEnv);
+            
             //可以DISABLE掉自动注册，通过手动调用PuertsStaticWrap.AutoStaticCodeRegister.Register(jsEnv)来注册
 #if !DISABLE_AUTO_REGISTER
             const string AutoStaticCodeRegisterClassName = "PuertsStaticWrap.PuerRegisterInfo_Gen";
@@ -167,18 +170,26 @@ namespace Puerts
 
         public T ExecuteModule<T>(string specifier, string exportee)
         {
-            if (exportee == "" && typeof(T) != typeof(JSObject)) {
-                throw new Exception("T must be Puerts.JSObject when getting the module namespace");
-            }
-            if (moduleExecutor == null) moduleExecutor = PuertsIl2cpp.NativeAPI.GetModuleExecutor(nativePesapiEnv, typeof(Func<string, JSObject>));
-            JSObject jso = moduleExecutor(specifier);
-            
-            return jso.Get<T>(exportee);
+            return ExecuteModule(specifier).Get<T>(exportee);
         }
         public JSObject ExecuteModule(string specifier)
         {
-            if (moduleExecutor == null) moduleExecutor = PuertsIl2cpp.NativeAPI.GetModuleExecutor(nativePesapiEnv, typeof(Func<string, JSObject>));
-            return moduleExecutor(specifier);
+            if (ModuleExecutor == null)
+            {
+                ModuleExecutor = InternalJSFunctionLib.Get<Func<Func<string, JSObject>>>("getModuleExecutor")();
+            }
+            return ModuleExecutor(specifier);
+        }
+        public void AddModule(string fullSpecifier, JSObject namespaze)
+        {
+            if (Backend is BackendQuickJS) throw new Exception("AddModule is not supported in quickjs backend yet.");
+
+            if (AddSyntheticModule == null)
+            {
+                AddSyntheticModule = InternalJSFunctionLib.Get<Action<string, JSObject>>("addSyntheticModule");
+            }
+
+            AddSyntheticModule(fullSpecifier, namespaze);
         }
 
         public Action TickHandler;

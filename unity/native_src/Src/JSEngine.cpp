@@ -9,30 +9,10 @@
 #include "Log.h"
 #include <memory>
 #include <stdarg.h>
-#include "ExecuteModuleJSCode.h"
+#include "JS_module.h"
 
 namespace puerts
 {
-    static void JSObjectValueGetterFunction(const v8::FunctionCallbackInfo<v8::Value>& Info)
-    {
-        v8::Isolate* Isolate = Info.GetIsolate();
-        if (!Info[0]->IsObject() || !Info[1]->IsString())
-            return;
-
-        auto JsEngine = FV8Utils::IsolateData<JSEngine>(Isolate);
-        v8::Isolate::Scope IsolateScope(Isolate);
-        v8::HandleScope HandleScope(Isolate);
-        auto Context = JsEngine->ResultInfo.Context.Get(Isolate);
-        v8::Context::Scope ContextScope(Context);
-        v8::Local<v8::Object> object = v8::Local<v8::Object>::Cast(Info[0]);
-
-        auto maybeRet = object->Get(Context, Info[1]);
-        if (maybeRet.IsEmpty())
-            return;
-
-        Info.GetReturnValue().Set(maybeRet.ToLocalChecked());
-    }
-
     v8::Local<v8::ArrayBuffer> NewArrayBuffer(v8::Isolate* Isolate, void *Ptr, size_t Size)
     {
         v8::Local<v8::ArrayBuffer> Ab = v8::ArrayBuffer::New(Isolate, Size);
@@ -127,17 +107,21 @@ namespace puerts
         v8::Local<v8::Object> Global = Context->Global();
         if (external_quickjs_runtime == nullptr) 
         {
+            bool success = Eval(ExecuteModuleJSCode, "__puer_internal_jslib__.mjs");
+            if (!success) {  }
             BackendEnv.InitInject(MainIsolate, Context);
+            success = BackendEnv.GetInternalJSLib(MainIsolate, Context, v8::Local<v8::Function>::Cast(ResultInfo.Result.Get(MainIsolate)));
+            if (!success) {  }
             Global->Set(Context, FV8Utils::V8String(Isolate, "__puertsGetLastException"), v8::FunctionTemplate::New(Isolate, &GetLastException)->GetFunction(Context).ToLocalChecked()).Check();
         }
         Global->Set(Context, FV8Utils::V8String(Isolate, "__tgjsEvalScript"), v8::FunctionTemplate::New(Isolate, &EvalWithPath)->GetFunction(Context).ToLocalChecked()).Check();
+//        Global->Set(Context, FV8Utils::V8String(Isolate, "log"), v8::FunctionTemplate::New(Isolate, [](const v8::FunctionCallbackInfo<v8::Value>& info)
+//        {
+//            v8::String::Utf8Value str(info.GetIsolate(), info[0]);
+//            PLog(LogLevel::Log, *str);
+//        })->GetFunction(Context).ToLocalChecked()).Check();
 
         JSObjectIdMap.Reset(Isolate, v8::Map::New(Isolate));
-
-        JSObjectValueGetter = CreateJSFunction(
-            MainIsolate, Context, 
-            v8::FunctionTemplate::New(Isolate, &JSObjectValueGetterFunction)->GetFunction(Context).ToLocalChecked()
-        );
     }
 
     JSEngine::~JSEngine()
@@ -150,15 +134,16 @@ namespace puerts
 
         JSObjectIdMap.Reset();
         BackendEnv.JsPromiseRejectCallback.Reset();
+        BackendEnv.InternalJSFunctionLib.Reset();
         LastException.Reset();
 
-        for (int i = 0; i < Templates.size(); ++i)
+        for (auto & Template : Templates)
         {
-            Templates[i].Reset();
+            Template.Reset();
         }
-        for (int i = 0; i < Metadatas.size(); ++i)
-        {
-            Metadatas[i].Reset();
+        for (auto & Metadata : Metadatas) {
+
+            Metadata.Reset();
         }
 
         {
@@ -171,9 +156,9 @@ namespace puerts
             auto Context = ResultInfo.Context.Get(Isolate);
             v8::Context::Scope ContextScope(Context);
 
-            for (auto Iter = ObjectMap.begin(); Iter != ObjectMap.end(); ++Iter)
+            for (auto & Iter : ObjectMap)
             {
-                auto Value = Iter->second.Get(MainIsolate);
+                auto Value = Iter.second.Get(MainIsolate);
                 if (Value->IsObject())
                 {
                     auto Object = Value->ToObject(Context).ToLocalChecked();
@@ -184,23 +169,23 @@ namespace puerts
                         free(Ptr);
                     }
                 }
-                Iter->second.Reset();
+                Iter.second.Reset();
             }
             BackendEnv.PathToModuleMap.clear();
-            BackendEnv.ScriptIdToPathMap.clear();
+            BackendEnv.HashToModuleInfo.clear();
         }
         {
             std::lock_guard<std::mutex> guard(JSFunctionsMutex);
-            for (auto Iter = JSFunctions.begin(); Iter != JSFunctions.end(); ++Iter)
+            for (auto & JSFunction : JSFunctions)
             {
-                delete *Iter;
+                delete JSFunction;
             }
         }
         {
             std::lock_guard<std::mutex> guard(JSObjectsMutex);
-            for (auto Iter = JSObjectMap.begin(); Iter != JSObjectMap.end(); ++Iter)
+            for (auto & Iter : JSObjectMap)
             {
-                delete Iter->second;
+                delete Iter.second;
             }
         }
 
@@ -209,34 +194,15 @@ namespace puerts
 
         BackendEnv.FreeIsolate();
 
-        for (int i = 0; i < CallbackInfos.size(); ++i)
+        for (auto & CallbackInfo : CallbackInfos)
         {
-            delete CallbackInfos[i];
+            delete CallbackInfo;
         }
 
-        for (int i = 0; i < LifeCycleInfos.size(); ++i)
+        for (auto & LifeCycleInfo : LifeCycleInfos)
         {
-            delete LifeCycleInfos[i];
+            delete LifeCycleInfo;
         }
-    }
-
-    JSFunction* JSEngine::GetModuleExecutor()
-    {
-        if (ModuleExecutor == nullptr)
-        {
-            bool success = Eval(ExecuteModuleJSCode, "__puer_execute__.mjs");
-            if (!success) return nullptr;
-            
-            v8::Isolate::Scope IsolateScope(MainIsolate);
-            v8::HandleScope HandleScope(MainIsolate);
-            v8::Local<v8::Context> Context = ResultInfo.Context.Get(MainIsolate);
-            v8::Context::Scope ContextScope(Context);
-            ModuleExecutor = CreateJSFunction(
-                MainIsolate, Context, 
-                v8::FunctionTemplate::New(MainIsolate, puerts::esmodule::ExecuteModule)->GetFunction(Context).ToLocalChecked()
-            );
-        }
-        return ModuleExecutor;
     }
 
     bool JSEngine::Eval(const char *Code, const char* Path)
@@ -301,7 +267,7 @@ namespace puerts
         // 如果存在该id，则从objectmap里取出该对象
         if (!v8ObjectIndex->IsNullOrUndefined())
         {
-            int32_t mapIndex = (int32_t)v8::Number::Cast(*v8ObjectIndex)->Value();
+            auto mapIndex = (int32_t)v8::Number::Cast(*v8ObjectIndex)->Value();
             auto iter = JSObjectMap.find(mapIndex);
             if (iter != JSObjectMap.end())
             {

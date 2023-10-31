@@ -156,16 +156,19 @@ V8_EXPORT void SetGeneralDestructor(v8::Isolate *Isolate, CSharpDestructorCallba
     JsEngine->GeneralDestructor = GeneralDestructor;
 }
 
-V8_EXPORT JSFunction* GetJSObjectValueGetter(v8::Isolate *Isolate)
+V8_EXPORT puerts::JSFunction* GetInternalJSFunctionLib(v8::Isolate *Isolate)
 {
     auto JsEngine = FV8Utils::IsolateData<JSEngine>(Isolate);
-    return JsEngine->JSObjectValueGetter;
-}
+    v8::Isolate::Scope IsolateScope(Isolate);
+    v8::HandleScope HandleScope(Isolate);
+    v8::Local<v8::Context> Context = JsEngine->ResultInfo.Context.Get(Isolate);
+    v8::Context::Scope ContextScope(Context);
 
-V8_EXPORT JSFunction* GetModuleExecutor(v8::Isolate *Isolate)
-{
-    auto JsEngine = FV8Utils::IsolateData<JSEngine>(Isolate);
-    return JsEngine->GetModuleExecutor();
+    return JsEngine->CreateJSFunction(
+        Isolate,
+        JsEngine->ResultInfo.Context.Get(Isolate),
+        JsEngine->BackendEnv.InternalJSFunctionLib.Get(Isolate)
+    );
 }
 
 //-------------------------- begin js call cs --------------------------
