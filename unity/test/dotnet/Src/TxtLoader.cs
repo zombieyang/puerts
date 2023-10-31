@@ -27,11 +27,12 @@ public class TxtLoader : IResolvableLoader,  ILoader, IModuleChecker
 
     public bool FileExists(string specifier)
     {
-        var res = !System.String.IsNullOrEmpty(Resolve(specifier, "."));
-        return res;
+        bool exists;
+        ResolveAndFind(specifier, ".", out exists);
+        return exists;
     }
 
-    private string TryResolve(string specifier)
+    private string ResolveAndFind(string specifier, out bool exists)
     {
         string path = Path.Combine(root, specifier);
         if (System.IO.File.Exists(path)) 
@@ -59,7 +60,7 @@ public class TxtLoader : IResolvableLoader,  ILoader, IModuleChecker
         {
             return specifier;
         } 
-        return null;
+        return specifier;
     }
 
     public string Resolve(string specifier, string referrer)
@@ -69,11 +70,11 @@ public class TxtLoader : IResolvableLoader,  ILoader, IModuleChecker
             specifier = PathHelper.normalize(PathHelper.Dirname(referrer) + "/" + specifier);
         }
 
-        var specifier1 = TryResolve(specifier);
-        if (specifier1 == null) specifier1 = TryResolve(specifier + ".txt");
-        if (specifier1 == null) specifier1 = TryResolve(specifier + "/index.js.txt");
-        if (specifier1 != null) return specifier1;
-        return null;
+        bool exists;
+        var specifier1 = TryResolve(specifier, out exists);
+        if (!exists) specifier1 = TryResolve(specifier + ".txt", out exists);
+        if (!exists) specifier1 = TryResolve(specifier + "/index.js.txt", out exists);
+        return exists ? specifier1 : specifier;
     }
 
     public string ReadFile(string filepath, out string debugpath)
