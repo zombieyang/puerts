@@ -34,6 +34,7 @@ public class TxtLoader : IResolvableLoader,  ILoader, IModuleChecker
 
     private string ResolveAndFind(string specifier, out bool exists)
     {
+        exists = true;
         string path = Path.Combine(root, specifier);
         if (System.IO.File.Exists(path)) 
         {
@@ -60,6 +61,7 @@ public class TxtLoader : IResolvableLoader,  ILoader, IModuleChecker
         {
             return specifier;
         } 
+        exists = false;
         return specifier;
     }
 
