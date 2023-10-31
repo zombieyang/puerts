@@ -9,7 +9,7 @@
 #include "Log.h"
 #include <memory>
 #include <stdarg.h>
-#include "JS_module.h"
+#include "JS_internal.h"
 
 namespace puerts
 {
