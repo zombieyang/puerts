@@ -140,7 +140,7 @@ namespace puerts
 #else
         std::map<std::string, v8::UniquePersistent<v8::Module>> PathToModuleMap;
 #endif
-        std::unordered_multimap<int, esmodule::ModuleInfo*> HashToModuleInfo;
+        std::map<int, esmodule::ModuleInfo*> HashToModuleInfo;
 
         // PromiseCallback
         v8::UniquePersistent<v8::Function> JsPromiseRejectCallback;

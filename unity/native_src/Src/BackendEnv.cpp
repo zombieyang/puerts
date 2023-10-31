@@ -298,16 +298,10 @@ void puerts::BackendEnv::FreeIsolate()
 }
 
 #if !WITH_QUICKJS
-static std::unordered_multimap<int, puerts::esmodule::ModuleInfo*>::iterator FindModuleInfo(std::unordered_multimap<int, puerts::esmodule::ModuleInfo*> &Map, v8::Local<v8::Module> Module)
+static std::map<int, puerts::esmodule::ModuleInfo*>::iterator FindModuleInfo(std::map<int, puerts::esmodule::ModuleInfo*> &Map, v8::Local<v8::Module> Module)
 {
-    auto Range = Map.equal_range(Module->GetIdentityHash());
-    for (auto It = Range.first; It != Range.second; ++It)
-    {
-        if (It->second->Module == Module)
-        {
-            return It;
-        }
-    }
+    auto Iter = Map.find(Module->GetIdentityHash());
+    if (Iter != Map.end()) return Iter;
     return Map.end();
 }
 #endif
