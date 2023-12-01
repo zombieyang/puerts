@@ -81,6 +81,8 @@
             
             if (!(type.Name == 'JSObject' && ns.Name == 'Puerts')) {
                 // type declaration
+                t`${typePrefix(type)}
+                `
                 t`${typeKeyword(type)} ${typeDeclaration(type, true)}
                 `
 
@@ -226,6 +228,17 @@
 function parameterDef(pinfo, isStatic, type) {
     return (pinfo.IsParams ? ("..." + pinfo.Name) : "$" + pinfo.Name) + (pinfo.IsOptional?"?":"") + ": " + (isStatic ? typeNameWithOutGenericType(type, pinfo.TypeName) : pinfo.TypeName);
 }
+function typePrefix(type) {
+    if (type.IsInterface) {
+        let result = `class ${type.Name}`
+        if (type.IsGenericTypeDefinition) {
+            result += "<" + Array.prototype.join.call(toJsArray(type.GenericParameters), ', ') + ">";
+        }
+        result += ' extends __Puerts_CSharpInterface {}'
+        return result;
+    }
+    return ''
+}
 function typeKeyword(type) {
     if (type.IsDelegate) {
         return 'interface';
@@ -267,8 +280,8 @@ function typeDeclaration(type, level1) {
     if (type.IsGenericTypeDefinition) {
         result += "<" + Array.prototype.join.call(toJsArray(type.GenericParameters), ', ') + ">";
     }
-    if (level1 && type.BaseType) {
-        result += " extends " + typeDeclaration(type.BaseType);
+    if (level1 && (!type.IsInterface && !type.IsEnum && !type.IsDelegate)) {
+        result += " extends " + (type.BaseType ? typeDeclaration(type.BaseType) : '__Puerts_CSharpType');
     }
     var interfaces = type.interfaces ? toJsArray(type.interfaces) : [];
     if (level1 && !type.IsDelegate && !type.IsEnum && interfaces.length) {

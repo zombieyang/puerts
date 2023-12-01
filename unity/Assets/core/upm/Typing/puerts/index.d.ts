@@ -1,4 +1,6 @@
+declare class __Puerts_CSharpType { }
 declare enum __Puerts_CSharpEnum { }
+declare class __Puerts_CSharpInterface { protected constructor(); }
 
 declare namespace puer {
     function $ref<T>(x?: T): CS.$Ref<T>;
@@ -9,9 +11,9 @@ declare namespace puer {
 
     function $promise<T>(x: CS.$Task<T>): Promise<T>;
 
-    function $generic<T extends new (...args: any[]) => any>(genericType: T, ...genericArguments: (typeof __Puerts_CSharpEnum | (new (...args: any[]) => any))[]): T;
+    function $generic<T extends __Puerts_CSharpType>(genericType: T, ...genericArguments: (typeof __Puerts_CSharpEnum | __Puerts_CSharpType)[]): T;
 
-    function $genericMethod(genericType: new (...args: any[]) => any, methodName: string, ...genericArguments: (typeof __Puerts_CSharpEnum | (new (...args: any[]) => any))[]): (...args: any[]) => any;
+    function $genericMethod(genericType: __Puerts_CSharpType, methodName: string, ...genericArguments: (typeof __Puerts_CSharpEnum | __Puerts_CSharpType)[]): __Puerts_CSharpType;
 
     function $typeof(x: new (...args: any[]) => any): CS.System.Type;
 
