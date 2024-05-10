@@ -70,8 +70,6 @@
 
 ## Ask for help
 
-[Discord](https://discord.gg/RYRY7D833n)
-
 [Github Discussion](https://github.com/Tencent/puerts/discussions)
 
 ------
